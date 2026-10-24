@@ -15,10 +15,11 @@ import { useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import '../styles/exercise-display.css';
 import MuscleFigure, { type MuscleRow } from '../components/MuscleFigure';
+import ExerciseArt from '../components/ExerciseArt';
+import { artVariantOf } from '../lib/exerciseArt';
 import { getActiveProgram } from '../lib/store';
 import {
   ARCHETYPES,
-  archetypeArtUrl,
   archetypeLabel,
   archetypeOf,
   compoundLabel,
@@ -48,30 +49,18 @@ const GOAL_KEYS: Record<string, string> = {
 };
 
 /**
- * Archetype illustration with a graceful neon placeholder if the
- * illustrator's PNG is not in place yet.
+ * Per-exercise neon illustration (replaces the shared archetype PNG:
+ * every exercise now shows its own movement + equipment).
  */
-function ArchetypeArt({
-  slug,
-  alt,
+function ExerciseArtBox({
+  exercise,
   className,
 }: {
-  slug: Parameters<typeof archetypeArtUrl>[0];
-  alt: string;
+  exercise: Exercise;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <div className={`ex-art ex-art--missing ${className ?? ''}`} role="img" aria-label={alt}>
-        <div className="ex-art__pulse-ring" />
-      </div>
-    );
-  }
   return (
-    <div className={`ex-art ${className ?? ''}`}>
-      <img src={archetypeArtUrl(slug)} alt={alt} loading="lazy" onError={() => setFailed(true)} />
-    </div>
+    <ExerciseArt variant={artVariantOf(exercise)} alt={exercise.nameFa} className={className} />
   );
 }
 
@@ -136,7 +125,7 @@ function ExerciseDetail({
     <div className="ex-detail">
       {/* ---------- hero moment ---------- */}
       <div className="ex-hero">
-        <ArchetypeArt slug={slug} alt={name} className="ex-hero__art" />
+        <ExerciseArtBox exercise={exercise} className="ex-hero__art" />
         <div className="ex-hero__scrim" />
         <div className="ex-hero__top">
           <button type="button" className="ex-back" onClick={onBack}>
@@ -203,11 +192,10 @@ function ExerciseDetail({
           <h4 className="ex-section__title">{t('workouts.similarExercises')}</h4>
           <div className="ex-similar">
             {similar.map((s) => {
-              const sSlug = archetypeOf(s.key);
               const sName = lang === 'fa' ? s.nameFa : s.nameEn;
               return (
                 <button key={s.key} type="button" className="ex-sim" onClick={() => onSelect(s)}>
-                  <ArchetypeArt slug={sSlug} alt={sName} className="ex-sim__art" />
+                  <ExerciseArtBox exercise={s} className="ex-sim__art" />
                   <span className="ex-sim__body">
                     <span className="ex-sim__name">{sName}</span>
                     <span className="ex-sim__meta">
@@ -407,8 +395,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
           ) : (
             <div className="ex-lib">
               {results.map((e) => {
-                const slug = archetypeOf(e.key);
-                const arch = ARCHETYPES[slug];
+                const arch = ARCHETYPES[archetypeOf(e.key)];
                 const enName = lang === 'fa' ? e.nameEn : e.nameFa;
                 return (
                   <button
@@ -418,10 +405,14 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
                     data-exercise-row={e.key}
                     onClick={() => setSelected(e)}
                   >
-                    <ArchetypeArt slug={slug} alt={nameOf(e)} className="ex-card__art" />
+                    <ExerciseArtBox exercise={e} className="ex-card__art" />
                     <span className="ex-card__body">
-                      <span className="ex-card__name">{nameOf(e)}</span>
-                      <span className="ex-card__en">{enName}</span>
+                      <span className="ex-card__title">
+                        <span className="ex-card__name">{nameOf(e)}</span>
+                        <span className="ex-card__en-inline" dir="ltr">
+                          {enName}
+                        </span>
+                      </span>
                       <span className="ex-card__meta">
                         <span className="ex-muscle-chip">{t(`lib.muscle.${e.muscle}`)}</span>
                         <span className="ex-meta">

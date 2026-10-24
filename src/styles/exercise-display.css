@@ -130,6 +130,22 @@
   margin-top: -4px;
 }
 
+/* bilingual title: Persian name + English name on one line, side by side */
+.ex-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.ex-card__en-inline {
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+}
+
 .ex-card__meta {
   display: flex;
   flex-wrap: wrap;

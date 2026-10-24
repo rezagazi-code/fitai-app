@@ -19,6 +19,8 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { getExercise } from '../lib/exercises';
+import ExerciseArt from '../components/ExerciseArt';
+import { artVariantOf } from '../lib/exerciseArt';
 import { useLang } from '../lib/i18n';
 import {
   nextProgression,
@@ -509,6 +511,7 @@ export default function WorkoutSession({
   const pe = planDay.exercises[exIdx];
   const ex = getExercise(pe.exerciseKey);
   const exName = ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : pe.exerciseKey;
+  const exAltName = ex ? (lang === 'fa' ? ex.nameEn : ex.nameFa) : '';
   const rows = setsByExercise[exIdx];
   const suggestion = suggestions[exIdx];
   const last = getLastPerformance(pe.exerciseKey);
@@ -556,9 +559,19 @@ export default function WorkoutSession({
         key={exIdx}
       >
         <div className="ws-exercise-head">
-          <h2 className="ws-exercise-name">{exName}</h2>
-          <div className="ws-exercise-meta">
-            {fmt(rows.length, lang)} {L.set} · {doneCount}/{fmt(rows.length, lang)} {L.setDone}
+          {ex ? (
+            <ExerciseArt variant={artVariantOf(ex)} alt={exName} className="ws-exercise-art" />
+          ) : null}
+          <div className="ws-exercise-titles">
+            <h2 className="ws-exercise-name">{exName}</h2>
+            {exAltName ? (
+              <div className="ws-exercise-en" dir="ltr">
+                {exAltName}
+              </div>
+            ) : null}
+            <div className="ws-exercise-meta">
+              {fmt(rows.length, lang)} {L.set} · {doneCount}/{fmt(rows.length, lang)} {L.setDone}
+            </div>
           </div>
         </div>
 
