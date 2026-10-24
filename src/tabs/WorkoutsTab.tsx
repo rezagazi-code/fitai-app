@@ -314,7 +314,14 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
           {/* ---------- body map: tap a muscle, see its exercises ---------- */}
           <BodyMap
             selected={muscle}
-            onSelect={setMuscle}
+            onSelect={(m) => {
+              setMuscle(m);
+              if (m !== 'all') {
+                setTimeout(() => {
+                  document.querySelector('.ex-lib')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 60);
+              }
+            }}
             muscleName={(m) => t(`lib.muscle.${m}`)}
             t={t}
           />
