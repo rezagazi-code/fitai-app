@@ -137,16 +137,73 @@ function muscleLabel(m: MuscleGroup, lang: Lang): string {
 }
 
 /* ============================================================
- * Empty state (illustration-free, bilingual)
+ * Empty state (illustration: original dumbbell line-art)
  * ============================================================ */
+function EmptyDumbbell(): ReactElement {
+  return (
+    <svg viewBox="0 0 64 64" className="prog-empty-icon" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+        <path d="M22 26v12M42 26v12" />
+        <path d="M16 30v4M48 30v4M22 32h20" />
+        <path d="M10 29v6M54 29v6" />
+      </g>
+    </svg>
+  );
+}
+
 function EmptyState({ title, hint }: { title: string; hint: string }): ReactElement {
   return (
     <div className="prog-empty">
+      <EmptyDumbbell />
       <p className="prog-empty-title">{title}</p>
       <p className="prog-empty-hint">{hint}</p>
     </div>
   );
 }
+
+/* ---------- small section icons (original line-art) ---------- */
+function SectionIcon({ children }: { children: ReactElement }) {
+  return (
+    <svg viewBox="0 0 24 24" className="prog-sec-icon" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+
+const VolIcon = () => (
+  <SectionIcon>
+    <>
+      <path d="M4 20V4" />
+      <path d="M4 20h16" />
+      <path d="M8.5 16v-5M13 16V8M17.5 16v-3" />
+    </>
+  </SectionIcon>
+);
+
+const MuscleIcon = () => (
+  <SectionIcon>
+    <path d="M7 20c-2.5-4-2.5-9 0-13 1.6 2.6 1.6 4.4 0 6.4 1.8 1.8 4 2.4 5.4 1.2 1.6-1.4 1.6-3.8 0-5.2 1.8-.8 4-.4 5.6.6 2.5 4 2.5 9 0 13-4 0-7-1.6-10.4-1.6-1.4-2.6-2.4-4-1.2-2 1.4-2 3.8-.6 5.2Z" />
+  </SectionIcon>
+);
+
+const TrophyIcon = () => (
+  <SectionIcon>
+    <>
+      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
+      <path d="M8 5H4.5a3.5 3.5 0 0 0 3.6 3.5M16 5h3.5a3.5 3.5 0 0 1-3.6 3.5" />
+      <path d="M12 13v4M8.5 20h7M10 17h4" />
+    </>
+  </SectionIcon>
+);
+
+const ScaleIcon = () => (
+  <SectionIcon>
+    <>
+      <path d="M12 4v16M5 7l7-3 7 3" />
+      <path d="M5 7l-2.5 6a3 3 0 0 0 5 0L5 7ZM19 7l-2.5 6a3 3 0 0 0 5 0L19 7Z" />
+    </>
+  </SectionIcon>
+);
 
 /* ============================================================
  * 1. Weekly volume trend — last 8 weeks, SVG bars
@@ -218,9 +275,10 @@ function WeeklyVolumeChart({ buckets, lang }: { buckets: WeekBucket[]; lang: Lan
         const h = Math.max(2, (b.volumeKg / maxV) * chartH);
         const x = slotLeft(i);
         const y = H - LABEL_H - h;
+        const isMax = b.volumeKg > 0 && b.volumeKg === maxV;
         return (
           <g key={i}>
-            <rect x={x} y={y} width={barW} height={h} rx={6} fill="url(#progVolGrad)" opacity={b.volumeKg > 0 ? 1 : 0.25} />
+            <rect x={x} y={y} width={barW} height={h} rx={6} fill="url(#progVolGrad)" opacity={b.volumeKg > 0 ? 1 : 0.25} style={isMax ? { filter: 'drop-shadow(0 0 10px rgba(0,240,255,0.75))' } : undefined} />
             {b.volumeKg > 0 && (
               <text
                 x={x + barW / 2}
@@ -384,10 +442,14 @@ function PrList({ prs, lang, k }: { prs: PrRow[]; lang: Lang; k: Record<K, strin
   const fmt = numFmt(lang);
   return (
     <ul className="prog-pr-list">
-      {prs.map((p) => {
+      {prs.map((p, i) => {
         const ex = EX_BY_KEY.get(p.exerciseKey);
         return (
-          <li key={p.exerciseKey} className="prog-pr-row">
+          <li
+            key={p.exerciseKey}
+            className={`prog-pr-row${p.isNew ? ' prog-pr-row--new' : ''}`}
+            style={{ animationDelay: `${Math.min(i, 8) * 70}ms` }}
+          >
             <div className="prog-pr-main">
               <span className="prog-pr-name">{exerciseName(p.exerciseKey, lang)}</span>
               <span className="prog-pr-sub">
@@ -483,16 +545,19 @@ function WeightChart({ entries, lang }: { entries: BodyMeasurement[]; lang: Lang
       </defs>
       <polygon points={area} fill="url(#progWeightGrad)" />
       {n > 1 && <polyline points={points} fill="none" stroke={CYAN} strokeWidth={2.5} strokeLinejoin="round" />}
-      {entries.map((e, i) => (
+      {entries.map((e, i) => {
+        const isLast = i === n - 1;
+        return (
         <g key={e.date}>
-          <circle cx={px(i)} cy={py(e.weightKg as number)} r={4.5} fill="#0a0c12" stroke={BLUE} strokeWidth={2.5} />
+          <circle cx={px(i)} cy={py(e.weightKg as number)} r={isLast ? 6 : 4.5} fill="#0a0c12" stroke={isLast ? CYAN : BLUE} strokeWidth={2.5} style={isLast ? { filter: 'drop-shadow(0 0 8px rgba(0,240,255,0.8))' } : undefined} />
           {i > 0 && i < n - 1 && i % Math.ceil(n / 6) === 0 && (
             <text x={px(i)} y={py(e.weightKg as number) - 10} textAnchor="middle" fill="#a7adbf" fontSize={12}>
               {fmt.format(e.weightKg as number)}
             </text>
           )}
         </g>
-      ))}
+        );
+      })}
       {labelIdx.map((i) => (
         <text
           key={entries[i].date}
@@ -530,7 +595,7 @@ function WeightSection({ lang, k }: { lang: Lang; k: Record<K, string> }): React
 
   return (
     <section className="card prog-section">
-      <h2 className="card-title">{k.bodyWeight}</h2>
+      <div className="prog-card-head"><ScaleIcon /><h2 className="card-title">{k.bodyWeight}</h2></div>
       <form
         className="prog-weight-form"
         onSubmit={(e) => {
@@ -643,7 +708,7 @@ export default function ProgressTab(): ReactElement {
 
       {/* 1. Weekly volume trend */}
       <section className="card prog-section">
-        <h2 className="card-title">{k.weeklyVolume}</h2>
+        <div className="prog-card-head"><VolIcon /><h2 className="card-title">{k.weeklyVolume}</h2></div>
         <p className="card-meta">{k.last8Weeks}</p>
         <div className="prog-chart-wrap">
           {hasVolume ? (
@@ -656,7 +721,7 @@ export default function ProgressTab(): ReactElement {
 
       {/* 2. Muscle-group distribution */}
       <section className="card prog-section">
-        <h2 className="card-title">{k.muscleDist}</h2>
+        <div className="prog-card-head"><MuscleIcon /><h2 className="card-title">{k.muscleDist}</h2></div>
         <p className="card-meta">{k.last30Days}</p>
         <div className="prog-chart-wrap">
           {muscleRows.length > 0 ? (
@@ -668,8 +733,8 @@ export default function ProgressTab(): ReactElement {
       </section>
 
       {/* 3. Personal records */}
-      <section className="card prog-section">
-        <h2 className="card-title">{k.personalRecords}</h2>
+      <section className="card prog-section prog-section--gold">
+        <div className="prog-card-head"><TrophyIcon /><h2 className="card-title">{k.personalRecords}</h2></div>
         <div className="prog-chart-wrap">
           {hasSessions ? (
             <PrList prs={prs} lang={lang} k={k} />
@@ -690,7 +755,7 @@ export default function ProgressTab(): ReactElement {
  * ============================================================ */
 const PROGRESS_CSS = `
 .prog-header { margin-bottom: var(--space-5); }
-.prog-title { font-size: var(--text-h1); margin: 0; }
+.prog-title { font-size: var(--text-h1); margin: 0; font-weight: 800; }
 .prog-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -699,6 +764,48 @@ const PROGRESS_CSS = `
 }
 .prog-streak { color: var(--accent-cyan); }
 .prog-section { margin-bottom: var(--space-5); }
+
+/* gold-framed records section — records are the trophy room */
+.prog-section--gold {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(165deg, rgba(28, 26, 18, 0.98), rgba(14, 15, 20, 0.98)) padding-box,
+    linear-gradient(135deg, rgba(255, 209, 102, 0.55), rgba(255, 176, 32, 0.14) 50%, rgba(255, 209, 102, 0.08)) border-box;
+  box-shadow:
+    var(--shadow-card),
+    0 0 40px rgba(255, 209, 102, 0.1);
+}
+
+/* section header: icon medallion + title */
+.prog-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+
+.prog-card-head .card-title {
+  margin: 0;
+}
+
+.prog-sec-icon {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.375rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(46, 156, 255, 0.2), rgba(0, 240, 255, 0.07));
+  border: 1px solid rgba(46, 156, 255, 0.3);
+  color: var(--accent-cyan);
+}
+
+.prog-section--gold .prog-sec-icon {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.24), rgba(255, 176, 32, 0.08));
+  border-color: rgba(255, 209, 102, 0.4);
+  color: var(--accent-gold);
+  box-shadow: 0 0 14px rgba(255, 209, 102, 0.25);
+}
+
 .prog-chart-wrap { margin-top: var(--space-4); }
 .prog-chart { width: 100%; height: auto; display: block; }
 .prog-empty {
@@ -706,6 +813,13 @@ const PROGRESS_CSS = `
   border-radius: var(--radius-md);
   padding: var(--space-6) var(--space-4);
   text-align: center;
+}
+.prog-empty-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: var(--space-3);
+  color: rgba(0, 240, 255, 0.5);
+  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.25));
 }
 .prog-empty-title {
   margin: 0 0 var(--space-2);
@@ -724,10 +838,22 @@ const PROGRESS_CSS = `
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) 0;
+  padding: var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  animation: fitai-pr-row-in 0.45s var(--ease-out-soft) both;
+  transition: background var(--dur-fast) ease;
+}
+.prog-pr-row:hover {
+  background: rgba(244, 246, 251, 0.03);
 }
 .prog-pr-row:last-child { border-bottom: 0; }
+/* fresh records carry a gold edge */
+.prog-pr-row--new {
+  border-inline-start: 3px solid var(--accent-gold);
+  padding-inline-start: var(--space-3);
+  background: linear-gradient(90deg, rgba(255, 209, 102, 0.07), transparent 70%);
+}
 .prog-pr-main { display: flex; flex-direction: column; gap: var(--space-1); }
 .prog-pr-name { font-weight: 700; }
 .prog-pr-sub { font-size: var(--text-small); color: var(--text-secondary); }
@@ -741,11 +867,12 @@ const PROGRESS_CSS = `
 .prog-pr-badge {
   font-size: var(--text-tiny);
   font-weight: 800;
-  color: #0a0c12;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: #241a02;
+  background: var(--grad-pr);
   border-radius: var(--radius-full);
   padding: var(--space-1) var(--space-3);
   white-space: nowrap;
+  box-shadow: var(--shadow-glow-gold);
 }
 .prog-weight-form {
   display: grid;
