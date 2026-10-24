@@ -1,0 +1,615 @@
+/* ============================================================
+ * اپ هوشمند بدنسازی — exercise display styles.
+ *
+ * Rich exercise cards, the detail-screen hero, the animated muscle
+ * activation figure, numbered execution steps, and similar-exercise
+ * art cards. Dark athletic + neon (dossier §5), chic-and-calm.
+ *
+ * Imported from WorkoutsTab.tsx. Do NOT edit design-tokens.css /
+ * shell.css / visuals.css — everything new lives here.
+ * ============================================================ */
+
+/* ---------- shared art surface ---------- */
+.ex-art {
+  position: relative;
+  overflow: hidden;
+  background: #0b111c;
+}
+
+.ex-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+}
+
+/* gradient placeholder while an archetype PNG is still being illustrated */
+.ex-art--missing {
+  background:
+    radial-gradient(85% 85% at 50% 28%, rgba(46, 156, 255, 0.30), transparent 70%),
+    radial-gradient(60% 60% at 50% 90%, rgba(0, 240, 255, 0.10), transparent 70%),
+    linear-gradient(165deg, #101a2c 0%, #0a0e14 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ex-art__pulse-ring {
+  width: 44%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 240, 255, 0.35);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.25), inset 0 0 24px rgba(0, 240, 255, 0.12);
+  animation: ex-ring-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ex-ring-pulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.55; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+
+/* ---------- library: rich cards ---------- */
+.ex-lib {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ex-card {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  background-image: var(--grad-card-sheen);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  text-align: start;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ex-card:hover {
+  border-color: rgba(46, 156, 255, 0.45);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover), var(--shadow-glow-blue);
+}
+
+.ex-card:active {
+  transform: translateY(0) scale(0.995);
+}
+
+.ex-card__art {
+  flex: 0 0 92px;
+  width: 92px;
+  height: 92px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  box-shadow: 0 0 18px rgba(46, 156, 255, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.ex-card__art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(200deg, transparent 55%, rgba(10, 14, 20, 0.55) 100%);
+  pointer-events: none;
+}
+
+.ex-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ex-card__name {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ex-card__en {
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: -4px;
+}
+
+.ex-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* glowing primary-muscle chip — the card's single neon accent */
+.ex-muscle-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-tiny);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  color: var(--accent-cyan);
+  background: rgba(0, 240, 255, 0.10);
+  border: 1px solid rgba(0, 240, 255, 0.38);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.22);
+  white-space: nowrap;
+}
+
+.ex-meta {
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.ex-video-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-tiny);
+  font-weight: 700;
+  color: var(--accent-gold);
+  white-space: nowrap;
+}
+
+/* filter rows: give the active chip a neon lift (base .chip untouched) */
+.ex-filters .chip--active {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+/* ---------- detail: hero moment ---------- */
+.ex-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.ex-hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  background: #0b111c;
+}
+
+.ex-hero__art {
+  height: 264px;
+}
+
+.ex-hero__art img {
+  object-position: center 28%;
+}
+
+.ex-hero__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 14, 20, 0.42) 0%,
+    rgba(10, 14, 20, 0.08) 34%,
+    rgba(10, 14, 20, 0.55) 66%,
+    rgba(10, 14, 20, 0.97) 100%
+  );
+  pointer-events: none;
+}
+
+.ex-hero__top {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px;
+}
+
+.ex-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(244, 246, 251, 0.22);
+  background: rgba(10, 14, 20, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  font-size: var(--text-small);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ex-back:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(10, 14, 20, 0.75);
+}
+
+.ex-arch-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-tiny);
+  font-weight: 800;
+  color: #06131a;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.45);
+  white-space: nowrap;
+}
+
+.ex-hero__titles {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  padding: 16px 18px 18px;
+}
+
+.ex-hero__kicker {
+  margin: 0 0 6px;
+  font-size: var(--text-tiny);
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
+}
+
+.ex-hero__name {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  color: #ffffff;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.85);
+}
+
+.ex-hero__en {
+  margin: 6px 0 0;
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
+}
+
+/* ---------- detail: sections ---------- */
+.ex-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ex-section__title {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+/* ---------- muscle activation: neon figure + % bars ---------- */
+.ex-activation {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background:
+    radial-gradient(90% 90% at 50% 0%, rgba(46, 156, 255, 0.12), transparent 70%),
+    var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+}
+
+.ex-figure {
+  flex: 0 0 118px;
+  width: 118px;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.55));
+}
+
+.ex-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ex-figure__lines {
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.55));
+}
+
+/* animated muscle glow — this is what makes the figure feel alive */
+.mf-glow {
+  animation: mf-pulse 2.8s ease-in-out infinite;
+}
+
+.mf-glow--primary {
+  animation-duration: 2.1s;
+}
+
+.mf-glow--secondary {
+  animation-duration: 3.8s;
+  opacity: 0.5;
+}
+
+@keyframes mf-pulse {
+  0%, 100% { opacity: 0.42; }
+  50% { opacity: 0.95; }
+}
+
+.mf-glow--secondary {
+  animation-name: mf-pulse-soft;
+}
+
+@keyframes mf-pulse-soft {
+  0%, 100% { opacity: 0.28; }
+  50% { opacity: 0.6; }
+}
+
+.ex-bars {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.ex-bar__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--text-tiny);
+  margin-bottom: 5px;
+}
+
+.ex-bar__name {
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ex-bar__name--dim {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.ex-bar__pct {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  flex: 0 0 auto;
+}
+
+.ex-bar__pct--dim {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ex-bar__track {
+  position: relative;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: rgba(244, 246, 251, 0.08);
+  overflow: hidden;
+}
+
+.ex-bar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  border-radius: var(--radius-full);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: ex-bar-in 0.9s cubic-bezier(0.2, 0.7, 0.25, 1) 0.15s forwards;
+}
+
+[dir="rtl"] .ex-bar__fill {
+  inset: 0 0 0 auto;
+  transform-origin: right center;
+}
+
+.ex-bar__fill--primary {
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.55);
+  overflow: hidden;
+}
+
+.ex-bar__fill--primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 20%, rgba(255, 255, 255, 0.4) 50%, transparent 80%);
+  transform: translateX(-100%);
+  animation: ex-sheen 2.8s ease-in-out 1.2s infinite;
+}
+
+[dir="rtl"] .ex-bar__fill--primary::after {
+  animation-name: ex-sheen-rtl;
+}
+
+.ex-bar__fill--secondary {
+  background: linear-gradient(90deg, #3a4560, #5f7194);
+  opacity: 0.85;
+  animation-duration: 0.7s;
+}
+
+@keyframes ex-bar-in {
+  to { transform: scaleX(1); }
+}
+
+@keyframes ex-sheen {
+  0% { transform: translateX(-100%); }
+  55%, 100% { transform: translateX(100%); }
+}
+
+@keyframes ex-sheen-rtl {
+  0% { transform: translateX(100%); }
+  55%, 100% { transform: translateX(-100%); }
+}
+
+/* ---------- numbered execution steps ---------- */
+.ex-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ex-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ex-step__num {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-small);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #052033;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+}
+
+.ex-step__text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding-top: 4px;
+  font-size: var(--text-body);
+  line-height: var(--leading-loose);
+  color: var(--text-primary);
+}
+
+/* ---------- equipment chips + video ---------- */
+.ex-equip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ex-equip__label {
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+}
+
+.ex-video-note {
+  margin: 6px 0 0;
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ---------- similar exercises: art cards ---------- */
+.ex-similar {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
+}
+
+.ex-sim {
+  all: unset;
+  box-sizing: border-box;
+  flex: 0 0 150px;
+  scroll-snap-align: start;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ex-sim:hover {
+  border-color: rgba(46, 156, 255, 0.45);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover), var(--shadow-glow-blue);
+}
+
+.ex-sim__art {
+  height: 98px;
+}
+
+.ex-sim__art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(10, 14, 20, 0.6) 100%);
+  pointer-events: none;
+}
+
+.ex-sim__body {
+  padding: 9px 11px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ex-sim__name {
+  margin: 0;
+  font-size: var(--text-tiny);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ex-sim__meta {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- empty state ---------- */
+.ex-empty {
+  text-align: center;
+}
+
+/* ---------- accessibility: honor reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .mf-glow,
+  .ex-bar__fill,
+  .ex-bar__fill--primary::after,
+  .ex-art__pulse-ring {
+    animation: none;
+  }
+
+  .ex-bar__fill {
+    transform: scaleX(1);
+  }
+}

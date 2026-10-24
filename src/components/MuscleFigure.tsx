@@ -1,12 +1,16 @@
 /**
  * اپ هوشمند بدنسازی — MuscleFigure.
- * Original anatomical-style figure (hand-drawn SVG geometry, no copied
- * artwork): a stylized front-view athlete whose muscle regions light up
- * with a neon glow for the primary muscle and a dim steel fill for
- * secondary ones — paired with per-muscle engagement % bars
- * (the "Lats 100%" pattern from dossier §5, original rendering).
+ *
+ * Neon line-art athlete (original hand-authored SVG, no copied artwork)
+ * in the same visual language as the archetype illustrations: thin
+ * glowing strokes on near-black. Muscle regions are blurred glow
+ * shapes that PULSE on a staggered loop — primary muscles bright and
+ * fast, secondary dim and slow — so the figure feels alive instead of
+ * a static diagram. Paired with animated per-muscle engagement % bars
+ * (the dossier §5 "Lats 100%" pattern, original rendering).
  *
  * Purely presentational: props are data, no logic or data flow changes.
+ * The exported props API is unchanged ({ primary, secondary, rows }).
  */
 import { useId, type ReactElement } from 'react';
 import type { MuscleGroup } from '../lib/exercises';
@@ -52,6 +56,11 @@ const MUSCLE_REGIONS: Record<MuscleGroup, RegionId[]> = {
   fullbody: ['traps', 'delts', 'pecs', 'lats', 'abs', 'biceps', 'forearms', 'quads', 'glutes', 'calves'],
 };
 
+const REGION_ORDER: RegionId[] = [
+  'traps', 'delts', 'pecs', 'lats', 'abs',
+  'biceps', 'forearms', 'quads', 'glutes', 'calves',
+];
+
 function regionStates(primary: MuscleGroup, secondary: MuscleGroup[]): Record<RegionId, RegionState> {
   const out: Record<RegionId, RegionState> = {
     traps: 'off', delts: 'off', pecs: 'off', lats: 'off', abs: 'off',
@@ -71,98 +80,148 @@ function regionStates(primary: MuscleGroup, secondary: MuscleGroup[]): Record<Re
   return out;
 }
 
+/** Left-half glow shapes; the right half is a mirrored <use/>. */
+function GlowShapes({ uid, states }: { uid: string; states: Record<RegionId, RegionState> }): ReactElement {
+  const glId = `mfGl${uid}`;
+  const shape = (r: RegionId, d: string): ReactElement | null => {
+    const s = states[r];
+    if (s === 'off') return null;
+    return (
+      <path
+        key={r}
+        d={d}
+        fill={s === 'primary' ? '#8fe9ff' : '#2e7fc9'}
+        className={s === 'primary' ? 'mf-glow mf-glow--primary' : 'mf-glow mf-glow--secondary'}
+        style={{ animationDelay: `${REGION_ORDER.indexOf(r) * 0.18}s` }}
+      />
+    );
+  };
+  const ellipse = (r: RegionId, cx: number, cy: number, rx: number, ry: number): ReactElement | null => {
+    const s = states[r];
+    if (s === 'off') return null;
+    return (
+      <ellipse
+        key={r}
+        cx={cx}
+        cy={cy}
+        rx={rx}
+        ry={ry}
+        fill={s === 'primary' ? '#8fe9ff' : '#2e7fc9'}
+        className={s === 'primary' ? 'mf-glow mf-glow--primary' : 'mf-glow mf-glow--secondary'}
+        style={{ animationDelay: `${REGION_ORDER.indexOf(r) * 0.18}s` }}
+      />
+    );
+  };
+  return (
+    <>
+      <g id={glId}>
+        {shape('traps', 'M88,66 C74,68 62,73 54,82 L58,88 C68,80 80,75 91,73 Z')}
+        {ellipse('delts', 50, 99, 12, 16)}
+        {shape('pecs', 'M74,100 Q86,95 98,99 L96,128 Q85,133 75,128 Z')}
+        {shape('lats', 'M56,108 C52,126 54,144 58,158 L64,156 C60,142 58,126 60,110 Z')}
+        {shape('abs', 'M86,144 C85,157 85,170 87,181 L99,181 L99,144 Z')}
+        {shape('biceps', 'M52,118 C48,128 48,142 52,152 L62,150 C60,140 60,130 62,122 Z')}
+        {shape('forearms', 'M50,158 C50,170 52,182 54,190 L64,190 C62,180 61,168 62,158 Z')}
+        {shape('quads', 'M62,210 C58,232 58,256 62,276 L86,276 C88,254 88,232 86,210 Z')}
+        {shape('glutes', 'M60,184 C58,194 60,204 64,212 L70,208 C66,200 64,192 64,184 Z')}
+        {shape('calves', 'M66,282 C64,298 66,314 70,328 L88,328 C90,314 90,298 88,282 Z')}
+      </g>
+      <use href={`#${glId}`} transform="translate(200 0) scale(-1 1)" />
+    </>
+  );
+}
+
+/** Left-half line art; the right half is a mirrored <use/>. */
+function LineArt({ uid }: { uid: string }): ReactElement {
+  const llId = `mfLl${uid}`;
+  const p = (d: string): ReactElement => <path key={d} d={d} />;
+  return (
+    <>
+      <g id={llId}>
+        {p('M90,50 L88,66')}
+        {p('M88,66 C74,68 62,73 54,82')}
+        {p('M54,82 C42,88 38,102 42,116 C40,128 40,140 42,152')}
+        {p('M42,152 C42,166 44,180 46,192')}
+        {p('M46,192 C43,203 46,213 55,214 C63,213 65,203 62,192')}
+        {p('M62,192 C60,178 60,164 62,152')}
+        {p('M62,152 C62,140 62,128 64,118')}
+        {p('M64,118 C66,110 68,104 70,100')}
+        {p('M54,82 C48,104 50,128 56,148 C58,158 60,166 62,174 C64,186 66,196 68,206')}
+        {p('M72,104 C66,124 66,144 70,162')}
+        {p('M70,126 Q84,136 98,136')}
+        {p('M70,148 C74,160 76,172 76,184')}
+        {p('M84,142 C84,156 84,170 86,182')}
+        {p('M86,152 L100,152')}
+        {p('M86,164 L100,164')}
+        {p('M88,176 L100,176')}
+        {p('M68,206 C66,228 64,252 64,274')}
+        {p('M64,274 C64,294 66,312 68,328')}
+        {p('M68,328 L68,344')}
+        {p('M92,206 C90,228 88,252 88,274')}
+        {p('M88,274 C88,294 90,312 92,328')}
+        {p('M92,328 L92,344')}
+        {p('M66,344 L94,344 L94,352 Q94,360 86,360 L74,360 Q66,360 66,352 Z')}
+      </g>
+      <use href={`#${llId}`} transform="translate(200 0) scale(-1 1)" />
+      {/* center pieces (drawn once, not mirrored) */}
+      <ellipse cx="100" cy="30" rx="17" ry="21" />
+      <path d="M100,94 L100,136" />
+      <path d="M100,142 L100,184" />
+    </>
+  );
+}
+
 export default function MuscleFigure({ primary, secondary, rows }: MuscleFigureProps): ReactElement {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const gradId = `mfGrad${uid}`;
-  const glowId = `mfGlow${uid}`;
+  const blurId = `mfBlur${uid}`;
+  const lineId = `mfLine${uid}`;
   const states = regionStates(primary, secondary);
 
-  const fillFor = (r: RegionId): string =>
-    states[r] === 'primary' ? `url(#${gradId})` : states[r] === 'secondary' ? '#46536e' : '#232b40';
-  const filterFor = (r: RegionId): string | undefined =>
-    states[r] === 'primary' ? `url(#${glowId})` : undefined;
-  const opacityFor = (r: RegionId): number => (states[r] === 'off' ? 0.55 : 1);
-
   return (
-    <div className="muscle-figure">
-      <svg viewBox="0 0 120 232" role="img" aria-hidden="true">
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#00f0ff" />
-            <stop offset="100%" stopColor="#2e9cff" />
-          </linearGradient>
-          <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="3.2" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+    <div className="ex-activation">
+      <div className="ex-figure">
+        <svg viewBox="0 0 200 380" role="img" aria-hidden="true">
+          <defs>
+            <linearGradient id={lineId} gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="100" y2="380">
+              <stop offset="0%" stopColor="#9be9ff" />
+              <stop offset="55%" stopColor="#5fc4ff" />
+              <stop offset="100%" stopColor="#2e9cff" />
+            </linearGradient>
+            <filter id={blurId} x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="5" />
+            </filter>
+          </defs>
 
-        {/* ---- skeleton base (always dim) ---- */}
-        <circle cx="60" cy="17" r="12.5" fill="#1a2132" />
-        <rect x="54.5" y="28.5" width="11" height="9" rx="3" fill="#1a2132" />
-        <rect x="41" y="52" width="38" height="72" rx="15" fill="#1a2132" />
-        <rect x="43" y="120" width="34" height="20" rx="9" fill="#1a2132" />
-        {/* arms */}
-        <rect x="23" y="58" width="13" height="36" rx="6.5" fill="#1a2132" />
-        <rect x="84" y="58" width="13" height="36" rx="6.5" fill="#1a2132" />
-        <rect x="24.5" y="96" width="10" height="34" rx="5" fill="#1a2132" />
-        <rect x="85.5" y="96" width="10" height="34" rx="5" fill="#1a2132" />
-        <circle cx="29.5" cy="136" r="5" fill="#1a2132" />
-        <circle cx="90.5" cy="136" r="5" fill="#1a2132" />
-        {/* legs */}
-        <rect x="42.5" y="142" width="15" height="42" rx="7.5" fill="#1a2132" />
-        <rect x="62.5" y="142" width="15" height="42" rx="7.5" fill="#1a2132" />
-        <rect x="43.5" y="186" width="13" height="28" rx="6.5" fill="#1a2132" />
-        <rect x="63.5" y="186" width="13" height="28" rx="6.5" fill="#1a2132" />
-        <ellipse cx="50" cy="219" rx="8" ry="4" fill="#1a2132" />
-        <ellipse cx="70" cy="219" rx="8" ry="4" fill="#1a2132" />
+          {/* pulsing muscle glow, behind the line art */}
+          <g filter={`url(#${blurId})`}>
+            <GlowShapes uid={uid} states={states} />
+          </g>
 
-        {/* ---- light-up regions ---- */}
-        {/* traps */}
-        <path d="M54,34 L44,38 L38,57 L50,57 Z" fill={fillFor('traps')} filter={filterFor('traps')} opacity={opacityFor('traps')} />
-        <path d="M66,34 L76,38 L82,57 L70,57 Z" fill={fillFor('traps')} filter={filterFor('traps')} opacity={opacityFor('traps')} />
-        {/* deltoids */}
-        <ellipse cx="33" cy="60" rx="10.5" ry="13" fill={fillFor('delts')} filter={filterFor('delts')} opacity={opacityFor('delts')} />
-        <ellipse cx="87" cy="60" rx="10.5" ry="13" fill={fillFor('delts')} filter={filterFor('delts')} opacity={opacityFor('delts')} />
-        {/* lats (outer torso sides) */}
-        <path d="M42,70 Q36,92 42,116 L48,112 Q44,92 47,72 Z" fill={fillFor('lats')} filter={filterFor('lats')} opacity={opacityFor('lats')} />
-        <path d="M78,70 Q84,92 78,116 L72,112 Q76,92 73,72 Z" fill={fillFor('lats')} filter={filterFor('lats')} opacity={opacityFor('lats')} />
-        {/* pecs */}
-        <path d="M44,65 Q52,60 58.5,64 L57.5,80 Q51,84.5 45,80 Z" fill={fillFor('pecs')} filter={filterFor('pecs')} opacity={opacityFor('pecs')} />
-        <path d="M76,65 Q68,60 61.5,64 L62.5,80 Q69,84.5 75,80 Z" fill={fillFor('pecs')} filter={filterFor('pecs')} opacity={opacityFor('pecs')} />
-        {/* abs */}
-        <rect x="50.5" y="86" width="19" height="34" rx="5" fill={fillFor('abs')} filter={filterFor('abs')} opacity={opacityFor('abs')} />
-        {/* biceps/triceps (upper arms) */}
-        <rect x="25" y="60" width="9" height="30" rx="4.5" fill={fillFor('biceps')} filter={filterFor('biceps')} opacity={opacityFor('biceps')} />
-        <rect x="86" y="60" width="9" height="30" rx="4.5" fill={fillFor('biceps')} filter={filterFor('biceps')} opacity={opacityFor('biceps')} />
-        {/* forearms */}
-        <rect x="26.5" y="98" width="6.5" height="28" rx="3.2" fill={fillFor('forearms')} filter={filterFor('forearms')} opacity={opacityFor('forearms')} />
-        <rect x="87" y="98" width="6.5" height="28" rx="3.2" fill={fillFor('forearms')} filter={filterFor('forearms')} opacity={opacityFor('forearms')} />
-        {/* glutes */}
-        <circle cx="52" cy="131" r="7.5" fill={fillFor('glutes')} filter={filterFor('glutes')} opacity={opacityFor('glutes')} />
-        <circle cx="68" cy="131" r="7.5" fill={fillFor('glutes')} filter={filterFor('glutes')} opacity={opacityFor('glutes')} />
-        {/* quads */}
-        <rect x="44.5" y="144" width="11" height="38" rx="5.5" fill={fillFor('quads')} filter={filterFor('quads')} opacity={opacityFor('quads')} />
-        <rect x="64.5" y="144" width="11" height="38" rx="5.5" fill={fillFor('quads')} filter={filterFor('quads')} opacity={opacityFor('quads')} />
-        {/* calves */}
-        <rect x="45.5" y="188" width="9" height="24" rx="4.5" fill={fillFor('calves')} filter={filterFor('calves')} opacity={opacityFor('calves')} />
-        <rect x="65.5" y="188" width="9" height="24" rx="4.5" fill={fillFor('calves')} filter={filterFor('calves')} opacity={opacityFor('calves')} />
-      </svg>
+          {/* neon outline athlete */}
+          <g
+            className="ex-figure__lines"
+            fill="none"
+            stroke={`url(#${lineId})`}
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <LineArt uid={uid} />
+          </g>
+        </svg>
+      </div>
 
-      {/* per-muscle engagement % bars (dossier §5 pattern) */}
-      <div className="muscle-figure__bars">
+      {/* per-muscle engagement % bars */}
+      <div className="ex-bars">
         {rows.map((r) => (
           <div key={r.label}>
-            <div className="muscle-figure__row-label">
-              <span className={r.primary ? 'name' : 'name dim'}>{r.label}</span>
-              <span className="muscle-figure__pct">{r.pct}٪</span>
+            <div className="ex-bar__head">
+              <span className={r.primary ? 'ex-bar__name' : 'ex-bar__name ex-bar__name--dim'}>{r.label}</span>
+              <span className={r.primary ? 'ex-bar__pct' : 'ex-bar__pct ex-bar__pct--dim'}>{r.pct}٪</span>
             </div>
-            <div className="muscle-figure__track">
+            <div className="ex-bar__track">
               <div
-                className={r.primary ? 'muscle-figure__fill' : 'muscle-figure__fill muscle-figure__fill--secondary'}
+                className={r.primary ? 'ex-bar__fill ex-bar__fill--primary' : 'ex-bar__fill ex-bar__fill--secondary'}
                 style={{ width: `${r.pct}%` }}
               />
             </div>

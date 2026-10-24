@@ -3,16 +3,26 @@
  *
  * Top: active program card (or a "build my plan" CTA when there is none).
  * Below: the Persian exercise library — search (fa + en), muscle-group
- * chips, equipment chips, and a detail view with form cues, a muscle
- * engagement chart, the MuscleWiki video (when available), and similar
- * exercises.
+ * chips, equipment chips, and a detail view with a cinematic archetype
+ * hero, the animated muscle-activation figure, numbered execution
+ * steps, the MuscleWiki video (when available), and similar exercises
+ * as art cards.
  *
- * Original component. All strings go through t() — never hard-coded.
+ * Original component. All strings go through t() — never hard-coded
+ * (archetype labels come from lib/archetypes, keyed by lang).
  */
 import { useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
+import '../styles/exercise-display.css';
 import MuscleFigure, { type MuscleRow } from '../components/MuscleFigure';
 import { getActiveProgram } from '../lib/store';
+import {
+  ARCHETYPES,
+  archetypeArtUrl,
+  archetypeLabel,
+  archetypeOf,
+  compoundLabel,
+} from '../lib/archetypes';
 import {
   EQUIPMENT_TYPES,
   EXERCISES,
@@ -37,8 +47,44 @@ const GOAL_KEYS: Record<string, string> = {
   fitness: 'onb.goalHealth',
 };
 
+/**
+ * Archetype illustration with a graceful neon placeholder if the
+ * illustrator's PNG is not in place yet.
+ */
+function ArchetypeArt({
+  slug,
+  alt,
+  className,
+}: {
+  slug: Parameters<typeof archetypeArtUrl>[0];
+  alt: string;
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className={`ex-art ex-art--missing ${className ?? ''}`} role="img" aria-label={alt}>
+        <div className="ex-art__pulse-ring" />
+      </div>
+    );
+  }
+  return (
+    <div className={`ex-art ${className ?? ''}`}>
+      <img src={archetypeArtUrl(slug)} alt={alt} loading="lazy" onError={() => setFailed(true)} />
+    </div>
+  );
+}
+
+/** Split the prose instructions into numbered execution steps. */
+function instructionSteps(text: string): string[] {
+  const steps = text
+    .split(/(?<=[.؛!؟])\s+/u)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 2);
+  return steps.length > 0 ? steps.slice(0, 6) : [text];
+}
+
 function MuscleEngagement({ exercise, t }: { exercise: Exercise; t: (k: string) => string }) {
-  // Rows are computed exactly as before — rendering moved to MuscleFigure.
   const rows: MuscleRow[] = [
     {
       label: t(`lib.muscle.${exercise.muscle}`),
@@ -52,10 +98,8 @@ function MuscleEngagement({ exercise, t }: { exercise: Exercise; t: (k: string) 
     })),
   ];
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-      <h4 style={{ margin: 0, fontSize: 'var(--text-small)', color: 'var(--text-secondary)' }}>
-        {t('workouts.muscleEngagement')}
-      </h4>
+    <div className="ex-section">
+      <h4 className="ex-section__title">{t('workouts.muscleEngagement')}</h4>
       <MuscleFigure primary={exercise.muscle} secondary={exercise.secondary} rows={rows} />
     </div>
   );
@@ -79,58 +123,66 @@ function ExerciseDetail({
       EXERCISES.filter((e) => e.muscle === exercise.muscle && e.key !== exercise.key).slice(0, 4),
     [exercise],
   );
+  const slug = archetypeOf(exercise.key);
+  const arch = ARCHETYPES[slug];
+  const name = lang === 'fa' ? exercise.nameFa : exercise.nameEn;
+  const altName = lang === 'fa' ? exercise.nameEn : exercise.nameFa;
+  const steps = useMemo(
+    () => instructionSteps(lang === 'fa' ? exercise.instructionsFa : exercise.instructionsEn),
+    [exercise, lang],
+  );
 
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <button
-        type="button"
-        className="btn-ghost"
-        onClick={onBack}
-        style={{ alignSelf: 'flex-start', padding: '8px 16px', fontSize: 'var(--text-small)' }}
-      >
-        ← {t('common.back')}
-      </button>
-
-      <div>
-        <h2 className="card-title" style={{ marginBottom: 4 }}>
-          {lang === 'fa' ? exercise.nameFa : exercise.nameEn}
-        </h2>
-        <p className="card-meta">{lang === 'fa' ? exercise.nameEn : exercise.nameFa}</p>
-      </div>
-
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        <span className="chip chip--active">{t(`lib.muscle.${exercise.muscle}`)}</span>
-        {exercise.secondary.map((m) => (
-          <span key={m} className="chip">
-            {t(`lib.muscle.${m}`)}
-          </span>
-        ))}
+    <div className="ex-detail">
+      {/* ---------- hero moment ---------- */}
+      <div className="ex-hero">
+        <ArchetypeArt slug={slug} alt={name} className="ex-hero__art" />
+        <div className="ex-hero__scrim" />
+        <div className="ex-hero__top">
+          <button type="button" className="ex-back" onClick={onBack}>
+            {lang === 'fa' ? '→' : '←'} {t('common.back')}
+          </button>
+          <span className="ex-arch-chip">{archetypeLabel(arch, lang)}</span>
+        </div>
+        <div className="ex-hero__titles">
+          <p className="ex-hero__kicker">{t(`lib.muscle.${exercise.muscle}`)}</p>
+          <h2 className="ex-hero__name">{name}</h2>
+          <p className="ex-hero__en">{altName}</p>
+        </div>
       </div>
 
       <MuscleEngagement exercise={exercise} t={t} />
 
-      <div>
-        <h4 style={{ margin: '0 0 8px', fontSize: 'var(--text-small)', color: 'var(--text-secondary)' }}>
-          {t('workouts.howTo')}
-        </h4>
-        <p style={{ margin: 0, fontSize: 'var(--text-body)', lineHeight: 'var(--leading-loose)' }}>
-          {lang === 'fa' ? exercise.instructionsFa : exercise.instructionsEn}
-        </p>
+      {/* ---------- how to: numbered visual steps ---------- */}
+      <div className="ex-section">
+        <h4 className="ex-section__title">{t('workouts.howTo')}</h4>
+        <ol className="ex-steps">
+          {steps.map((s, i) => (
+            <li key={i} className="ex-step">
+              <span className="ex-step__num" aria-hidden="true">
+                {i + 1}
+              </span>
+              <p className="ex-step__text">{s}</p>
+            </li>
+          ))}
+        </ol>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-        <span style={{ fontSize: 'var(--text-tiny)', color: 'var(--text-muted)' }}>
-          {t('workouts.equipment')}:
-        </span>
-        {exercise.equipment.map((eq) => (
-          <span key={eq} className="chip">
-            {t(`lib.equipment.${eq}`)}
-          </span>
-        ))}
+      {/* ---------- equipment ---------- */}
+      <div className="ex-section">
+        <div className="ex-equip">
+          <span className="ex-equip__label">{t('workouts.equipment')}:</span>
+          {exercise.equipment.map((eq) => (
+            <span key={eq} className="chip">
+              {t(`lib.equipment.${eq}`)}
+            </span>
+          ))}
+        </div>
       </div>
 
+      {/* ---------- video ---------- */}
       {exercise.videoUrl ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="ex-section">
           <button
             type="button"
             className="btn-primary"
@@ -139,54 +191,33 @@ function ExerciseDetail({
           >
             ▶ {t('workouts.watchVideo')}
           </button>
-          <span style={{ fontSize: 'var(--text-tiny)', color: 'var(--text-muted)', textAlign: 'center' }}>
-            {t('workouts.videoOpensExternally')}
-          </span>
+          <p className="ex-video-note">{t('workouts.videoOpensExternally')}</p>
         </div>
       ) : (
-        <p
-          style={{
-            margin: 0,
-            fontSize: 'var(--text-small)',
-            color: 'var(--text-muted)',
-            textAlign: 'center',
-          }}
-        >
-          {t('workouts.noVideo')}
-        </p>
+        <p className="ex-video-note">{t('workouts.noVideo')}</p>
       )}
 
+      {/* ---------- similar: art cards ---------- */}
       {similar.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <h4 style={{ margin: 0, fontSize: 'var(--text-small)', color: 'var(--text-secondary)' }}>
-            {t('workouts.similarExercises')}
-          </h4>
-          {similar.map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => onSelect(s)}
-              style={{
-                all: 'unset',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-subtle)',
-                fontSize: 'var(--text-small)',
-              }}
-            >
-              <span style={{ color: 'var(--text-primary)' }}>
-                {lang === 'fa' ? s.nameFa : s.nameEn}
-              </span>
-              <span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-tiny)' }}>
-                {s.equipment.map((eq) => t(`lib.equipment.${eq}`)).join('، ')}
-              </span>
-            </button>
-          ))}
+        <div className="ex-section">
+          <h4 className="ex-section__title">{t('workouts.similarExercises')}</h4>
+          <div className="ex-similar">
+            {similar.map((s) => {
+              const sSlug = archetypeOf(s.key);
+              const sName = lang === 'fa' ? s.nameFa : s.nameEn;
+              return (
+                <button key={s.key} type="button" className="ex-sim" onClick={() => onSelect(s)}>
+                  <ArchetypeArt slug={sSlug} alt={sName} className="ex-sim__art" />
+                  <span className="ex-sim__body">
+                    <span className="ex-sim__name">{sName}</span>
+                    <span className="ex-sim__meta">
+                      {s.equipment.map((eq) => t(`lib.equipment.${eq}`)).join(' · ')}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -299,7 +330,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
             aria-label={t('workouts.searchPlaceholder')}
           />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="ex-filters" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ fontSize: 'var(--text-tiny)', color: 'var(--text-muted)' }}>
               {t('workouts.muscle')}
             </span>
@@ -326,7 +357,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="ex-filters" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ fontSize: 'var(--text-tiny)', color: 'var(--text-muted)' }}>
               {t('workouts.equipment')}
             </span>
@@ -354,7 +385,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
           </div>
 
           {results.length === 0 ? (
-            <div className="card" style={{ textAlign: 'center' }}>
+            <div className="card ex-empty">
               <p style={{ margin: '0 0 8px', fontSize: 'var(--text-body)' }}>
                 {t('workouts.noResults')}
               </p>
@@ -374,25 +405,38 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {results.map((e) => (
-                <button
-                  key={e.key}
-                  type="button"
-                  className="lib-card"
-                  data-exercise-row={e.key}
-                  onClick={() => setSelected(e)}
-                >
-                  <span className="lib-card__name">{nameOf(e)}</span>
-                  <span className="lib-card__meta">
-                    <span className="chip chip--active">{t(`lib.muscle.${e.muscle}`)}</span>
-                    <span>
-                      {e.equipment.map((eq) => t(`lib.equipment.${eq}`)).join(' · ')}
-                      {e.videoUrl ? ` · ${t('workouts.hasVideo')}` : ''}
+            <div className="ex-lib">
+              {results.map((e) => {
+                const slug = archetypeOf(e.key);
+                const arch = ARCHETYPES[slug];
+                const enName = lang === 'fa' ? e.nameEn : e.nameFa;
+                return (
+                  <button
+                    key={e.key}
+                    type="button"
+                    className="ex-card"
+                    data-exercise-row={e.key}
+                    onClick={() => setSelected(e)}
+                  >
+                    <ArchetypeArt slug={slug} alt={nameOf(e)} className="ex-card__art" />
+                    <span className="ex-card__body">
+                      <span className="ex-card__name">{nameOf(e)}</span>
+                      <span className="ex-card__en">{enName}</span>
+                      <span className="ex-card__meta">
+                        <span className="ex-muscle-chip">{t(`lib.muscle.${e.muscle}`)}</span>
+                        <span className="ex-meta">
+                          {e.equipment.map((eq) => t(`lib.equipment.${eq}`)).join(' · ')}
+                        </span>
+                        <span className="ex-meta">·</span>
+                        <span className="ex-meta">{compoundLabel(arch.compound, lang)}</span>
+                        {e.videoUrl ? (
+                          <span className="ex-video-badge">▶ {t('workouts.hasVideo')}</span>
+                        ) : null}
+                      </span>
                     </span>
-                  </span>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
