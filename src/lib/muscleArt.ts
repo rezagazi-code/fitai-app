@@ -29,6 +29,25 @@ const MUSCLE_ART: Record<string, string> = {
   'band-chest-fly': 'band-chest-fly',
   'dumbbell-floor-press': 'dumbbell-floor-press',
   'chest-dip': 'chest-dip',
+  // Shoulders (18)
+  'overhead-press': 'overhead-press',
+  'seated-dumbbell-press': 'seated-dumbbell-press',
+  'standing-dumbbell-press': 'standing-dumbbell-press',
+  'lateral-raise': 'lateral-raise',
+  'front-raise': 'front-raise',
+  'rear-delt-fly': 'rear-delt-fly',
+  'upright-row': 'upright-row',
+  'arnold-press': 'arnold-press',
+  'cable-lateral-raise': 'cable-lateral-raise',
+  'face-pull': 'face-pull',
+  'machine-shoulder-press': 'machine-shoulder-press',
+  'cable-rear-delt-fly': 'cable-rear-delt-fly',
+  'seated-barbell-press': 'seated-barbell-press',
+  'dumbbell-upright-row': 'dumbbell-upright-row',
+  'behind-neck-press': 'behind-neck-press',
+  'pike-push-up': 'pike-push-up',
+  'kettlebell-press': 'kettlebell-press',
+  'cable-front-raise': 'cable-front-raise',
 };
 
 /** Public path of the raster muscle image for an exercise key, or null. */
