@@ -1,0 +1,113 @@
+apply plugin: 'com.android.application'
+
+// Release signing — secrets come ONLY from environment variables /
+// Gradle properties supplied OUTSIDE this repo. Never commit passwords
+// or the keystore itself.
+//   FITAI_KEYSTORE_FILE       path to fitai-release.jks
+//                             (default below: ~/workspace/secure/fitai-release.jks
+//                              — does NOT exist yet; generate it and keep it
+//                              out of the repo)
+//   FITAI_KEYSTORE_PASSWORD   keystore password (from the keystore env file / CI secret)
+//   FITAI_KEY_PASSWORD        key password      (from the keystore env file / CI secret)
+//   FITAI_KEY_ALIAS           optional, defaults to "fitaiapp"
+def fitaiKeystoreFile = System.getenv("FITAI_KEYSTORE_FILE") ?:
+        project.findProperty("FITAI_KEYSTORE_FILE") ?:
+        "$rootDir/../../secure/fitai-release.jks"
+def fitaiKeystorePassword = System.getenv("FITAI_KEYSTORE_PASSWORD") ?:
+        project.findProperty("FITAI_KEYSTORE_PASSWORD")
+def fitaiKeyPassword = System.getenv("FITAI_KEY_PASSWORD") ?:
+        project.findProperty("FITAI_KEY_PASSWORD")
+def fitaiKeyAlias = System.getenv("FITAI_KEY_ALIAS") ?:
+        project.findProperty("FITAI_KEY_ALIAS") ?: "fitaiapp"
+def fitaiSigningReady = fitaiKeystorePassword && fitaiKeyPassword &&
+        file(fitaiKeystoreFile).exists()
+
+// Version SINGLE SOURCE OF TRUTH:
+//   versionName ← package.json "version" (repo root) — the ONLY place a
+//                 human ever edits the version name.
+//   versionCode ← CI passes -PappVersionCode (monotonic, 100 + run number);
+//                 local default 1. Never hand-edit a second copy.
+def fitaiPkg = new groovy.json.JsonSlurper().parseText(file("$rootDir/../package.json").text)
+def fitaiVersionName = fitaiPkg.version
+def fitaiVersionCode = (project.findProperty("appVersionCode") ?: "1").toString().toInteger()
+
+// Fail CLOSED: a release task without signing config must never silently
+// emit an unsigned app-release-unsigned.apk.
+gradle.taskGraph.whenReady { graph ->
+    def wantsRelease = graph.allTasks.any { t -> t.name.toLowerCase().contains('release') }
+    if (wantsRelease && !fitaiSigningReady) {
+        throw new GradleException(
+            "Release build requested but fitai signing is not configured " +
+            "(FITAI_KEYSTORE_FILE / FITAI_KEYSTORE_PASSWORD / FITAI_KEY_PASSWORD). " +
+            "Refusing to produce an unsigned release APK.")
+    }
+}
+
+android {
+    namespace = "ir.fitai.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "ir.fitai.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode fitaiVersionCode
+        versionName fitaiVersionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (fitaiSigningReady) {
+                storeFile file(fitaiKeystoreFile)
+                storePassword fitaiKeystorePassword
+                keyAlias fitaiKeyAlias
+                keyPassword fitaiKeyPassword
+                enableV1Signing false
+                enableV2Signing true
+                enableV3Signing true
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (fitaiSigningReady) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

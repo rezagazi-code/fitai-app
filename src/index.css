@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* Scaffolding stub only: dark background, white text.
+   The full design system arrives in Phase B — do not build it here. */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #07090e;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

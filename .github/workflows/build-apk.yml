@@ -1,0 +1,196 @@
+# ============================================================================
+# «اپ هوشمند بدنسازی» (Fit AI-style smart workout planner) — Release APK build
+#
+# ⚠️ REQUIRED BEFORE RUNNING — add these GitHub repo secrets:
+#   Settings → Secrets and variables → Actions → New repository secret
+#     FITAI_KEYSTORE_BASE64    base64 of the fitai release keystore
+#                              (locally: base64 -w0 <keystore-file>)
+#     FITAI_KEYSTORE_PASSWORD  keystore password (from the keystore env file)
+#     FITAI_KEY_PASSWORD       key password      (from the keystore env file)
+#     FITAI_KEY_ALIAS          optional — defaults to "fitaiapp" if unset
+#   Without them the signing step fails closed (no unsigned APK is uploaded
+#   as a "release").
+#
+# ⚠️ KEYSTORE DOES NOT EXIST YET (as of 2026-10-24): generate one
+#   (e.g. keytool -genkeypair -alias fitaiapp -keyalg RSA -keysize 4096
+#   -validity 10950) and keep it OUT of the repo. Once the keystore is
+#   created, paste the cert's SHA-256 hex digest (no colons, lowercase —
+#   from `apksigner verify --print-certs`) into the cert-pinning grep below.
+#   DO NOT skip the pinning step: it fails closed on the wrong key.
+#
+# ⚠️ PUSH CAVEAT: if pushes are done via an API helper, it may EXCLUDE
+#   .github/ files — upload this file via the GitHub web UI
+#   (Add file → Upload files) or a normal `git push` that includes .github/.
+#
+# Expected result: signed APK, package ir.fitai.app, signature schemes
+# v2 + v3, cert fingerprint pinned below.
+# ============================================================================
+name: Build Release APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "android/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "capacitor.config.ts"
+      - "vite.config.ts"
+      - "tsconfig.json"
+      - "tsconfig.node.json"
+      - ".github/workflows/build-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Capacitor's android library targets source release 21 — Java 17
+      # fails with 'invalid source release: 21'.
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # No setup-android action: its v3 still installs the retired SDK
+      # 'tools' package and fails on current runners. The runner image
+      # ships an Android SDK — just accept licenses and ensure the
+      # platform + build-tools this app compiles against.
+      - name: Ensure Android SDK platform
+        run: |
+          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # Vite inlines VITE_* at build time; .env is gitignored, so CI must
+      # be given the public Supabase config via repo secrets — without it
+      # the APK ships 'not configured'.
+      - name: Build web app
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::error::VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY secrets are missing — the app would ship unconfigured."
+            exit 1
+          fi
+          npm run build
+
+      - name: Sync Capacitor (android)
+        run: npx cap sync android
+
+      - name: Decode release keystore (from secret)
+        env:
+          FITAI_KEYSTORE_BASE64: ${{ secrets.FITAI_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$FITAI_KEYSTORE_BASE64" ]; then
+            echo "::error::FITAI_KEYSTORE_BASE64 secret is missing — see header of this file."
+            exit 1
+          fi
+          echo "$FITAI_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/fitai-release.jks"
+          ls -l "$RUNNER_TEMP/fitai-release.jks"
+
+      - name: Build signed release APK
+        env:
+          FITAI_KEYSTORE_FILE: ${{ runner.temp }}/fitai-release.jks
+          FITAI_KEYSTORE_PASSWORD: ${{ secrets.FITAI_KEYSTORE_PASSWORD }}
+          FITAI_KEY_PASSWORD: ${{ secrets.FITAI_KEY_PASSWORD }}
+          FITAI_KEY_ALIAS: ${{ secrets.FITAI_KEY_ALIAS }}
+        run: |
+          if [ -z "$FITAI_KEYSTORE_PASSWORD" ] || [ -z "$FITAI_KEY_PASSWORD" ]; then
+            echo "::error::Keystore password secrets are missing — see header of this file."
+            exit 1
+          fi
+          # Alias defaults to fitaiapp in android/app/build.gradle when unset/empty.
+          if [ -z "$FITAI_KEY_ALIAS" ]; then unset FITAI_KEY_ALIAS; fi
+          cd android
+          chmod +x gradlew
+          # versionCode is single-sourced here (monotonic: 100 + run number);
+          # versionName comes from package.json inside build.gradle.
+          ./gradlew assembleRelease -PappVersionCode=$((100 + ${{ github.run_number }}))
+
+      - name: Verify APK (package + v2/v3 signatures + cert identity + size)
+        run: |
+          # Pin the EXACT artifact: the file verified here is the file uploaded.
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          test -f "$APK"
+          echo "APK: $APK"
+          # Smoke check: a real Capacitor release APK is never tiny.
+          SIZE=$(stat -c%s "$APK")
+          echo "APK size: $SIZE bytes"
+          test "$SIZE" -gt 1000000
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -n1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort | tail -n1)
+          # Assert identity from the artifact's own bytes (badging), not the log:
+          # exact package id + the versionName from package.json + the CI versionCode.
+          EXPECTED_NAME=$(node -p "require('./package.json').version")
+          EXPECTED_CODE=$((100 + ${{ github.run_number }}))
+          "$AAPT" dump badging "$APK" | head -n 1 | grep -q "package: name='ir.fitai.app' versionCode='$EXPECTED_CODE' versionName='$EXPECTED_NAME'"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          # Fail if v2 or v3 is missing.
+          "$APKSIGNER" verify --verbose "$APK" | grep -Eq "Verified using v2 scheme .*: true"
+          "$APKSIGNER" verify --verbose "$APK" | grep -Eq "Verified using v3 scheme .*: true"
+          # Fail closed on the WRONG KEY: the signer cert must be the fitai
+          # release key, byte-for-byte fingerprint. apksigner prints the
+          # digest as lowercase hex WITHOUT colons — grep that exact form.
+          # ⚠️ TODO: paste the real fitai cert fingerprint here once the
+          # release keystore is generated (workflow fails closed until then).
+          "$APKSIGNER" verify --print-certs "$APK" | grep -q "TODO-FITAI-CERT-SHA256-HEX-DIGEST"
+
+      # Update metadata for the in-app self-updater: latest.json describes
+      # THIS build — versionName/versionCode, the GitHub Release asset URL
+      # the APK will live at, and the APK's own sha256 + size (computed from
+      # the verified artifact above). The workflow only GENERATES it; the
+      # release process attaches both files to the GitHub Release tagged
+      # v<versionName>, and the release's releases/latest/download/latest.json
+      # URL is what the app polls.
+      - name: Generate update metadata (latest.json)
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          VERSION_NAME=$(node -p "require('./package.json').version")
+          VERSION_CODE=$((100 + ${{ github.run_number }}))
+          SHA256=$(sha256sum "$APK" | cut -d' ' -f1)
+          SIZE=$(stat -c%s "$APK")
+          APK_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION_NAME}/fitai-v${VERSION_NAME}.apk"
+          mkdir -p release-meta
+          cp "$APK" "release-meta/fitai-v${VERSION_NAME}.apk"
+          cat > release-meta/latest.json <<JSON
+          {
+            "versionName": "$VERSION_NAME",
+            "versionCode": $VERSION_CODE,
+            "apkUrl": "$APK_URL",
+            "sha256": "$SHA256",
+            "sizeBytes": $SIZE,
+            "notes": ""
+          }
+          JSON
+          cat release-meta/latest.json
+
+      - name: Upload release files (APK + latest.json)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fitai-release-files
+          path: release-meta/
+          if-no-files-found: error
