@@ -11,12 +11,8 @@
 #   Without them the signing step fails closed (no unsigned APK is uploaded
 #   as a "release").
 #
-# ⚠️ KEYSTORE DOES NOT EXIST YET (as of 2026-10-24): generate one
-#   (e.g. keytool -genkeypair -alias fitaiapp -keyalg RSA -keysize 4096
-#   -validity 10950) and keep it OUT of the repo. Once the keystore is
-#   created, paste the cert's SHA-256 hex digest (no colons, lowercase —
-#   from `apksigner verify --print-certs`) into the cert-pinning grep below.
-#   DO NOT skip the pinning step: it fails closed on the wrong key.
+# ⚠️ KEYSTORE: generated 2026-10-24 → ~/workspace/secure/fitai-release.jks
+#   (alias fitaiapp, 30y). Cert SHA-256 pinned below. Keep it OUT of the repo.
 #
 # ⚠️ PUSH CAVEAT: if pushes are done via an API helper, it may EXCLUDE
 #   .github/ files — upload this file via the GitHub web UI
@@ -84,17 +80,17 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      # Vite inlines VITE_* at build time; .env is gitignored, so CI must
-      # be given the public Supabase config via repo secrets — without it
-      # the APK ships 'not configured'.
+      # Vite inlines VITE_* at build time. The MVP is LOCAL-FIRST (no
+      # backend yet — backend decision pending), so missing Supabase
+      # secrets are a warning, not a failure. Flip back to fail-closed
+      # once the backend is provisioned.
       - name: Build web app
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: |
           if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
-            echo "::error::VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY secrets are missing — the app would ship unconfigured."
-            exit 1
+            echo "::warning::VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY secrets are missing — building LOCAL-FIRST MVP (backend decision pending)."
           fi
           npm run build
 
@@ -157,7 +153,7 @@ jobs:
           # digest as lowercase hex WITHOUT colons — grep that exact form.
           # ⚠️ TODO: paste the real fitai cert fingerprint here once the
           # release keystore is generated (workflow fails closed until then).
-          "$APKSIGNER" verify --print-certs "$APK" | grep -q "TODO-FITAI-CERT-SHA256-HEX-DIGEST"
+          "$APKSIGNER" verify --print-certs "$APK" | grep -q "553fc7dccd9da3971862c8418048490191b68d4707e454131982363810094da3"
 
       # Update metadata for the in-app self-updater: latest.json describes
       # THIS build — versionName/versionCode, the GitHub Release asset URL
