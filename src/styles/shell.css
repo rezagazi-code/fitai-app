@@ -303,8 +303,10 @@
   }
 }
 
-/* Stat cards: icon medallion + number-first hierarchy */
-.stat-card {
+/* Stat cards: icon medallion + number-first hierarchy.
+   Scoped to .home-stats (used by Home + Profile) so other .stat-card
+   consumers (Progress stats, session summary) keep their stacked layout. */
+.home-stats .stat-card {
   display: flex;
   align-items: center;
   gap: var(--space-3);

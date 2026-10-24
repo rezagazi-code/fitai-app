@@ -483,8 +483,12 @@ export default function WorkoutSession({
 
           {prNames.length > 0 && (
             <div className="ws-pr-list">
-              {prNames.map((name) => (
-                <div key={name} className="ws-pr-item">
+              {prNames.map((name, i) => (
+                <div
+                  key={name}
+                  className="ws-pr-item"
+                  style={{ animationDelay: `${Math.min(i, 6) * 90}ms` }}
+                >
                   <span className="ws-pr-badge">{L.prBadge}</span>
                   <span>{name}</span>
                   <span className="ws-pr-note">{L.newBest}</span>
@@ -689,7 +693,7 @@ export default function WorkoutSession({
         <div className="ws-rest">
           <div className="ws-rest-card">
             <div className="ws-rest-title">{L.restTitle}</div>
-            <div className="ws-rest-ring" style={{ ['--p' as string]: `${restPct}%` }} aria-hidden="true">
+            <div className={`ws-rest-ring${rest.remaining <= 10 ? ' is-low' : ''}`} style={{ ['--p' as string]: `${restPct}%` }} aria-hidden="true">
               <span className="ws-rest-time">{formatClock(rest.remaining, lang)}</span>
             </div>
             <button type="button" className="ws-text-btn" onClick={() => setRest(null)}>

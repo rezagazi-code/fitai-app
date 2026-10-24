@@ -424,11 +424,12 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             <h2 className="onbw-title">{t('onb.yourGoal')}</h2>
             <p className="onbw-subtitle">{lt('onbw.goalSubtitle')}</p>
             <div className="onbw-options">
-              {goalOptions.map((o) => (
+              {goalOptions.map((o, i) => (
                 <button
                   key={o.key}
                   type="button"
-                  className={`onbw-option${goal === o.key ? ' onbw-option--selected' : ''}`}
+                  className={`onbw-option onbw-stagger${goal === o.key ? ' onbw-option--selected' : ''}`}
+                  style={{ animationDelay: `${i * 60}ms` }}
                   aria-pressed={goal === o.key}
                   onClick={() => setGoal(o.key)}
                 >
@@ -450,11 +451,12 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             <h2 className="onbw-title">{t('onb.yourLevel')}</h2>
             <p className="onbw-subtitle">{lt('onbw.levelSubtitle')}</p>
             <div className="onbw-options onbw-options--list">
-              {levelOptions.map((o) => (
+              {levelOptions.map((o, i) => (
                 <button
                   key={o.key}
                   type="button"
-                  className={`onbw-option${level === o.key ? ' onbw-option--selected' : ''}`}
+                  className={`onbw-option onbw-stagger${level === o.key ? ' onbw-option--selected' : ''}`}
+                  style={{ animationDelay: `${i * 60}ms` }}
                   aria-pressed={level === o.key}
                   onClick={() => setLevel(o.key)}
                 >
@@ -504,13 +506,14 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             <h2 className="onbw-title">{lt('onbw.equipmentTitle')}</h2>
             <p className="onbw-subtitle">{lt('onbw.equipmentSubtitle')}</p>
             <div className="onbw-options">
-              {EQUIPMENT_TYPES.map((k) => {
+              {EQUIPMENT_TYPES.map((k, i) => {
                 const selected = equipment.includes(k);
                 return (
                   <button
                     key={k}
                     type="button"
-                    className={`onbw-option${selected ? ' onbw-option--selected' : ''}`}
+                    className={`onbw-option onbw-stagger${selected ? ' onbw-option--selected' : ''}`}
+                    style={{ animationDelay: `${Math.min(i, 8) * 50}ms` }}
                     aria-pressed={selected}
                     onClick={() => toggleEquipment(k)}
                   >
@@ -641,11 +644,12 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             <h2 className="onbw-title">{lt('onbw.reviewTitle')}</h2>
             <p className="onbw-subtitle">{lt('onbw.reviewSubtitle')}</p>
             <div className="onbw-review">
-              {rows.map((r) => (
+              {rows.map((r, i) => (
                 <button
                   key={r.id}
                   type="button"
-                  className="onbw-review-row"
+                  className="onbw-review-row onbw-stagger"
+                  style={{ animationDelay: `${i * 50}ms` }}
                   onClick={() => goTo(STEPS.indexOf(r.id), 'back')}
                 >
                   <span className="onbw-review-text">
@@ -709,7 +713,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
           )}
           <button
             type="button"
-            className="btn-primary"
+            className="btn-primary btn-shine"
             onClick={step === 'review' ? handleFinish : handleNext}
             disabled={busy}
           >
