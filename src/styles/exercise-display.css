@@ -85,9 +85,9 @@
 }
 
 .ex-card__art {
-  flex: 0 0 92px;
-  width: 92px;
-  height: 92px;
+  flex: 0 0 108px;
+  width: 108px;
+  height: 108px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(0, 240, 255, 0.22);
   box-shadow: 0 0 18px rgba(46, 156, 255, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.04);

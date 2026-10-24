@@ -22,23 +22,26 @@ const EQUIP = '#2e9cff';
 const EQUIP_GLOW = 'rgba(46, 156, 255, 0.22)';
 const FRAME = '#50648c';
 
-/** One neon segment: soft glow underlay + bright core. */
-function S(x1: number, y1: number, x2: number, y2: number, c: string = CYAN, w = 4.5): ReactElement {
+/** One neon segment: soft glow underlay + bright core.
+ *  Body segments (default cyan) carry the `fig-body` class so the
+ *  mass-underlay pass can thicken them into a filled silhouette. */
+function S(x1: number, y1: number, x2: number, y2: number, c: string = CYAN, w = 6.5): ReactElement {
   const g = c === CYAN ? GLOW : EQUIP_GLOW;
   return (
-    <g key={`${x1},${y1}-${x2},${y2}-${c}`}>
+    <g key={`${x1},${y1}-${x2},${y2}-${c}`} className={c === CYAN ? 'fig-body' : undefined}>
       <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={g} strokeWidth={w + 6} strokeLinecap="round" />
       <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={c} strokeWidth={w} strokeLinecap="round" />
     </g>
   );
 }
 
-/** Head circle, neon. */
-function H(cx: number, cy: number, r = 8): ReactElement {
+/** Head: filled, shaded — a figure, not a stick-man circle. */
+function H(cx: number, cy: number, r = 9): ReactElement {
   return (
     <g key={`h${cx},${cy}`}>
       <circle cx={cx} cy={cy} r={r + 3.5} fill="none" stroke={GLOW} strokeWidth={3.5} />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={CYAN} strokeWidth={3.5} />
+      <circle cx={cx} cy={cy} r={r} fill="rgba(0, 240, 255, 0.16)" stroke={CYAN} strokeWidth={3.5} />
+      <circle cx={cx - 2.5} cy={cy - 2.5} r={r - 5.5} fill="rgba(143, 244, 255, 0.35)" stroke="none" />
     </g>
   );
 }
@@ -368,11 +371,11 @@ Object.assign(POSES, {
       )}
       {equip === 'dumbbell' &&
         (hold === 'chest' ? (
-          <g>
+          <>
             {S(100, 52, 92, 68)}
             {S(100, 52, 108, 68)}
             {Db(100, 72)}
-          </g>
+          </>
         ) : (
           <g>
             {Db(82, 48)}
@@ -804,23 +807,24 @@ Object.assign(POSES, {
 
   'fly-lying': (({ equip, angle }: ArtVariant) => {
     const inc = angle === 'incline';
+    // Fragment (not <g>): the underlay pass hides direct <g> children
+    // without .fig-body, so body segments must stay direct children.
     const bench = inc ? (
-      <g>
+      <>
         {Bench(44, 96, 150, 134)}
         {H(56, 84)}
-        {S(64, 90, 106, 112)}
-      </g>
+      </>
     ) : (
-      <g>
+      <>
         {Bench(42, 118, 152, 118)}
         {H(52, 106)}
-        {S(60, 110, 110, 110)}
-      </g>
+      </>
     );
     const handY = inc ? 72 : 88;
     return (
       <g>
         {bench}
+        {inc ? S(64, 90, 106, 112) : S(60, 110, 110, 110)}
         {S(inc ? 110 : 110, inc ? 108 : 110, 132, 118)}
         {S(132, 118, 132, 148)}
         {S(74, inc ? 100 : 110, 62, handY)}
@@ -1040,6 +1044,10 @@ Object.assign(POSES, {
 /**
  * Neon SVG illustration for one exercise variant. Renders at whatever
  * size its container gives it; the art box keeps the dark surface.
+ *
+ * Two passes: a mass-underlay (same pose, body segments only,
+ * thickened into a filled silhouette so the figure reads as an
+ * athlete, not a stick man) beneath the crisp detail pass.
  */
 export default function ExerciseArt({
   variant,
@@ -1053,8 +1061,9 @@ export default function ExerciseArt({
   const Pose = POSES[variant.pose];
   return (
     <div className={`ex-art ${className ?? ''}`} role="img" aria-label={alt} style={{ background: '#0b111c' }}>
+      <style>{`.ex-fig-underlay > g > :not(.fig-body){display:none}.ex-fig-underlay .fig-body line{stroke-width:15px !important;stroke:#155e75 !important}`}</style>
       <svg
-        viewBox="0 0 200 200"
+        viewBox="10 5 180 160"
         width="100%"
         height="100%"
         preserveAspectRatio="xMidYMid meet"
@@ -1063,11 +1072,14 @@ export default function ExerciseArt({
       >
         <defs>
           <radialGradient id="ex-art-glow" cx="50%" cy="42%" r="65%">
-            <stop offset="0%" stopColor="rgba(46,156,255,0.20)" />
+            <stop offset="0%" stopColor="rgba(46,156,255,0.28)" />
             <stop offset="100%" stopColor="rgba(46,156,255,0)" />
           </radialGradient>
         </defs>
         <rect width="200" height="200" fill="url(#ex-art-glow)" />
+        <g className="ex-fig-underlay" opacity={0.95}>
+          <Pose {...variant} />
+        </g>
         <Pose {...variant} />
       </svg>
     </div>
