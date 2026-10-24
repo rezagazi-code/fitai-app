@@ -15,6 +15,7 @@ import { useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import '../styles/exercise-display.css';
 import MuscleFigure, { type MuscleRow } from '../components/MuscleFigure';
+import BodyMap from '../components/BodyMap';
 import ExerciseArt from '../components/ExerciseArt';
 import { artVariantOf } from '../lib/exerciseArt';
 import { getActiveProgram } from '../lib/store';
@@ -308,6 +309,14 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           <h2 style={{ margin: 0, fontSize: 'var(--text-h1)' }}>{t('workouts.title')}</h2>
+
+          {/* ---------- body map: tap a muscle, see its exercises ---------- */}
+          <BodyMap
+            selected={muscle}
+            onSelect={setMuscle}
+            muscleName={(m) => t(`lib.muscle.${m}`)}
+            t={t}
+          />
 
           <input
             className="input"

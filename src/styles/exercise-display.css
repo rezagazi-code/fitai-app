@@ -624,3 +624,46 @@
     transform: scaleX(1);
   }
 }
+
+/* ---------- body map (MuscleWiki-style discovery, original art) ---------- */
+.bodymap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  padding: 14px 14px 6px;
+}
+
+.bodymap__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.bodymap__title {
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.bodymap__toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.bodymap__hint {
+  margin: 0;
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+}
+
+.bodymap__fig {
+  width: 205px;
+  height: auto;
+  display: block;
+}
+
+.bodymap-zone:hover circle,
+.bodymap-zone:hover ellipse {
+  stroke: rgba(143, 244, 255, 0.9);
+}
