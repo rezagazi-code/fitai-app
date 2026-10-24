@@ -412,6 +412,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
                 <button
                   key={e.key}
                   type="button"
+                  data-exercise-row={e.key}
                   onClick={() => setSelected(e)}
                   style={{
                     all: 'unset',
