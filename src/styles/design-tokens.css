@@ -1,0 +1,214 @@
+/* ============================================================
+ * اپ هوشمند بدنسازی — Design Tokens
+ * Dark AI-fitness aesthetic. Chic-and-calm («شیک و خلوت»):
+ * generous whitespace, one accent per component, clean hierarchy.
+ *
+ * NOTE: wire this file from src/index.css with
+ *   @import "./styles/design-tokens.css";
+ * ============================================================ */
+
+:root {
+  /* ---------- Color: foundation ---------- */
+  --bg-base: #0a0c12;          /* page background */
+  --bg-elevated: #11141d;      /* raised surfaces */
+  --surface: #161a26;          /* cards, sheets */
+  --surface-soft: #1d2230;     /* hover / pressed surfaces */
+
+  /* ---------- Color: text ---------- */
+  --text-primary: #f4f6fb;
+  --text-secondary: #a7adbf;
+  --text-muted: #6b7186;
+
+  /* ---------- Color: accents (re-skinnable pair) ---------- */
+  --accent-blue: #2e9cff;      /* primary neon — CTA, active states */
+  --accent-cyan: #00f0ff;      /* secondary neon — AI, highlights */
+  --accent-danger: #ff5470;
+  --accent-success: #3ddc84;
+
+  /* ---------- Color: borders ---------- */
+  --border-subtle: rgba(244, 246, 251, 0.08);
+  --border-strong: rgba(244, 246, 251, 0.16);
+
+  /* ---------- Typography ---------- */
+  --font-stack: "Vazirmatn", "IRANSans", Tahoma, system-ui, sans-serif;
+
+  --text-display: 2rem;        /* 32px — hero numbers, greetings */
+  --text-h1: 1.5rem;          /* 24px — screen titles */
+  --text-h2: 1.25rem;         /* 20px — section headers */
+  --text-body: 1rem;          /* 16px — default body */
+  --text-small: 0.875rem;     /* 14px — captions, meta */
+  --text-tiny: 0.75rem;       /* 12px — chips, labels */
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;      /* roomier for Persian script */
+  --leading-loose: 1.8;
+
+  /* ---------- Spacing scale ---------- */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px — default card padding floor */
+  --space-5: 1.5rem;    /* 24px — section gaps */
+  --space-6: 2rem;      /* 32px — screen padding */
+  --space-8: 3rem;      /* 48px — major separations */
+
+  /* ---------- Radius scale ---------- */
+  --radius-sm: 0.5rem;    /* 8px — inputs, small chips */
+  --radius-md: 0.875rem;  /* 14px — buttons */
+  --radius-lg: 1.25rem;   /* 20px — cards */
+  --radius-full: 999px;   /* pills, avatars */
+
+  /* ---------- Shadows (restrained) ---------- */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-glow-blue: 0 0 24px rgba(46, 156, 255, 0.25);
+}
+
+/* ============================================================
+ * Base reset pieces that belong to the theme (non-destructive)
+ * ============================================================ */
+.fitai-root {
+  font-family: var(--font-stack);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+}
+
+/* ============================================================
+ * Components — one accent per component, generous whitespace
+ * ============================================================ */
+
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+
+.card-title {
+  font-size: var(--text-h2);
+  line-height: var(--leading-tight);
+  margin: 0 0 var(--space-3);
+}
+
+.card-meta {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Primary button — neon accent, the ONLY bright element allowed */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--accent-blue);
+  color: #ffffff;
+  font-family: var(--font-stack);
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-glow-blue);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Ghost button — quiet secondary action */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  font-size: var(--text-body);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent-blue);
+  background: rgba(46, 156, 255, 0.06);
+}
+
+/* Input field */
+.input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15);
+}
+
+/* Chip — small label / filter tag */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  font-family: var(--font-stack);
+  font-size: var(--text-tiny);
+  line-height: var(--leading-tight);
+}
+
+.chip--active {
+  border-color: transparent;
+  background: rgba(46, 156, 255, 0.14);
+  color: var(--accent-blue);
+  font-weight: 700;
+}
+
+/* ============================================================
+ * RTL-aware helpers — logical properties, direction-safe
+ * ============================================================ */
+.dir-start {
+  margin-inline-start: var(--space-3);
+}
+
+.dir-end {
+  margin-inline-end: var(--space-3);
+}
+
+.text-align-start {
+  text-align: start;
+}
+
+.pad-inline {
+  padding-inline: var(--space-5);
+}
