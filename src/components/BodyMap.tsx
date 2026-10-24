@@ -9,7 +9,7 @@
  * a full-body anatomical figure, front and back, with every major
  * muscle group visible. Tap zones are positioned over it in %.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { MuscleGroup } from '../lib/exercises';
 
 type MuscleFilter = MuscleGroup | 'all';
@@ -80,7 +80,13 @@ export default function BodyMap({
   t: (k: string) => string;
 }) {
   const [view, setView] = useState<'front' | 'back'>('front');
+  const viewportRef = useRef<HTMLDivElement>(null);
   const zones = ZONES.filter((z) => (view === 'front' ? z.front : z.back));
+  const jump = (section: 'upper' | 'lower') => {
+    const el = viewportRef.current;
+    if (!el) return;
+    el.scrollTo({ top: section === 'upper' ? 0 : el.scrollHeight, behavior: 'smooth' });
+  };
 
   return (
     <div className="bodymap card">
@@ -103,34 +109,51 @@ export default function BodyMap({
           </button>
         </div>
       </div>
-      <p className="bodymap__hint">{t('workouts.tapMuscle')}</p>
-      <div className="bodymap__figwrap" role="group" aria-label={t('workouts.bodyMap')}>
-        <img
-          className="bodymap__img"
-          src={view === 'front' ? '/img/bodymap-front.webp' : '/img/bodymap-back.webp'}
-          alt=""
-          draggable={false}
-        />
-        {zones.map((z) => {
-          const rects = view === 'front' ? z.front! : z.back!;
-          const active = selected === z.muscle;
-          return rects.map((rect, i) => (
-            <button
-              key={`${z.muscle}-${i}`}
-              type="button"
-              className={active ? 'bodymap-zone bodymap-zone--active' : 'bodymap-zone'}
-              aria-label={muscleName(z.muscle)}
-              aria-pressed={active}
-              onClick={() => onSelect(active ? 'all' : z.muscle)}
-              style={{
-                left: `${rect.left}%`,
-                top: `${rect.top}%`,
-                width: `${rect.width}%`,
-                height: `${rect.height}%`,
-              }}
-            />
-          ));
-        })}
+      <p className="bodymap__hint">
+        {t('workouts.tapMuscle')} • {t('workouts.scrollBody')}
+      </p>
+      <div className="bodymap__jumprow" role="group" aria-label={t('workouts.bodyMap')}>
+        <button type="button" className="chip" onClick={() => jump('upper')}>
+          {t('workouts.upperBody')}
+        </button>
+        <button type="button" className="chip" onClick={() => jump('lower')}>
+          {t('workouts.lowerBody')}
+        </button>
+      </div>
+      <div
+        className="bodymap__viewport"
+        ref={viewportRef}
+        role="group"
+        aria-label={t('workouts.bodyMap')}
+      >
+        <div className="bodymap__fig">
+          <img
+            className="bodymap__img"
+            src={view === 'front' ? '/img/bodymap-front.webp' : '/img/bodymap-back.webp'}
+            alt=""
+            draggable={false}
+          />
+          {zones.map((z) => {
+            const rects = view === 'front' ? z.front! : z.back!;
+            const active = selected === z.muscle;
+            return rects.map((rect, i) => (
+              <button
+                key={`${z.muscle}-${i}`}
+                type="button"
+                className={active ? 'bodymap-zone bodymap-zone--active' : 'bodymap-zone'}
+                aria-label={muscleName(z.muscle)}
+                aria-pressed={active}
+                onClick={() => onSelect(active ? 'all' : z.muscle)}
+                style={{
+                  left: `${rect.left}%`,
+                  top: `${rect.top}%`,
+                  width: `${rect.width}%`,
+                  height: `${rect.height}%`,
+                }}
+              />
+            ));
+          })}
+        </div>
       </div>
     </div>
   );
