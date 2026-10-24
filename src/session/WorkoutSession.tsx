@@ -21,6 +21,7 @@ import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { getExercise } from '../lib/exercises';
 import ExerciseArt from '../components/ExerciseArt';
 import { artVariantOf } from '../lib/exerciseArt';
+import { muscleArtOf } from '../lib/muscleArt';
 import { useLang } from '../lib/i18n';
 import {
   nextProgression,
@@ -560,7 +561,7 @@ export default function WorkoutSession({
       >
         <div className="ws-exercise-head">
           {ex ? (
-            <ExerciseArt variant={artVariantOf(ex)} alt={exName} className="ws-exercise-art" />
+            <ExerciseArt variant={artVariantOf(ex)} alt={exName} raster={muscleArtOf(ex.key)} className="ws-exercise-art" />
           ) : null}
           <div className="ws-exercise-titles">
             <h2 className="ws-exercise-name">{exName}</h2>

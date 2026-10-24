@@ -1053,12 +1053,27 @@ export default function ExerciseArt({
   variant,
   alt,
   className,
+  raster,
 }: {
   variant: ArtVariant;
   alt: string;
   className?: string;
+  /** Original raster muscle image — when present it replaces the vector. */
+  raster?: string | null;
 }) {
   const Pose = POSES[variant.pose];
+  if (raster) {
+    return (
+      <div className={`ex-art ${className ?? ''}`} role="img" aria-label={alt} style={{ background: '#0b111c' }}>
+        <img
+          src={raster}
+          alt=""
+          aria-hidden="true"
+          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
+        />
+      </div>
+    );
+  }
   return (
     <div className={`ex-art ${className ?? ''}`} role="img" aria-label={alt} style={{ background: '#0b111c' }}>
       <style>{`.ex-fig-underlay > g > :not(.fig-body){display:none}.ex-fig-underlay .fig-body line{stroke-width:15px !important;stroke:#155e75 !important}`}</style>

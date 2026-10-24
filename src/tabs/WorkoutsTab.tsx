@@ -18,6 +18,7 @@ import MuscleFigure, { type MuscleRow } from '../components/MuscleFigure';
 import BodyMap from '../components/BodyMap';
 import ExerciseArt from '../components/ExerciseArt';
 import { artVariantOf } from '../lib/exerciseArt';
+import { muscleArtOf } from '../lib/muscleArt';
 import { getActiveProgram } from '../lib/store';
 import {
   ARCHETYPES,
@@ -61,7 +62,7 @@ function ExerciseArtBox({
   className?: string;
 }) {
   return (
-    <ExerciseArt variant={artVariantOf(exercise)} alt={exercise.nameFa} className={className} />
+    <ExerciseArt variant={artVariantOf(exercise)} alt={exercise.nameFa} raster={muscleArtOf(exercise.key)} className={className} />
   );
 }
 
