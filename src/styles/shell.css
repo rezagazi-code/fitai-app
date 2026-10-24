@@ -169,6 +169,17 @@
   margin-bottom: var(--space-1);
 }
 
+/* subtle entrance replayed whenever the message key changes (keyed span) */
+.coach-banner__message {
+  display: inline-block;
+  animation: coach-arrive 0.45s ease;
+}
+
+@keyframes coach-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
 .coach-banner--praise {
   border-inline-start-color: var(--accent-success);
   background: linear-gradient(135deg, rgba(61, 220, 132, 0.08), rgba(61, 220, 132, 0.02));

@@ -1,0 +1,341 @@
+/* ============================================================
+ * اپ هوشمند بدنسازی — Onboarding wizard styles.
+ * Full-screen overlay, dir-aware step animations, chic-and-calm
+ * tokens from design-tokens.css (no hard-coded colors).
+ * ============================================================ */
+
+.onbw-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.onbw-sheet {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5) var(--space-5) var(--space-6);
+}
+
+/* ---------- progress ---------- */
+.onbw-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.onbw-progress {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--surface-soft);
+  overflow: hidden;
+}
+
+.onbw-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  transition: width 0.35s ease;
+}
+
+.onbw-stepcount {
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ---------- body / step animation ---------- */
+.onbw-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-block: var(--space-5);
+  display: flex;
+  flex-direction: column;
+}
+
+.onbw-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: auto 0;
+}
+
+.onbw-title {
+  font-size: var(--text-h1);
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+.onbw-subtitle {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  margin: calc(var(--space-2) * -1) 0 0;
+  line-height: var(--leading-normal);
+}
+
+/* dir-aware enter animations: in RTL "next" slides in from the left */
+.onbw-rtl .onbw-enter-fwd  { animation: onbw-in-rtl-fwd  0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.onbw-rtl .onbw-enter-back { animation: onbw-in-rtl-back 0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.onbw-ltr .onbw-enter-fwd  { animation: onbw-in-ltr-fwd  0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.onbw-ltr .onbw-enter-back { animation: onbw-in-ltr-back 0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+@keyframes onbw-in-rtl-fwd  { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes onbw-in-rtl-back { from { opacity: 0; transform: translateX(32px);  } to { opacity: 1; transform: translateX(0); } }
+@keyframes onbw-in-ltr-fwd  { from { opacity: 0; transform: translateX(32px);  } to { opacity: 1; transform: translateX(0); } }
+@keyframes onbw-in-ltr-back { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ---------- option cards (goal / level / equipment) ---------- */
+.onbw-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.onbw-options--list {
+  grid-template-columns: 1fr;
+}
+
+.onbw-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.onbw-option:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.onbw-option:active {
+  transform: translateY(0);
+}
+
+.onbw-option--selected {
+  border-color: var(--accent-blue);
+  background: rgba(46, 156, 255, 0.1);
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.onbw-option-emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.onbw-option-label {
+  font-weight: 700;
+  font-size: var(--text-body);
+}
+
+.onbw-option-desc {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.onbw-check {
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  top: var(--space-3);
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: var(--text-small);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- day stepper ---------- */
+.onbw-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  padding: var(--space-6) 0;
+}
+
+.onbw-stepper-btn {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.onbw-stepper-btn:hover:not(:disabled) {
+  border-color: var(--accent-blue);
+}
+
+.onbw-stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.onbw-stepper-value {
+  font-size: var(--text-display);
+  font-weight: 800;
+  min-width: 5ch;
+  text-align: center;
+}
+
+/* ---------- chips (injuries) ---------- */
+.onbw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.onbw-chip-btn {
+  font-size: var(--text-small);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+button.onbw-chip-btn {
+  font-family: var(--font-stack);
+}
+
+/* ---------- form fields ---------- */
+.onbw-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.onbw-field-label {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ---------- review ---------- */
+.onbw-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.onbw-review-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  font-size: var(--text-body);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.onbw-review-row:hover {
+  border-color: var(--accent-blue);
+}
+
+.onbw-review-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.onbw-review-label {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+
+.onbw-review-value {
+  font-weight: 700;
+  line-height: var(--leading-normal);
+}
+
+.onbw-review-edit {
+  color: var(--accent-blue);
+  font-size: var(--text-small);
+  white-space: nowrap;
+}
+
+/* ---------- footer ---------- */
+.onbw-error {
+  color: var(--accent-danger);
+  font-size: var(--text-small);
+  min-height: 1.6em;
+  margin: 0;
+  text-align: center;
+}
+
+.onbw-footer {
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.onbw-footer .btn-primary {
+  flex: 1;
+}
+
+.onbw-footer .btn-primary:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.onbw-shake {
+  animation: onbw-shake 0.32s ease;
+}
+
+@keyframes onbw-shake {
+  20% { transform: translateX(-5px); }
+  45% { transform: translateX(5px); }
+  70% { transform: translateX(-3px); }
+  90% { transform: translateX(2px); }
+}
+
+.onbw-spinner {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: onbw-spin 0.7s linear infinite;
+}
+
+@keyframes onbw-spin {
+  to { transform: rotate(360deg); }
+}

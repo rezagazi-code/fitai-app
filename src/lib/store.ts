@@ -16,8 +16,11 @@ export interface WorkoutProgram {
   id: string;
   name: string;
   goal: string; // 'fat-loss' | 'muscle' | 'strength' | 'fitness'
+  level?: string;
   daysPerWeek: number;
   days: ProgramExercise[][]; // days[dayIndex] = exercises
+  dayKeys?: string[];
+  dayNames?: { fa: string; en: string }[];
   createdAt: string; // ISO
 }
 
@@ -27,13 +30,19 @@ export interface LoggedSet {
   reps: number;
   weightKg: number;
   rpe?: number; // 1-10
+  /** false = skipped set — excluded from volume/PR math */
+  done?: boolean;
 }
 
 export interface WorkoutSession {
   id: string;
   programId: string | null;
+  planDayKey?: string;
+  planDayName?: string;
   startedAt: string; // ISO
   finishedAt: string | null; // ISO
+  durationSec?: number;
+  prsHit?: number;
   sets: LoggedSet[];
 }
 
@@ -149,6 +158,57 @@ export function finishSession(sessionId: string): WorkoutSession | null {
   return s;
 }
 
+export interface FinishedSessionInput {
+  programId?: string | null;
+  planDayKey: string;
+  planDayName: string;
+  durationSec: number;
+  prsHit: number;
+  /** ISO timestamp of session finish. */
+  finishedAt: string;
+  exercises: {
+    exerciseKey: string;
+    sets: { reps: number; weightKg: number; done: boolean; rpe?: number }[];
+  }[];
+}
+
+/**
+ * Canonical write path for a completed workout session (used by the
+ * session overlay via sessionLog.ts). Flattens per-exercise sets into
+ * the store's LoggedSet shape so all analytics read one source.
+ */
+export function saveFinishedSession(input: FinishedSessionInput): WorkoutSession {
+  const sets: LoggedSet[] = [];
+  for (const ex of input.exercises) {
+    ex.sets.forEach((s, i) => {
+      sets.push({
+        exerciseKey: ex.exerciseKey,
+        setIndex: i,
+        reps: s.reps,
+        weightKg: s.weightKg,
+        rpe: s.rpe,
+        done: s.done,
+      });
+    });
+  }
+  const finishedMs = new Date(input.finishedAt).getTime();
+  const session: WorkoutSession = {
+    id: uid(),
+    programId: input.programId ?? null,
+    planDayKey: input.planDayKey,
+    planDayName: input.planDayName,
+    startedAt: new Date(finishedMs - input.durationSec * 1000).toISOString(),
+    finishedAt: input.finishedAt,
+    durationSec: input.durationSec,
+    prsHit: input.prsHit,
+    sets,
+  };
+  const all = getSessions();
+  all.push(session);
+  write(K.sessions, all);
+  return session;
+}
+
 /* ---------------- measurements ---------------- */
 
 export function getMeasurements(): BodyMeasurement[] {
@@ -168,6 +228,7 @@ export function getPersonalRecords(): PersonalRecord[] {
   const best = new Map<string, PersonalRecord>();
   for (const s of getSessions()) {
     for (const set of s.sets) {
+      if (set.done === false) continue;
       const cur = best.get(set.exerciseKey);
       if (!cur || set.weightKg > cur.bestWeightKg) {
         best.set(set.exerciseKey, {
@@ -191,7 +252,10 @@ export function getVolumeByDay(days = 30): { date: string; volumeKg: number }[] 
     if (t < cutoff) continue;
     const day = s.startedAt.slice(0, 10);
     let v = out.get(day) ?? 0;
-    for (const set of s.sets) v += set.reps * set.weightKg;
+    for (const set of s.sets) {
+      if (set.done === false) continue;
+      v += set.reps * set.weightKg;
+    }
     out.set(day, v);
   }
   return [...out.entries()]

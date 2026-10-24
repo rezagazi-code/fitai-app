@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { LangProvider } from './lib/i18n';
 import TabBar, { type TabId } from './components/TabBar';
 import HomeTab from './tabs/HomeTab';
@@ -6,21 +6,74 @@ import WorkoutsTab from './tabs/WorkoutsTab';
 import LogTab from './tabs/LogTab';
 import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
+import OnboardingWizard from './onboarding/OnboardingWizard';
+import WorkoutSession, { type PlanDay } from './session/WorkoutSession';
+import { getActiveProgram } from './lib/store';
+import { todayPlanDay } from './session/launch';
 import './styles/shell.css';
 
 function Shell() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
+  const [sessionDay, setSessionDay] = useState<PlanDay | null>(null);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  /** Bumped after onboarding/session so tabs re-read the store. */
+  const [seq, setSeq] = useState(0);
+  const refresh = useCallback(() => setSeq((s) => s + 1), []);
+
+  const openOnboarding = useCallback(() => setOnboardingOpen(true), []);
+
+  const openTodaySession = useCallback(() => {
+    const day = todayPlanDay(getActiveProgram());
+    if (day) setSessionDay(day);
+    else setOnboardingOpen(true);
+  }, []);
 
   return (
     <div className="fitai-root shell">
       <main className="shell-content">
-        {activeTab === 'home' && <HomeTab onStartSession={() => setActiveTab('log')} />}
-        {activeTab === 'workouts' && <WorkoutsTab />}
-        {activeTab === 'log' && <LogTab />}
-        {activeTab === 'progress' && <ProgressTab />}
+        {activeTab === 'home' && (
+          <HomeTab
+            key={`home-${seq}`}
+            onStartWorkout={openTodaySession}
+            onBuildProgram={openOnboarding}
+          />
+        )}
+        {activeTab === 'workouts' && (
+          <WorkoutsTab
+            onBuildProgram={openOnboarding}
+            onStartWorkout={openTodaySession}
+          />
+        )}
+        {activeTab === 'log' && (
+          <LogTab
+            key={`log-${seq}`}
+            onStartWorkout={openTodaySession}
+            onBuildProgram={openOnboarding}
+          />
+        )}
+        {activeTab === 'progress' && <ProgressTab key={`progress-${seq}`} />}
         {activeTab === 'profile' && <ProfileTab />}
       </main>
       <TabBar active={activeTab} onSelect={setActiveTab} />
+
+      {onboardingOpen && (
+        <OnboardingWizard
+          onDone={() => {
+            setOnboardingOpen(false);
+            refresh();
+          }}
+        />
+      )}
+      {sessionDay && (
+        <WorkoutSession
+          planDay={sessionDay}
+          onFinish={() => {
+            setSessionDay(null);
+            refresh();
+          }}
+          onCancel={() => setSessionDay(null)}
+        />
+      )}
     </div>
   );
 }

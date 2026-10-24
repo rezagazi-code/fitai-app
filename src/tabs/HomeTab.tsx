@@ -4,13 +4,17 @@
  * today's workout card, quick stats, one-tap session start.
  */
 import type { ReactElement } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
-import CoachBanner, { type CoachTone } from '../components/CoachBanner';
-import { getActiveProgram, getSessions, getVolumeByDay, startSession } from '../lib/store';
+import CoachBanner from '../components/CoachBanner';
+import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
+import { getActiveProgram, getSessions, getVolumeByDay } from '../lib/store';
 
 interface HomeTabProps {
-  /** Called after a session is started — the shell switches to the Log tab. */
-  onStartSession: () => void;
+  /** Opens the workout session overlay for today's plan day. */
+  onStartWorkout: () => void;
+  /** Opens the onboarding wizard to build a program. */
+  onBuildProgram: () => void;
 }
 
 function greetingKey(hour: number): 'morning' | 'afternoon' | 'evening' {
@@ -45,21 +49,19 @@ function formatVolume(kg: number, lang: Lang): string {
   return digits.format(kg);
 }
 
-export default function HomeTab({ onStartSession }: HomeTabProps): ReactElement {
+export default function HomeTab({ onStartWorkout, onBuildProgram }: HomeTabProps): ReactElement {
   const { t, lang } = useLang();
   const program = getActiveProgram();
 
   const hour = new Date().getHours();
   const greet = t(`home.greeting.${greetingKey(hour)}`);
 
-  let coachMessage: string;
-  let coachTone: CoachTone = 'info';
-  if (program) {
-    coachMessage = t('coach.hasProgram').replace('{name}', program.name);
-  } else {
-    coachMessage = t('coach.noProgram');
-    coachTone = 'nudge';
-  }
+  // The coach engine decides the single most relevant banner message from
+  // real context: program, recent sessions, streak, PRs, missed days.
+  const coachMsg = useMemo(() => getBannerMessage(buildCoachContext()), []);
+  useEffect(() => {
+    rememberBannerKey(coachMsg.key);
+  }, [coachMsg]);
 
   const weekSessions = sessionsThisWeekCount();
   const weekVolume = volumeThisWeekKg();
@@ -74,8 +76,7 @@ export default function HomeTab({ onStartSession }: HomeTabProps): ReactElement 
     : 0;
 
   const handleStart = () => {
-    startSession(program ? program.id : null);
-    onStartSession();
+    onStartWorkout();
   };
 
   return (
@@ -88,7 +89,7 @@ export default function HomeTab({ onStartSession }: HomeTabProps): ReactElement 
       </header>
 
       <div className="home-banner">
-        <CoachBanner message={coachMessage} tone={coachTone} />
+        <CoachBanner coachMessage={coachMsg} />
       </div>
 
       <div className="home-stats">
@@ -127,6 +128,9 @@ export default function HomeTab({ onStartSession }: HomeTabProps): ReactElement 
         <section className="card today-card">
           <h2 className="card-title">{t('home.noProgramTitle')}</h2>
           <p className="card-meta">{t('home.noProgramBody')}</p>
+          <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 12 }} onClick={onBuildProgram}>
+            {t('workouts.buildProgram')}
+          </button>
         </section>
       )}
     </div>

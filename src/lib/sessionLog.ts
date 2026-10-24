@@ -1,13 +1,19 @@
 /**
  * اپ هوشمند بدنسازی — workout session log.
  *
- * Persists finished workout sessions to localStorage for now. The record
- * shape is forward-compatible with a future `workout_sessions` Supabase
- * table: { id, date, planDayKey, planDayName, durationSec, exercises:
- * [{ exerciseKey, sets: [{ reps, weightKg, done, rpe? }] }], totalVolumeKg }.
- * When the sync layer arrives it can POST these records as-is (plus an
- * owner id) without touching callers.
+ * Thin adapter over the canonical session store in ./store.ts so the
+ * session overlay keeps its rich record API while all analytics
+ * (Progress tab, coach engine, store helpers) read ONE source of truth.
+ *
+ * The record shape stays forward-compatible with a future
+ * `workout_sessions` Supabase table.
  */
+
+import {
+  getSessions,
+  saveFinishedSession,
+  type WorkoutSession as StoreSession,
+} from './store';
 
 export interface LoggedSetEntry {
   reps: number;
@@ -46,58 +52,72 @@ export interface LastPerformance {
   date: string;
 }
 
-const KEY = 'fitai.workoutSessions';
-
-function uid(): string {
-  try {
-    return crypto.randomUUID();
-  } catch {
-    return `ws-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+function toRecord(s: StoreSession): WorkoutSessionRecord {
+  const byKey = new Map<string, LoggedSetEntry[]>();
+  for (const set of s.sets) {
+    const arr = byKey.get(set.exerciseKey) ?? [];
+    arr.push({
+      reps: set.reps,
+      weightKg: set.weightKg,
+      done: set.done !== false,
+      rpe: set.rpe,
+    });
+    byKey.set(set.exerciseKey, arr);
   }
-}
-
-function read<T>(fallback: T): T {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function write(value: WorkoutSessionRecord[]): void {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(value));
-  } catch {
-    /* storage full / unavailable — fail open */
-  }
+  const exercises: SessionExerciseEntry[] = [...byKey.entries()].map(
+    ([exerciseKey, sets]) => ({ exerciseKey, sets }),
+  );
+  const doneSets = s.sets.filter((x) => x.done !== false);
+  return {
+    id: s.id,
+    date: s.finishedAt ?? s.startedAt,
+    planDayKey: s.planDayKey ?? '',
+    planDayName: s.planDayName ?? '',
+    durationSec: s.durationSec ?? 0,
+    exercises,
+    totalVolumeKg: recordVolumeKg({ exercises }),
+    setsCompleted: doneSets.length,
+    setsPlanned: s.sets.length,
+    prsHit: s.prsHit ?? 0,
+    synced: false,
+  };
 }
 
 export function getWorkoutSessions(): WorkoutSessionRecord[] {
-  return read<WorkoutSessionRecord[]>([]);
+  return getSessions().map(toRecord);
 }
 
 /** Append a finished session record. Returns the stored record. */
 export function saveWorkoutSession(
   record: Omit<WorkoutSessionRecord, 'id' | 'synced'>,
 ): WorkoutSessionRecord {
-  const full: WorkoutSessionRecord = { ...record, id: uid(), synced: false };
-  const all = getWorkoutSessions();
-  all.push(full);
-  write(all);
-  return full;
+  const stored = saveFinishedSession({
+    programId: null,
+    planDayKey: record.planDayKey,
+    planDayName: record.planDayName,
+    durationSec: record.durationSec,
+    prsHit: record.prsHit,
+    finishedAt: record.date,
+    exercises: record.exercises,
+  });
+  return toRecord(stored);
 }
 
 /** Heaviest done set of the most recent session containing this exercise. */
 export function getLastPerformance(exerciseKey: string): LastPerformance | null {
-  const sessions = getWorkoutSessions();
+  const sessions = getSessions();
   for (let i = sessions.length - 1; i >= 0; i--) {
-    const ex = sessions[i].exercises.find((e) => e.exerciseKey === exerciseKey);
-    if (!ex) continue;
-    const done = ex.sets.filter((s) => s.done);
+    const done = sessions[i].sets.filter(
+      (s) => s.exerciseKey === exerciseKey && s.done !== false,
+    );
     if (done.length === 0) continue;
     const best = done.reduce((a, b) => (b.weightKg > a.weightKg ? b : a));
-    return { weightKg: best.weightKg, reps: best.reps, rpe: best.rpe, date: sessions[i].date };
+    return {
+      weightKg: best.weightKg,
+      reps: best.reps,
+      rpe: best.rpe,
+      date: sessions[i].finishedAt ?? sessions[i].startedAt,
+    };
   }
   return null;
 }

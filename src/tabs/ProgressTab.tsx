@@ -121,10 +121,6 @@ function weekStartOf(d: Date): Date {
   return x;
 }
 
-function sameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-
 /** Epley estimated one-rep max. */
 function epley1rm(weightKg: number, reps: number): number {
   return weightKg * (1 + reps / 30);
