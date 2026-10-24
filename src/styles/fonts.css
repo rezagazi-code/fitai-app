@@ -1,0 +1,42 @@
+/* ============================================================
+ * اپ هوشمند بدنسازی — local Vazirmatn variable font.
+ * Bundled under public/fonts/ (ZERO network dependency — works
+ * fully offline in Iran). Variable weight axis 100–900 in every
+ * file; three unicode-range subsets so Persian glyphs come from
+ * the arabic subset and Latin/digits from the latin subsets.
+ * ============================================================ */
+
+/* arabic subset: Persian/Arabic glyphs (U+0600–U+08FF range family) */
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/vazirmatn-arabic.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1,
+    U+08E3-08FF, U+200C-200E, U+2010-2015, U+202A-202E, U+064B-065F;
+}
+
+/* latin-ext subset */
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/vazirmatn-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215;
+}
+
+/* latin subset: basic Latin + digits (Persian digits come from arabic subset) */
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/vazirmatn-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}

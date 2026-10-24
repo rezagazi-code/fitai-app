@@ -11,6 +11,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
+import MuscleFigure, { type MuscleRow } from '../components/MuscleFigure';
 import { getActiveProgram } from '../lib/store';
 import {
   EQUIPMENT_TYPES,
@@ -37,7 +38,8 @@ const GOAL_KEYS: Record<string, string> = {
 };
 
 function MuscleEngagement({ exercise, t }: { exercise: Exercise; t: (k: string) => string }) {
-  const rows: { label: string; pct: number; primary: boolean }[] = [
+  // Rows are computed exactly as before — rendering moved to MuscleFigure.
+  const rows: MuscleRow[] = [
     {
       label: t(`lib.muscle.${exercise.muscle}`),
       pct: 100,
@@ -54,42 +56,7 @@ function MuscleEngagement({ exercise, t }: { exercise: Exercise; t: (k: string) 
       <h4 style={{ margin: 0, fontSize: 'var(--text-small)', color: 'var(--text-secondary)' }}>
         {t('workouts.muscleEngagement')}
       </h4>
-      {rows.map((r) => (
-        <div key={r.label}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 'var(--text-tiny)',
-              color: r.primary ? 'var(--text-primary)' : 'var(--text-secondary)',
-              marginBottom: 4,
-            }}
-          >
-            <span style={{ fontWeight: r.primary ? 700 : 400 }}>{r.label}</span>
-            <span>{r.primary ? '●' : '◐'}</span>
-          </div>
-          <div
-            style={{
-              height: 6,
-              borderRadius: 'var(--radius-full)',
-              background: 'var(--bg-elevated)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${r.pct}%`,
-                height: '100%',
-                borderRadius: 'var(--radius-full)',
-                background: r.primary
-                  ? 'linear-gradient(90deg, var(--accent-blue), var(--accent-cyan))'
-                  : 'var(--text-muted)',
-                opacity: r.primary ? 1 : 0.55,
-              }}
-            />
-          </div>
-        </div>
-      ))}
+      <MuscleFigure primary={exercise.muscle} secondary={exercise.secondary} rows={rows} />
     </div>
   );
 }
@@ -412,32 +379,14 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
                 <button
                   key={e.key}
                   type="button"
+                  className="lib-card"
                   data-exercise-row={e.key}
                   onClick={() => setSelected(e)}
-                  style={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 6,
-                    padding: '12px 14px',
-                    borderRadius: 'var(--radius-lg)',
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border-subtle)',
-                  }}
                 >
-                  <span
-                    style={{
-                      fontSize: 'var(--text-body)',
-                      fontWeight: 700,
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    {nameOf(e)}
-                  </span>
-                  <span style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                  <span className="lib-card__name">{nameOf(e)}</span>
+                  <span className="lib-card__meta">
                     <span className="chip chip--active">{t(`lib.muscle.${e.muscle}`)}</span>
-                    <span style={{ fontSize: 'var(--text-tiny)', color: 'var(--text-muted)' }}>
+                    <span>
                       {e.equipment.map((eq) => t(`lib.equipment.${eq}`)).join(' · ')}
                       {e.videoUrl ? ` · ${t('workouts.hasVideo')}` : ''}
                     </span>

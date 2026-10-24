@@ -1,8 +1,10 @@
 @import "tailwindcss";
+@import "./styles/fonts.css";
 @import "./styles/design-tokens.css";
+@import "./styles/visuals.css";
 
-/* Scaffolding stub only: dark background, white text.
-   The full design system arrives in Phase B — do not build it here. */
+/* Scaffolding: dark athletic base. The design system lives in
+   styles/design-tokens.css + styles/visuals.css; keep this file thin. */
 
 html,
 body,
@@ -12,8 +14,32 @@ body,
 
 body {
   margin: 0;
-  background: #07090e;
-  color: #ffffff;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Dossier §5: near-black #0A0E14 + ambient neon mesh (fixed, screen-wide) */
+  background:
+    radial-gradient(52rem 34rem at 12% -6%, rgba(46, 156, 255, 0.13), transparent 62%),
+    radial-gradient(46rem 30rem at 94% 4%, rgba(0, 240, 255, 0.08), transparent 60%),
+    radial-gradient(60rem 44rem at 50% 118%, rgba(46, 60, 255, 0.10), transparent 64%),
+    #0a0e14;
+  background-attachment: fixed;
+  color: #f4f6fb;
+  font-family: "Vazirmatn", "IRANSans", Tahoma, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* subtle grain so flat dark areas don't band on OLED */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+#root {
+  position: relative;
+  z-index: 1;
 }

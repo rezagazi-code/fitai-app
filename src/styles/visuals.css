@@ -1,0 +1,380 @@
+/* ============================================================
+ * اپ هوشمند بدنسازی — visual layer (design overhaul 2026-10-24).
+ * Dark athletic per dossier §5: near-black #0A0E14, electric blue
+ * as the primary energy, white headlines, light-gray body text,
+ * green/gold for records, red only for destructive. Original CSS.
+ * Chic-and-uncluttered: one accent per component, generous space.
+ * ============================================================ */
+
+/* ---------- screen transitions: every tab content fades/slides in ---------- */
+.shell-content > * {
+  animation: fitai-tab-enter 0.38s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes fitai-tab-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- coach banner: the visual hero ----------
+   Bigger, luminous, conversational — the coach speaks first-person. */
+.coach-banner {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-5);
+  border: 1px solid rgba(46, 156, 255, 0.28);
+  background:
+    radial-gradient(120% 160% at 8% 0%, rgba(46, 156, 255, 0.16), transparent 55%),
+    radial-gradient(120% 160% at 96% 100%, rgba(0, 240, 255, 0.09), transparent 50%),
+    linear-gradient(135deg, rgba(18, 24, 40, 0.96), rgba(12, 16, 28, 0.96));
+  box-shadow:
+    var(--shadow-card),
+    0 0 34px rgba(46, 156, 255, 0.14),
+    inset 0 1px 0 rgba(244, 246, 251, 0.08);
+}
+
+.coach-banner::before {
+  /* slow drifting energy streak across the hero */
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(0, 240, 255, 0.05) 40deg,
+    transparent 80deg,
+    transparent 180deg,
+    rgba(46, 156, 255, 0.05) 220deg,
+    transparent 260deg
+  );
+  animation: fitai-banner-drift 14s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes fitai-banner-drift {
+  to { transform: rotate(360deg); }
+}
+
+.coach-banner__avatar {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, rgba(46, 156, 255, 0.32), rgba(0, 240, 255, 0.14));
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  box-shadow: var(--shadow-glow-blue);
+  color: #aee4ff;
+}
+
+.coach-banner__avatar svg {
+  width: 24px;
+  height: 24px;
+}
+
+.coach-banner__prefix {
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.55);
+  margin-bottom: var(--space-2);
+}
+
+[dir="rtl"] .coach-banner__prefix {
+  letter-spacing: 0.02em;
+}
+
+.coach-banner__text {
+  position: relative;
+  z-index: 1;
+  font-size: 1.0625rem; /* 17px — hero copy stays legible */
+  font-weight: 600;
+  line-height: var(--leading-normal);
+}
+
+/* praise variant: green celebration energy */
+.coach-banner--praise {
+  border-color: rgba(61, 220, 132, 0.32);
+  box-shadow:
+    var(--shadow-card),
+    0 0 34px rgba(61, 220, 132, 0.16),
+    inset 0 1px 0 rgba(244, 246, 251, 0.08);
+}
+
+.coach-banner--praise .coach-banner__avatar {
+  color: #b8f5d4;
+  box-shadow: 0 0 24px rgba(61, 220, 132, 0.35);
+}
+
+.coach-banner--praise .coach-banner__prefix {
+  color: var(--accent-success);
+  text-shadow: 0 0 12px rgba(61, 220, 132, 0.55);
+}
+
+/* ---------- stat cards: number-first, subtle neon underline ---------- */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  background-image: var(--grad-card-sheen);
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--space-4);
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(46, 156, 255, 0.5), transparent);
+  opacity: 0.7;
+}
+
+.stat-value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- streak: golden glow, impossible to miss ----------
+   (higher specificity than the .prog-streak rule injected by ProgressTab) */
+.prog-stats .prog-streak {
+  background: var(--grad-pr);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255, 209, 102, 0.45));
+}
+
+/* ---------- library exercise cards (rows) ---------- */
+.lib-card {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  background-image: var(--grad-card-sheen);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.lib-card:hover {
+  border-color: rgba(46, 156, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card-hover), var(--shadow-glow-blue);
+}
+
+.lib-card:active {
+  transform: translateY(0) scale(0.995);
+}
+
+.lib-card__name {
+  font-size: var(--text-body);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+}
+
+.lib-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+}
+
+/* ---------- tab bar: active icon glow ---------- */
+.tabbar-item--active svg {
+  filter: drop-shadow(0 0 8px rgba(46, 156, 255, 0.8));
+}
+
+.tabbar-item--active {
+  font-weight: 700;
+}
+
+.tabbar-center {
+  background: var(--grad-cta);
+  box-shadow:
+    0 8px 26px rgba(46, 156, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* ---------- onboarding: hero gradient title + luminous options ---------- */
+.onbw-title {
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: var(--leading-tight);
+}
+
+.onbw-title .accent,
+.onbw-title--gradient {
+  background: var(--grad-headline);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.onbw-option {
+  background-image: var(--grad-card-sheen);
+  box-shadow: var(--shadow-card);
+}
+
+.onbw-option--selected {
+  border-color: var(--accent-blue);
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(46, 156, 255, 0.22), transparent 60%),
+    rgba(46, 156, 255, 0.10);
+  box-shadow: var(--shadow-glow-blue), inset 0 1px 0 rgba(244, 246, 251, 0.08);
+}
+
+.onbw-progress-fill {
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.55);
+}
+
+/* ---------- session: richer set cards, celebration gold for PRs ---------- */
+.ws-set {
+  background-image: var(--grad-card-sheen);
+  box-shadow: var(--shadow-card);
+}
+
+.ws-set.is-done {
+  box-shadow: var(--shadow-card), 0 0 18px rgba(61, 220, 132, 0.14);
+}
+
+/* when the summary contains PRs, the whole card glows gold */
+.ws-summary-card:has(.ws-pr-list) {
+  border-color: rgba(255, 209, 102, 0.45);
+  box-shadow: var(--shadow-card), var(--shadow-glow-gold);
+}
+
+.ws-summary-card:has(.ws-pr-list) .ws-summary-title {
+  background: var(--grad-pr);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ws-rest-ring {
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.28);
+}
+
+.ws-check.is-on {
+  box-shadow: 0 0 20px rgba(61, 220, 132, 0.5);
+}
+
+/* ---------- muscle figure (original SVG, anatomical) ---------- */
+.muscle-figure {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(90% 90% at 50% 0%, rgba(46, 156, 255, 0.10), transparent 70%),
+    var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+}
+
+.muscle-figure svg {
+  flex: 0 0 auto;
+  width: 108px;
+  height: auto;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
+}
+
+.muscle-figure__bars {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.muscle-figure__row-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--text-tiny);
+  margin-bottom: 4px;
+}
+
+.muscle-figure__row-label .name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.muscle-figure__row-label .name.dim {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.muscle-figure__pct {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: var(--accent-cyan);
+}
+
+.muscle-figure__track {
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: rgba(244, 246, 251, 0.08);
+  overflow: hidden;
+}
+
+.muscle-figure__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  transition: width 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.muscle-figure__fill--secondary {
+  background: linear-gradient(90deg, #46536e, #6b7a99);
+  box-shadow: none;
+  opacity: 0.75;
+}
+
+.muscle-figure__caption {
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: var(--space-1);
+}
+
+/* ---------- section headers across tabs ---------- */
+.fitai-section-title {
+  font-size: var(--text-h1);
+  font-weight: 800;
+  margin: 0 0 var(--space-1);
+  line-height: var(--leading-tight);
+}
+
+.fitai-section-sub {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--leading-normal);
+}
+
+/* ---------- accessibility: honor reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .shell-content > *,
+  .coach-banner::before,
+  .coach-banner__message,
+  .muscle-figure__fill {
+    animation: none;
+    transition: none;
+  }
+}
