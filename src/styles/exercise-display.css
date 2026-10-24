@@ -343,17 +343,12 @@
 }
 
 .mf-glow--secondary {
-  animation-duration: 3.8s;
-  opacity: 0.5;
+  animation: mf-pulse-soft 3.8s ease-in-out infinite;
 }
 
 @keyframes mf-pulse {
   0%, 100% { opacity: 0.42; }
   50% { opacity: 0.95; }
-}
-
-.mf-glow--secondary {
-  animation-name: mf-pulse-soft;
 }
 
 @keyframes mf-pulse-soft {
