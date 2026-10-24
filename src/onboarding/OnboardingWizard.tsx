@@ -2,10 +2,12 @@
  * اپ هوشمند بدنسازی — Onboarding wizard (multi-step, full-screen overlay).
  *
  * Steps: goal → level → days/week → equipment → injuries → height/weight
- * → summary review → finish. On finish it lazily loads generateProgram()
- * from ../lib/program (built by a sibling agent; the import is guarded so
- * the wizard works even when that file is absent), saves the program via
- * the store, persists the profile, and calls onDone().
+ * → summary review → finish. On finish it calls generateProgram()
+ * from ../lib/program (statically imported — the engine ships inside
+ * the main bundle), saves the program via the store, persists the
+ * profile, marks onboarding done, and calls onDone(). If generation
+ * fails, the wizard stays open and shows an error instead of closing
+ * with nothing saved.
  *
  * i18n: new strings live in ONBOARDING_KEYS below (fa/en) — the coordinator
  * merges them into lib/i18n.tsx centrally. This file is never edited for
@@ -14,6 +16,10 @@
 import { useState, type ReactElement } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import { saveProgram, setActiveProgram, setOnboarded } from '../lib/store';
+import {
+  generateProgram,
+  type UserProfile as EngineProfile,
+} from '../lib/program';
 import { EQUIPMENT_TYPES, type Equipment } from '../lib/exercises';
 import './onboarding.css';
 
@@ -72,6 +78,7 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.needInjury': 'اگه مشکلی نداری، «مشکلی ندارم» رو بزن',
     'onbw.programName': 'برنامه {goal}',
     'onbw.edit': 'ویرایش',
+    'onbw.generateFailed': 'ساخت برنامه ناموفق بود — دوباره تلاش کن',
   },
   en: {
     'onbw.stepOf': 'Step {current} of {total}',
@@ -123,6 +130,7 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.needInjury': 'If all good, tap “No issues”',
     'onbw.programName': '{goal} program',
     'onbw.edit': 'Edit',
+    'onbw.generateFailed': 'Program generation failed — please try again',
   },
 };
 
@@ -201,13 +209,11 @@ export function getUserProfile(): StoredUserProfile | null {
 }
 
 /* ============================================================
- * Lazy, guarded loader for generateProgram().
- * ../lib/program.ts is built by a sibling agent and may not exist
- * yet. A template-literal specifier keeps tsc from resolving the
- * module statically (typed as any), while Vite still bundles it
- * when the file exists; when absent the import rejects → null.
+ * Program engine contract (src/lib/program.ts)
+ * The wizard UI uses its own goal literals; map to the engine's
+ * literals before calling generateProgram (static import —
+ * program.ts ships inside the main bundle, so no lazy loading).
  * ============================================================ */
-type GenerateProgramFn = (profile: UserProfile) => WorkoutPlan;
 
 /**
  * The program engine (src/lib/program.ts) uses slightly different goal
@@ -220,18 +226,15 @@ const ENGINE_GOAL: Record<Goal, 'fatloss' | 'muscle' | 'strength' | 'general'> =
   fitness: 'general',
 };
 
-async function loadGenerateProgram(): Promise<GenerateProgramFn | null> {
-  try {
-    const moduleName = 'program';
-    const mod = (await import(`../lib/${moduleName}`)) as {
-      generateProgram?: unknown;
-    };
-    return typeof mod.generateProgram === 'function'
-      ? (mod.generateProgram as GenerateProgramFn)
-      : null;
-  } catch {
-    return null;
-  }
+function toEngineProfile(p: UserProfile): EngineProfile {
+  return {
+    goal: ENGINE_GOAL[p.goal],
+    level: p.level,
+    daysPerWeek: p.daysPerWeek,
+    equipment: [...p.equipment],
+    // 'none' is not an injury — drop it so the engine stays clean
+    injuries: p.injuries.filter((i) => i !== 'none'),
+  };
 }
 
 /* ---------------- step model ---------------- */
@@ -361,57 +364,46 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
     return p;
   };
 
-  const handleFinish = async (): Promise<void> => {
+  const handleFinish = (): void => {
     if (busy) return;
     setBusy(true);
     setError(null);
     const profile = buildProfile();
     try {
-      const generate = await loadGenerateProgram();
-      let programSaved = false;
-      if (generate) {
-        try {
-          const engineProfile = {
-            ...profile,
-            goal: ENGINE_GOAL[profile.goal],
-            // 'none' is not an injury — drop it so the engine stays clean
-            injuries: profile.injuries.filter((i) => i !== 'none'),
-          };
-          const plan = generate(engineProfile as UserProfile);
-          if (plan && Array.isArray(plan.days) && plan.days.length > 0) {
-            const stored = saveProgram({
-              name: lt('onbw.programName').replace('{goal}', goalLabel(profile.goal)),
-              goal: profile.goal,
-              level: profile.level,
-              daysPerWeek: profile.daysPerWeek,
-              dayKeys: plan.days.map((d, i) => d.key ?? `day-${i + 1}`),
-              dayNames: plan.days.map((d) => ({
-                fa: d.nameFa ?? d.name ?? '',
-                en: d.nameEn ?? '',
-              })),
-              days: plan.days.map((d) =>
-                d.exercises.map((e) => ({
-                  exerciseKey: e.exerciseKey,
-                  sets: e.sets,
-                  reps: e.reps,
-                  restSeconds: e.restSeconds,
-                })),
-              ),
-            });
-            setActiveProgram(stored.id);
-            programSaved = true;
-          }
-        } catch {
-          /* generator failed — fall back to profile-only */
-        }
+      const plan = generateProgram(toEngineProfile(profile));
+      if (!plan || !Array.isArray(plan.days) || plan.days.length === 0) {
+        throw new Error('empty plan');
       }
-      saveUserProfile(profile, !programSaved);
+      const stored = saveProgram({
+        name: lt('onbw.programName').replace('{goal}', goalLabel(profile.goal)),
+        goal: profile.goal,
+        level: profile.level,
+        daysPerWeek: profile.daysPerWeek,
+        dayKeys: plan.days.map((d, i) => d.key ?? `day-${i + 1}`),
+        dayNames: plan.days.map((d) => ({
+          fa: d.nameFa ?? '',
+          en: d.nameEn ?? '',
+        })),
+        days: plan.days.map((d) =>
+          d.exercises.map((e) => ({
+            exerciseKey: e.exerciseKey,
+            sets: e.sets,
+            reps: e.reps,
+            restSeconds: e.restSeconds,
+          })),
+        ),
+      });
+      setActiveProgram(stored.id);
+      saveUserProfile(profile, false);
       setOnboarded();
-    } catch {
-      saveUserProfile(profile, true);
-      setOnboarded();
-    } finally {
       onDone();
+    } catch {
+      // Generation is pure and local — a failure here is a real bug;
+      // surface it instead of silently closing with nothing saved.
+      saveUserProfile(profile, true);
+      setError('onbw.generateFailed');
+    } finally {
+      setBusy(false);
     }
   };
 
