@@ -26,9 +26,11 @@ interface CoachBannerProps {
   message?: string;
   /** Used only with the legacy `message` prop. */
   tone?: CoachTone;
+  /** Hero variant: larger, luminous — the Home-screen centerpiece. */
+  hero?: boolean;
 }
 
-export default function CoachBanner({ coachMessage, message, tone = 'info' }: CoachBannerProps): ReactElement {
+export default function CoachBanner({ coachMessage, message, tone = 'info', hero = false }: CoachBannerProps): ReactElement {
   const { t, lang } = useLang();
   const [auto, setAuto] = useState<CoachMessage | null>(null);
 
@@ -52,7 +54,7 @@ export default function CoachBanner({ coachMessage, message, tone = 'info' }: Co
   const animKey = active ? active.key : `legacy-${text.slice(0, 24)}`;
 
   return (
-    <div className={`coach-banner coach-banner--${activeTone}`} role="status">
+    <div className={`coach-banner coach-banner--${activeTone}${hero ? ' coach-banner--hero' : ''}`} role="status">
       <div className="coach-banner__avatar" aria-hidden="true">
         <span className="coach-banner__pulse" />
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">

@@ -45,32 +45,38 @@ export default function LogTab({ onStartWorkout, onBuildProgram }: LogTabProps):
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-      <h2 style={{ margin: 0, fontSize: 'var(--text-h1)' }}>{t('shell.log')}</h2>
+      <h2 className="fitai-section-title">{t('shell.log')}</h2>
+      <p className="fitai-section-sub">{t('log.recentSessions')}</p>
 
       {day ? (
-        <section className="card">
-          <h3 className="card-title">{t('home.todayWorkout')}</h3>
+        <section className="card today-card today-card--cinematic">
+          <span className="today-ribbon" aria-hidden="true">
+            <span className="today-ribbon__dot" />
+            {t('home.todayWorkout')}
+          </span>
+          <h3 className="card-title">
+            {lang === 'fa' ? day.nameFa : day.nameEn}
+          </h3>
           <p className="card-meta">
-            {lang === 'fa' ? day.nameFa : day.nameEn} • {digits.format(day.exercises.length)}{' '}
-            {t('home.exercises')}
+            {digits.format(day.exercises.length)} {t('home.exercises')}
           </p>
           <button
             type="button"
-            className="btn-primary"
-            style={{ width: '100%', marginTop: 12 }}
+            className="btn-primary btn-shine home-start"
+            style={{ width: '100%' }}
             onClick={onStartWorkout}
           >
             {t('w.startWorkout')}
           </button>
         </section>
       ) : (
-        <section className="card">
+        <section className="card today-card today-card--empty">
           <h3 className="card-title">{t('home.noProgramTitle')}</h3>
           <p className="card-meta">{t('home.noProgramBody')}</p>
           <button
             type="button"
-            className="btn-primary"
-            style={{ width: '100%', marginTop: 12 }}
+            className="btn-primary btn-shine"
+            style={{ width: '100%', marginTop: 16 }}
             onClick={onBuildProgram}
           >
             {t('workouts.buildProgram')}
@@ -85,23 +91,14 @@ export default function LogTab({ onStartWorkout, onBuildProgram }: LogTabProps):
             {t('log.noSessionsYet')}
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
             {recent.map((s) => (
-              <div
-                key={s.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '10px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--surface-2)',
-                }}
-              >
-                <span style={{ fontSize: 'var(--text-body)' }}>
+              <div key={s.id} className="log-row">
+                <span className="log-row__name">
+                  <span className="log-row__check" aria-hidden="true">✓</span>
                   {s.planDayName || formatDate(s.startedAt, lang)}
                 </span>
-                <span className="card-meta">
+                <span className="card-meta" style={{ whiteSpace: 'nowrap' }}>
                   {digits.format(sessionVolumeKg(s))} {t('w.kg')} •{' '}
                   {digits.format(s.sets.filter((x) => x.done !== false).length)}{' '}
                   {t('log.setsDone')}
