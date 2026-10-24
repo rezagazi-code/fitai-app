@@ -365,7 +365,12 @@ export default function WorkoutSession({
     }
     updateSet(si, { done: true });
     buzz(30);
-    startRest(planDay.exercises[exIdx].restSeconds);
+    // Rest is between sets, not after the last set of an exercise:
+    // otherwise the rest overlay blocks moving to the next exercise
+    // (and, on the final exercise, blocks finishing the workout).
+    if (si < setsByExercise[exIdx].length - 1) {
+      startRest(planDay.exercises[exIdx].restSeconds);
+    }
   };
 
   const addSet = () => {
