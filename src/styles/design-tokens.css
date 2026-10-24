@@ -12,6 +12,7 @@
   --bg-base: #0a0e14;          /* page background (dossier §5) */
   --bg-elevated: #10141d;      /* raised surfaces */
   --surface: #141927;          /* cards, sheets */
+  --surface-2: #161c2b;        /* inset rows, secondary surfaces */
   --surface-soft: #1b2133;     /* hover / pressed surfaces */
 
   /* ---------- Color: text ----------
@@ -69,6 +70,17 @@
   --shadow-glow-blue: 0 0 24px rgba(46, 156, 255, 0.28);
   --shadow-glow-cyan: 0 0 20px rgba(0, 240, 255, 0.22);
   --shadow-glow-gold: 0 0 26px rgba(255, 209, 102, 0.30);
+  --shadow-jewel: 0 10px 30px rgba(46, 156, 255, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.45),
+    inset 0 -2px 6px rgba(0, 60, 120, 0.35);
+  --shadow-cta-shine: 0 8px 30px rgba(46, 156, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+
+  /* ---------- Motion ---------- */
+  --ease-spring: cubic-bezier(0.34, 1.45, 0.5, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dur-fast: 0.15s;
+  --dur-med: 0.25s;
 
   /* ---------- Gradients (dossier §5: energy from color, not clutter) ---------- */
   --grad-cta: linear-gradient(135deg, #2e9cff 0%, #0fb8ff 55%, #00f0ff 100%);
@@ -206,6 +218,61 @@
   background: rgba(46, 156, 255, 0.14);
   color: var(--accent-blue);
   font-weight: 700;
+}
+
+/* ============================================================
+ * Global interaction polish — micro-transitions on every touch
+ * ============================================================ */
+
+/* Keyboard / assistive focus: one consistent neon ring */
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Pressable cards/chips shrink a hair on touch — tactile feedback */
+:where(.card, .chip, .stat-card, .onbw-option, .lib-card):active {
+  transform: scale(0.99);
+}
+
+/* CTA shine sweep: the cinematic glow running across hero buttons.
+   Apply `.btn-shine` to a .btn-primary to arm it. */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: -20% -60%;
+  z-index: 1;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 58%
+  );
+  transform: translateX(-120%);
+  animation: fitai-shine-sweep 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+[dir="rtl"] .btn-shine::after {
+  transform: translateX(120%);
+  animation-name: fitai-shine-sweep-rtl;
+}
+
+@keyframes fitai-shine-sweep {
+  0%, 55% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(120%); }
+}
+
+@keyframes fitai-shine-sweep-rtl {
+  0%, 55% { transform: translateX(120%); }
+  85%, 100% { transform: translateX(-120%); }
 }
 
 /* ============================================================

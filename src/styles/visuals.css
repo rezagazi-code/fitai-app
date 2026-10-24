@@ -39,6 +39,47 @@
     inset 0 1px 0 rgba(244, 246, 251, 0.08);
 }
 
+/* Hero variant (Home): larger presence, luminous halo behind the avatar,
+   first-person coach voice set in a bigger measure. */
+.coach-banner--hero {
+  padding: var(--space-6) var(--space-5);
+  border-radius: calc(var(--radius-lg) + 4px);
+  background:
+    radial-gradient(90% 120% at 50% -20%, rgba(46, 156, 255, 0.22), transparent 60%),
+    radial-gradient(120% 160% at 8% 0%, rgba(46, 156, 255, 0.16), transparent 55%),
+    radial-gradient(140% 140% at 100% 120%, rgba(0, 240, 255, 0.12), transparent 55%),
+    linear-gradient(135deg, rgba(20, 28, 46, 0.98), rgba(12, 16, 28, 0.98));
+  box-shadow:
+    var(--shadow-card),
+    0 0 54px rgba(46, 156, 255, 0.2),
+    inset 0 1px 0 rgba(244, 246, 251, 0.1);
+}
+
+.coach-banner--hero .coach-banner__avatar {
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg, #2e9cff, #00c8e6);
+  border: 1px solid rgba(0, 240, 255, 0.65);
+  color: #04121f;
+  box-shadow:
+    0 0 30px rgba(46, 156, 255, 0.55),
+    inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.coach-banner--hero .coach-banner__avatar svg {
+  width: 28px;
+  height: 28px;
+}
+
+.coach-banner--hero .coach-banner__text {
+  font-size: 1.125rem; /* 18px — hero copy */
+  font-weight: 600;
+}
+
+.coach-banner--hero .coach-banner__message {
+  animation: coach-arrive 0.6s var(--ease-out-soft);
+}
+
 .coach-banner::before {
   /* slow drifting energy streak across the hero */
   content: "";
@@ -194,7 +235,16 @@
 }
 
 /* ---------- tab bar: active icon glow ---------- */
-.tabbar-item--active svg {
+.tabbar {
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.tabbar-item {
+  position: relative;
+  border-radius: var(--radius-md);
+}
+
+.tabbar .tabbar-item--active svg {
   filter: drop-shadow(0 0 8px rgba(46, 156, 255, 0.8));
 }
 
@@ -202,11 +252,68 @@
   font-weight: 700;
 }
 
-.tabbar-center {
+/* active pill behind the icon — the "lit" state */
+.tabbar .tabbar-item--active::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  width: 3rem;
+  height: 2.125rem;
+  border-radius: var(--radius-full);
+  background: radial-gradient(60% 80% at 50% 40%, rgba(46, 156, 255, 0.32), transparent 75%);
+  pointer-events: none;
+}
+
+.tabbar .tabbar-item--active span {
+  background: var(--grad-headline);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- center action: the jewel ---------- */
+.tabbar .tabbar-center {
   background: var(--grad-cta);
+  box-shadow: var(--shadow-jewel);
+  animation: fitai-jewel-float 4.5s ease-in-out infinite;
+}
+
+@keyframes fitai-jewel-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+
+.tabbar .tabbar-center::before {
+  /* halo ring */
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgba(0, 240, 255, 0.35);
+  animation: coach-breathe 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.tabbar .tabbar-center::after {
+  /* top facet highlight */
+  content: "";
+  position: absolute;
+  inset: 3px 8px auto 8px;
+  height: 38%;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent);
+  pointer-events: none;
+}
+
+.tabbar .tabbar-center:active {
+  transform: scale(0.9);
+  animation: none;
+}
+
+.tabbar .tabbar-center--active {
   box-shadow:
-    0 8px 26px rgba(46, 156, 255, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    var(--shadow-jewel),
+    0 0 44px rgba(0, 240, 255, 0.55);
 }
 
 /* ---------- onboarding: hero gradient title + luminous options ---------- */
@@ -214,6 +321,7 @@
   font-weight: 800;
   font-size: 1.75rem;
   line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
 }
 
 .onbw-title .accent,
@@ -224,37 +332,238 @@
   color: transparent;
 }
 
-.onbw-option {
-  background-image: var(--grad-card-sheen);
+/* progress that feels alive: glowing bar with a traveling shine */
+.onbw-progress-fill {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.55);
+}
+
+.onbw-progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+  animation: fitai-progress-shine 2.2s ease-in-out infinite;
+}
+
+@keyframes fitai-progress-shine {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
+}
+
+/* step pill: confident, luminous */
+.onbw-stepcount {
+  font-weight: 800;
+  color: var(--accent-cyan);
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+/* staggered option entrance — choices cascade in, cinematic */
+.onbw-stagger {
+  animation: fitai-onbw-rise 0.5s var(--ease-out-soft) both;
+}
+
+@keyframes fitai-onbw-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* selected option pops with a spring */
+.onbw-option--selected {
+  animation: fitai-onbw-select 0.28s var(--ease-spring);
+}
+
+@keyframes fitai-onbw-select {
+  0% { transform: scale(0.97); }
+  60% { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
+
+.onbw-option--selected .onbw-check {
+  box-shadow: 0 0 14px rgba(46, 156, 255, 0.8);
+}
+
+/* title flourish: neon rule under the step title */
+.onbw-title {
+  position: relative;
+  padding-bottom: var(--space-3);
+}
+
+.onbw-title::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 3.5rem;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--grad-cta);
+  box-shadow: 0 0 12px rgba(46, 156, 255, 0.6);
+}
+
+/* stepper: the number is the hero of this step */
+.onbw-stepper-value {
+  background: var(--grad-headline);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgba(0, 240, 255, 0.35));
+}
+
+.onbw-stepper-btn:not(:disabled) {
   box-shadow: var(--shadow-card);
 }
 
-.onbw-option--selected {
-  border-color: var(--accent-blue);
-  background:
-    radial-gradient(120% 140% at 50% 0%, rgba(46, 156, 255, 0.22), transparent 60%),
-    rgba(46, 156, 255, 0.10);
-  box-shadow: var(--shadow-glow-blue), inset 0 1px 0 rgba(244, 246, 251, 0.08);
+.onbw-stepper-btn:active:not(:disabled) {
+  transform: scale(0.92);
+  border-color: var(--accent-cyan);
 }
 
-.onbw-progress-fill {
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.55);
+/* footer CTA: shine-armed */
+.onbw-footer .btn-primary {
+  box-shadow: var(--shadow-cta-shine);
 }
 
 /* ---------- session: richer set cards, celebration gold for PRs ---------- */
 .ws-set {
   background-image: var(--grad-card-sheen);
   box-shadow: var(--shadow-card);
+  transition: border-color var(--dur-med) ease, box-shadow var(--dur-med) ease, transform var(--dur-fast) ease;
 }
 
 .ws-set.is-done {
   box-shadow: var(--shadow-card), 0 0 18px rgba(61, 220, 132, 0.14);
 }
 
-/* when the summary contains PRs, the whole card glows gold */
+/* tactile check: springy pop on toggle */
+.ws-check {
+  transition: transform var(--dur-fast) var(--ease-spring), background var(--dur-med) ease, border-color var(--dur-med) ease, box-shadow var(--dur-med) ease, color var(--dur-med) ease;
+}
+
+.ws-check.is-on {
+  animation: fitai-check-pop 0.32s var(--ease-spring);
+  box-shadow: 0 0 20px rgba(61, 220, 132, 0.5);
+}
+
+@keyframes fitai-check-pop {
+  0% { transform: scale(0.8); }
+  55% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+/* RPE as a tactile segmented control */
+.ws-rpe-chip {
+  position: relative;
+  padding: var(--space-2) 0;
+  transition: all var(--dur-fast) var(--ease-spring);
+}
+
+.ws-rpe-chip:active {
+  transform: scale(0.94);
+}
+
+.ws-rpe-chip.is-on {
+  background: linear-gradient(135deg, rgba(46, 156, 255, 0.32), rgba(0, 240, 255, 0.2));
+  border-color: var(--accent-cyan);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: scale(1.06);
+  animation: fitai-rpe-tap 0.25s var(--ease-spring);
+}
+
+@keyframes fitai-rpe-tap {
+  0% { transform: scale(0.92); }
+  100% { transform: scale(1.06); }
+}
+
+/* Rest timer: the visual moment — bigger ring, breathing glow, urgency gold */
+.ws-rest-card {
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(0, 240, 255, 0.1), transparent 70%),
+    var(--surface);
+  box-shadow:
+    var(--shadow-card),
+    0 0 60px rgba(0, 240, 255, 0.18);
+  padding: var(--space-6) var(--space-8);
+}
+
+.ws-rest-title {
+  font-size: var(--text-tiny);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+}
+
+.ws-rest-ring {
+  width: 11rem;
+  height: 11rem;
+  box-shadow:
+    0 0 44px rgba(0, 240, 255, 0.35),
+    0 0 90px rgba(0, 240, 255, 0.12);
+}
+
+.ws-rest-time {
+  width: 9rem;
+  height: 9rem;
+  font-size: 2.5rem;
+  background:
+    radial-gradient(70% 70% at 50% 30%, rgba(0, 240, 255, 0.1), transparent 70%),
+    var(--surface);
+}
+
+/* last 10 seconds: urgency shifts to gold */
+.ws-rest-ring.is-low {
+  background: conic-gradient(var(--accent-gold) var(--p), var(--surface-soft) var(--p));
+  box-shadow:
+    0 0 44px rgba(255, 209, 102, 0.4),
+    0 0 90px rgba(255, 209, 102, 0.14);
+  animation: ws-breathe 1.1s ease-in-out infinite;
+}
+
+.ws-rest-ring.is-low + * {
+  color: var(--accent-gold);
+}
+
+/* suggestion card: luminous AI cue */
+.ws-suggestion {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.08), inset 0 1px 0 rgba(244, 246, 251, 0.06);
+}
+
+.ws-suggestion-spark {
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.8));
+  animation: fitai-spark-twinkle 2.4s ease-in-out infinite;
+}
+
+@keyframes fitai-spark-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.6; transform: scale(0.85) rotate(20deg); }
+}
+
+/* ---------- PR celebration: real drama ---------- */
 .ws-summary-card:has(.ws-pr-list) {
   border-color: rgba(255, 209, 102, 0.45);
   box-shadow: var(--shadow-card), var(--shadow-glow-gold);
+  animation: fitai-pr-entrance 0.6s var(--ease-spring);
+}
+
+@keyframes fitai-pr-entrance {
+  0% { opacity: 0; transform: scale(0.92) translateY(24px); }
+  100% { opacity: 1; transform: none; }
 }
 
 .ws-summary-card:has(.ws-pr-list) .ws-summary-title {
@@ -262,14 +571,61 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 0 16px rgba(255, 209, 102, 0.4));
 }
 
-.ws-rest-ring {
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.28);
+/* PR ring: gold when records were hit */
+.ws-summary-card:has(.ws-pr-list) .ws-summary-ring {
+  background: rgba(255, 209, 102, 0.1);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 34px rgba(255, 209, 102, 0.45);
+  animation: fitai-gold-pulse 1.8s ease-in-out infinite;
 }
 
-.ws-check.is-on {
-  box-shadow: 0 0 20px rgba(61, 220, 132, 0.5);
+.ws-summary-card:has(.ws-pr-list) .ws-summary-check {
+  color: var(--accent-gold);
+}
+
+@keyframes fitai-gold-pulse {
+  0%, 100% { box-shadow: 0 0 24px rgba(255, 209, 102, 0.35); }
+  50% { box-shadow: 0 0 48px rgba(255, 209, 102, 0.6); }
+}
+
+/* PR rows cascade in, each with gold energy */
+.ws-pr-item {
+  background:
+    linear-gradient(135deg, rgba(255, 209, 102, 0.12), rgba(255, 176, 32, 0.05));
+  border: 1px solid rgba(255, 209, 102, 0.4);
+  box-shadow: 0 0 18px rgba(255, 209, 102, 0.12);
+  animation: fitai-pr-row-in 0.45s var(--ease-out-soft) both;
+}
+
+@keyframes fitai-pr-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ws-pr-badge {
+  background: var(--grad-pr);
+  color: #241a02;
+  box-shadow: var(--shadow-glow-gold);
+  font-weight: 800;
+}
+
+/* session header clock: luminous cyan */
+.ws-clock {
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.45);
+}
+
+/* progress fill: glow follows the bar */
+.ws-progress-fill {
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
 }
 
 /* ---------- muscle figure (original SVG, anatomical) ---------- */
@@ -371,9 +727,29 @@
 /* ---------- accessibility: honor reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .shell-content > *,
+  .home-cascade > *,
   .coach-banner::before,
   .coach-banner__message,
-  .muscle-figure__fill {
+  .coach-banner__pulse,
+  .muscle-figure__fill,
+  .btn-shine::after,
+  .onbw-progress-fill::after,
+  .onbw-stagger,
+  .onbw-step,
+  .ws-body,
+  .ws-rest-card,
+  .ws-rest-ring,
+  .ws-rest-ring.is-low,
+  .ws-summary-card,
+  .ws-summary-card:has(.ws-pr-list),
+  .ws-summary-ring,
+  .ws-pr-item,
+  .ws-check.is-on,
+  .ws-rpe-chip.is-on,
+  .ws-suggestion-spark,
+  .tabbar .tabbar-center,
+  .tabbar .tabbar-center::before,
+  .today-ribbon__dot {
     animation: none;
     transition: none;
   }

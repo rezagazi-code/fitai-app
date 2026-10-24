@@ -278,6 +278,203 @@
   margin-top: var(--space-4);
 }
 
+/* ============================================================
+ * Home polish (global design sprint 2026-10-24)
+ * ============================================================ */
+
+/* Cascade entrance: home sections arrive one after another */
+.home-cascade > * {
+  animation: fitai-home-cascade 0.55s var(--ease-out-soft) both;
+}
+
+.home-cascade > *:nth-child(1) { animation-delay: 0.02s; }
+.home-cascade > *:nth-child(2) { animation-delay: 0.09s; }
+.home-cascade > *:nth-child(3) { animation-delay: 0.16s; }
+.home-cascade > *:nth-child(4) { animation-delay: 0.23s; }
+
+@keyframes fitai-home-cascade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Stat cards: icon medallion + number-first hierarchy */
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: start;
+}
+
+.stat-icon {
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(46, 156, 255, 0.22), rgba(0, 240, 255, 0.08));
+  border: 1px solid rgba(46, 156, 255, 0.32);
+  color: var(--accent-cyan);
+  box-shadow: inset 0 1px 0 rgba(244, 246, 251, 0.1);
+}
+
+.stat-icon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.stat-body {
+  min-width: 0;
+}
+
+.stat-value--grad {
+  background: var(--grad-headline);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Today's workout card: cinematic CTA with a true gradient border */
+.today-card--cinematic {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(165deg, rgba(24, 32, 52, 0.98), rgba(14, 18, 30, 0.98)) padding-box,
+    linear-gradient(135deg, rgba(46, 156, 255, 0.65), rgba(0, 240, 255, 0.18) 45%, rgba(46, 156, 255, 0.08)) border-box;
+  box-shadow:
+    var(--shadow-card),
+    0 0 40px rgba(46, 156, 255, 0.12);
+  overflow: hidden;
+}
+
+.today-card--cinematic::before {
+  /* top light leak — the "cinema" cue */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.6), transparent);
+}
+
+.today-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-tiny);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--accent-cyan);
+  margin-bottom: var(--space-2);
+}
+
+.today-ribbon__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.9);
+  animation: fitai-ribbon-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes fitai-ribbon-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.8); }
+}
+
+.today-exercises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+}
+
+.today-exercises span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.today-exercises span::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--accent-blue);
+  opacity: 0.7;
+}
+
+.home-start {
+  margin-top: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  font-size: 1.0625rem;
+  box-shadow: var(--shadow-cta-shine);
+}
+
+/* Empty (no program) card: softer, inviting */
+.today-card--empty {
+  text-align: center;
+  padding-block: var(--space-6);
+}
+
+.today-card--empty .card-title {
+  font-size: var(--text-h1);
+}
+
+/* ============================================================
+ * Log tab polish
+ * ============================================================ */
+.log-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+
+.log-row:hover {
+  border-color: var(--border-strong);
+}
+
+.log-row:first-child {
+  border-inline-start: 3px solid var(--accent-blue);
+}
+
+.log-row__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+  font-weight: 600;
+  min-width: 0;
+}
+
+.log-row__check {
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(61, 220, 132, 0.14);
+  border: 1px solid rgba(61, 220, 132, 0.4);
+  color: var(--accent-success);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
 .stub-note {
   color: var(--text-muted);
   font-size: var(--text-body);
