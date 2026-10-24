@@ -237,7 +237,7 @@ function WeeklyVolumeChart({ buckets, lang }: { buckets: WeekBucket[]; lang: Lan
               x={x + barW / 2}
               y={H - LABEL_H + 20}
               textAnchor="middle"
-              fill="#6b7186"
+              fill="#98a2b8"
               fontSize={12}
             >
               {b.label}
@@ -317,7 +317,7 @@ function MuscleDistChart({ rows, lang }: { rows: MuscleShare[]; lang: Lang }): R
             <text x={labelX} y={y + 18} textAnchor={labelAnchor} fill="#f4f6fb" fontSize={14} fontWeight={600}>
               {muscleLabel(r.muscle, lang)}
             </text>
-            <text x={labelX} y={y + 36} textAnchor={labelAnchor} fill="#6b7186" fontSize={12}>
+            <text x={labelX} y={y + 36} textAnchor={labelAnchor} fill="#98a2b8" fontSize={12}>
               {fmt.format(r.volumeKg)}
             </text>
             <rect
@@ -499,7 +499,7 @@ function WeightChart({ entries, lang }: { entries: BodyMeasurement[]; lang: Lang
           x={px(i)}
           y={H - 14}
           textAnchor="middle"
-          fill="#6b7186"
+          fill="#98a2b8"
           fontSize={12}
         >
           {dateFmt.format(new Date(`${entries[i].date}T12:00:00`))}
