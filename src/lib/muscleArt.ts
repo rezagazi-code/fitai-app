@@ -6,8 +6,8 @@
  * back families. When an exercise has a raster image, ExerciseArt renders
  * it instead of the parametric neon vector; every other exercise keeps
  * the vector fallback until its own family is produced.
- * Back notes: dumbbell-shrug is deliberately NOT mapped — its master
- * shows an upright row in the end panel, not a shrug (regen candidate).
+ * Back notes: dumbbell-shrug v2 (regen) is mapped — end panel shows a
+ * correct vertical shrug with straight arms, not an upright row.
  * close-grip-pulldown is mapped but flagged: its start panel shows a
  * wide bar rather than a close-grip handle.
  */
@@ -52,7 +52,7 @@ const MUSCLE_ART: Record<string, string> = {
   'pike-push-up': 'pike-push-up',
   'kettlebell-press': 'kettlebell-press',
   'cable-front-raise': 'cable-front-raise',
-  // Back (20 of 21 — dumbbell-shrug held, see header note)
+  // Back (21 of 21)
   'barbell-row': 'barbell-row',
   'deadlift': 'deadlift',
   'pull-up': 'pull-up',
@@ -73,6 +73,7 @@ const MUSCLE_ART: Record<string, string> = {
   'assisted-pull-up': 'assisted-pull-up',
   'band-row': 'band-row',
   'stiff-leg-deadlift': 'stiff-leg-deadlift',
+  'dumbbell-shrug': 'dumbbell-shrug',
 };
 
 /** Public path of the raster muscle image for an exercise key, or null. */
