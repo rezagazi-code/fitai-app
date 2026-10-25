@@ -14,15 +14,14 @@
 import { useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import '../styles/exercise-display.css';
-import MuscleFigure, { type MuscleRow } from '../components/MuscleFigure';
 import BodyMap from '../components/BodyMap';
 import ExerciseArt from '../components/ExerciseArt';
+import ExerciseDetail from '../components/ExerciseDetail';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
 import { getActiveProgram } from '../lib/store';
 import {
   ARCHETYPES,
-  archetypeLabel,
   archetypeOf,
   compoundLabel,
 } from '../lib/archetypes';
@@ -67,152 +66,6 @@ function ExerciseArtBox({
 }
 
 /** Split the prose instructions into numbered execution steps. */
-function instructionSteps(text: string): string[] {
-  const steps = text
-    .split(/(?<=[.؛!؟])\s+/u)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 2);
-  return steps.length > 0 ? steps.slice(0, 6) : [text];
-}
-
-function MuscleEngagement({ exercise, t }: { exercise: Exercise; t: (k: string) => string }) {
-  const rows: MuscleRow[] = [
-    {
-      label: t(`lib.muscle.${exercise.muscle}`),
-      pct: 100,
-      primary: true,
-    },
-    ...exercise.secondary.map((m) => ({
-      label: t(`lib.muscle.${m}`),
-      pct: 55,
-      primary: false,
-    })),
-  ];
-  return (
-    <div className="ex-section">
-      <h4 className="ex-section__title">{t('workouts.muscleEngagement')}</h4>
-      <MuscleFigure primary={exercise.muscle} secondary={exercise.secondary} rows={rows} />
-    </div>
-  );
-}
-
-function ExerciseDetail({
-  exercise,
-  t,
-  lang,
-  onBack,
-  onSelect,
-}: {
-  exercise: Exercise;
-  t: (k: string) => string;
-  lang: Lang;
-  onBack: () => void;
-  onSelect: (e: Exercise) => void;
-}) {
-  const similar = useMemo(
-    () =>
-      EXERCISES.filter((e) => e.muscle === exercise.muscle && e.key !== exercise.key).slice(0, 4),
-    [exercise],
-  );
-  const slug = archetypeOf(exercise.key);
-  const arch = ARCHETYPES[slug];
-  const name = lang === 'fa' ? exercise.nameFa : exercise.nameEn;
-  const altName = lang === 'fa' ? exercise.nameEn : exercise.nameFa;
-  const steps = useMemo(
-    () => instructionSteps(lang === 'fa' ? exercise.instructionsFa : exercise.instructionsEn),
-    [exercise, lang],
-  );
-
-  return (
-    <div className="ex-detail">
-      {/* ---------- hero moment ---------- */}
-      <div className="ex-hero">
-        <ExerciseArtBox exercise={exercise} className="ex-hero__art" />
-        <div className="ex-hero__scrim" />
-        <div className="ex-hero__top">
-          <button type="button" className="ex-back" onClick={onBack}>
-            {lang === 'fa' ? '→' : '←'} {t('common.back')}
-          </button>
-          <span className="ex-arch-chip">{archetypeLabel(arch, lang)}</span>
-        </div>
-        <div className="ex-hero__titles">
-          <p className="ex-hero__kicker">{t(`lib.muscle.${exercise.muscle}`)}</p>
-          <h2 className="ex-hero__name">{name}</h2>
-          <p className="ex-hero__en">{altName}</p>
-        </div>
-      </div>
-
-      <MuscleEngagement exercise={exercise} t={t} />
-
-      {/* ---------- how to: numbered visual steps ---------- */}
-      <div className="ex-section">
-        <h4 className="ex-section__title">{t('workouts.howTo')}</h4>
-        <ol className="ex-steps">
-          {steps.map((s, i) => (
-            <li key={i} className="ex-step">
-              <span className="ex-step__num" aria-hidden="true">
-                {i + 1}
-              </span>
-              <p className="ex-step__text">{s}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      {/* ---------- equipment ---------- */}
-      <div className="ex-section">
-        <div className="ex-equip">
-          <span className="ex-equip__label">{t('workouts.equipment')}:</span>
-          {exercise.equipment.map((eq) => (
-            <span key={eq} className="chip">
-              {t(`lib.equipment.${eq}`)}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ---------- video ---------- */}
-      {exercise.videoUrl ? (
-        <div className="ex-section">
-          <button
-            type="button"
-            className="btn-primary"
-            style={{ width: '100%' }}
-            onClick={() => window.open(exercise.videoUrl, '_blank', 'noopener')}
-          >
-            ▶ {t('workouts.watchVideo')}
-          </button>
-          <p className="ex-video-note">{t('workouts.videoOpensExternally')}</p>
-        </div>
-      ) : (
-        <p className="ex-video-note">{t('workouts.noVideo')}</p>
-      )}
-
-      {/* ---------- similar: art cards ---------- */}
-      {similar.length > 0 && (
-        <div className="ex-section">
-          <h4 className="ex-section__title">{t('workouts.similarExercises')}</h4>
-          <div className="ex-similar">
-            {similar.map((s) => {
-              const sName = lang === 'fa' ? s.nameFa : s.nameEn;
-              return (
-                <button key={s.key} type="button" className="ex-sim" onClick={() => onSelect(s)}>
-                  <ExerciseArtBox exercise={s} className="ex-sim__art" />
-                  <span className="ex-sim__body">
-                    <span className="ex-sim__name">{sName}</span>
-                    <span className="ex-sim__meta">
-                      {s.equipment.map((eq) => t(`lib.equipment.${eq}`)).join(' · ')}
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: WorkoutsTabProps) {
   const { t, lang } = useLang();
@@ -240,8 +93,6 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
       );
     });
   }, [query, muscle, equipment]);
-
-  const nameOf = (e: Exercise) => (lang === 'fa' ? e.nameFa : e.nameEn);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
@@ -302,8 +153,6 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
       {selected ? (
         <ExerciseDetail
           exercise={selected}
-          t={t}
-          lang={lang}
           onBack={() => setSelected(null)}
           onSelect={setSelected}
         />
@@ -413,7 +262,6 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
             <div className="ex-lib">
               {results.map((e) => {
                 const arch = ARCHETYPES[archetypeOf(e.key)];
-                const enName = lang === 'fa' ? e.nameEn : e.nameFa;
                 return (
                   <button
                     key={e.key}
@@ -425,9 +273,9 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
                     <ExerciseArtBox exercise={e} className="ex-card__art" />
                     <span className="ex-card__body">
                       <span className="ex-card__title">
-                        <span className="ex-card__name">{nameOf(e)}</span>
+                        <span className="ex-card__name">{e.nameFa}</span>
                         <span className="ex-card__en-inline" dir="ltr">
-                          {enName}
+                          {e.nameEn}
                         </span>
                       </span>
                       <span className="ex-card__meta">

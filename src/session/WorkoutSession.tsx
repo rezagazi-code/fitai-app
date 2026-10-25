@@ -20,6 +20,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { getExercise } from '../lib/exercises';
 import ExerciseArt from '../components/ExerciseArt';
+import ExerciseDetail from '../components/ExerciseDetail';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
 import { useLang } from '../lib/i18n';
@@ -261,6 +262,8 @@ export default function WorkoutSession({
   const [elapsedSec, setElapsedSec] = useState(0);
   const [rest, setRest] = useState<{ remaining: number; total: number } | null>(null);
   const [restFlash, setRestFlash] = useState(false);
+  // Tap the exercise header → detail (art, targets, records).
+  const [detailKey, setDetailKey] = useState<string | null>(null);
   const [summary, setSummary] = useState<{
     record: WorkoutSessionRecord;
     prKeys: string[];
@@ -516,8 +519,10 @@ export default function WorkoutSession({
   /* ================= render: workout ================= */
   const pe = planDay.exercises[exIdx];
   const ex = getExercise(pe.exerciseKey);
-  const exName = ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : pe.exerciseKey;
-  const exAltName = ex ? (lang === 'fa' ? ex.nameEn : ex.nameFa) : '';
+  // Both names, always: Persian prominent, English beneath (no lang swap).
+  const exName = ex ? ex.nameFa : pe.exerciseKey;
+  const exAltName = ex ? ex.nameEn : '';
+  const detailExercise = detailKey ? getExercise(detailKey) ?? null : null;
   const rows = setsByExercise[exIdx];
   const suggestion = suggestions[exIdx];
   const last = getLastPerformance(pe.exerciseKey);
@@ -564,7 +569,12 @@ export default function WorkoutSession({
         onTouchEnd={onTouchEnd}
         key={exIdx}
       >
-        <div className="ws-exercise-head">
+        <button
+          type="button"
+          className="ws-exercise-head ws-exercise-headbtn"
+          onClick={() => ex && setDetailKey(ex.key)}
+          aria-label={exName}
+        >
           {ex ? (
             <ExerciseArt variant={artVariantOf(ex)} alt={exName} raster={muscleArtOf(ex.key)} className="ws-exercise-art" />
           ) : null}
@@ -576,10 +586,10 @@ export default function WorkoutSession({
               </div>
             ) : null}
             <div className="ws-exercise-meta">
-              {fmt(rows.length, lang)} {L.set} · {doneCount}/{fmt(rows.length, lang)} {L.setDone}
+              <span className="set-count">{fmt(rows.length, lang)} {L.set}</span> · {doneCount}/{fmt(rows.length, lang)} {L.setDone}
             </div>
           </div>
-        </div>
+        </button>
 
         {suggestion && (
           <div className="ws-suggestion">
@@ -756,6 +766,19 @@ export default function WorkoutSession({
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* exercise detail overlay (tap header) */}
+      {detailExercise && (
+        <div className="ex-detail-overlay">
+          <ExerciseDetail
+            exercise={detailExercise}
+            target={detailExercise.key === pe.exerciseKey
+              ? { sets: pe.sets, reps: pe.reps, restSeconds: pe.restSeconds }
+              : null}
+            onBack={() => setDetailKey(null)}
+            onSelect={(nx) => setDetailKey(nx.key)}
+          />
         </div>
       )}
     </div>

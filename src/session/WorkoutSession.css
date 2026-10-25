@@ -124,6 +124,18 @@
   gap: 14px;
 }
 
+/* The exercise header is a tap target for the detail view. */
+.ws-exercise-headbtn {
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
 .ws-exercise-art {
   flex: 0 0 88px;
   width: 88px;

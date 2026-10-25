@@ -220,6 +220,21 @@
   font-weight: 700;
 }
 
+/* Set-count chip — the ONE warm accent in the app, deliberately distinct
+ * from the cyan/blue theme so sets × reps read at a glance on dark
+ * surfaces. Used everywhere a set count is shown (home card, session,
+ * exercise detail targets). */
+.set-count {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid rgba(255, 171, 0, 0.55);
+  border-radius: var(--radius-full);
+  background: rgba(255, 171, 0, 0.14);
+  color: #ffc24b;
+  font-weight: 800;
+}
+
 /* ============================================================
  * Global interaction polish — micro-transitions on every touch
  * ============================================================ */

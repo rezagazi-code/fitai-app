@@ -327,6 +327,19 @@ const fa: Dict = {
   'workouts.videoOpensExternally': 'ویدیو در مرورگر باز می‌شود',
   'workouts.noVideo': 'ویدیو این حرکت به‌زودی اضافه می‌شود',
   'workouts.similarExercises': 'حرکات مشابه',
+
+  // Exercise detail (tap a row)
+  'detail.targets': 'هدف‌های این جلسه',
+  'detail.records': 'سوابق و رکوردها',
+  'detail.lastSession': 'آخرین جلسه',
+  'detail.bestLoad': 'بهترین وزنه',
+  'detail.volumeTrend': 'روند حجم تمرینی',
+  'detail.suggestedNext': 'پیشنهاد وزنه‌ی بعدی',
+  'detail.suggestedUp': 'چون همه‌ی تکرارهای هدف را زدی، دفعه‌ی بعد این وزنه را امتحان کن',
+  'detail.suggestedRepeat': 'هنوز به سقف تکرارها نرسیده‌ای؛ با همین وزنه ادامه بده',
+  'detail.noHistory': 'هنوز برای این حرکت جلسه‌ای ثبت نشده است',
+  'detail.howToFa': 'نحوه‌ی اجرا (فارسی)',
+  'detail.howToEn': 'How to perform (English)',
 };
 
 const en: Dict = {
@@ -638,6 +651,19 @@ const en: Dict = {
   'workouts.videoOpensExternally': 'Video opens in your browser',
   'workouts.noVideo': 'Video for this exercise is coming soon',
   'workouts.similarExercises': 'Similar exercises',
+
+  // Exercise detail (tap a row)
+  'detail.targets': 'Session targets',
+  'detail.records': 'History & records',
+  'detail.lastSession': 'Last session',
+  'detail.bestLoad': 'Best load',
+  'detail.volumeTrend': 'Volume trend',
+  'detail.suggestedNext': 'Suggested next load',
+  'detail.suggestedUp': 'You hit all target reps — try this load next time',
+  'detail.suggestedRepeat': 'Target reps not all hit yet — stick with this load',
+  'detail.noHistory': 'No sessions logged for this exercise yet',
+  'detail.howToFa': 'نحوه‌ی اجرا (فارسی)',
+  'detail.howToEn': 'How to perform (English)',
 };
 
 const dicts: Record<Lang, Dict> = { fa, en };

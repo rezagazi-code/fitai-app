@@ -10,9 +10,10 @@
  * 4-week block is a deload week with fewer sets.
  */
 import type { ReactElement } from 'react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import CoachBanner from '../components/CoachBanner';
+import ExerciseDetail, { type DetailTarget } from '../components/ExerciseDetail';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
 import { getActiveProgram, getSessions, getVolumeByDay } from '../lib/store';
 import { getExercise } from '../lib/exercises';
@@ -107,6 +108,10 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
   const weekVolume = volumeThisWeekKg();
   const remaining = sched ? Math.max(0, sched.sessionsPlannedThisWeek - sched.sessionsDoneThisWeek) : 0;
 
+  // Tap a today-card row → exercise detail (art, targets, records).
+  const [detail, setDetail] = useState<{ key: string; target: DetailTarget | null } | null>(null);
+  const detailExercise = detail ? getExercise(detail.key) ?? null : null;
+
   return (
     <div className="home-cascade">
       <header className="home-header">
@@ -171,17 +176,32 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
               const last = lastPerformance(e.exerciseKey, sessions);
               return (
                 <li key={e.exerciseKey} className="today-lift">
-                  <div className="today-lift__main">
-                    <span className="today-lift__name">{ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : e.exerciseKey}</span>
-                    <span className="today-lift__target">
-                      {fmt(e.sets)} × {e.reps} · ⏱ {fmt(e.restSeconds)} {t('w.sec')}
-                    </span>
-                  </div>
-                  {last && (
-                    <div className="today-lift__last">
-                      {t('sched.lastTime')}: {fmt(last.weightKg)} {t('w.kg')} × {last.reps.map(fmt).join(lang === 'fa' ? '، ' : ', ')}
+                  <button
+                    type="button"
+                    className="today-lift__btn"
+                    onClick={() => setDetail({
+                      key: e.exerciseKey,
+                      target: { sets: e.sets, reps: e.reps, restSeconds: e.restSeconds },
+                    })}
+                  >
+                    <div className="today-lift__main">
+                      <span>
+                        <span className="today-lift__name">{ex ? ex.nameFa : e.exerciseKey}</span>
+                        {ex && <span className="today-lift__name-en" dir="ltr">{ex.nameEn}</span>}
+                      </span>
+                      <span className="today-lift__target">
+                        <span className="chip set-count">
+                          {fmt(e.sets)} × {e.reps}
+                        </span>
+                        {' · ⏱ '}{fmt(e.restSeconds)} {t('w.sec')}
+                      </span>
                     </div>
-                  )}
+                    {last && (
+                      <div className="today-lift__last">
+                        {t('sched.lastTime')}: {fmt(last.weightKg)} {t('w.kg')} × {last.reps.map(fmt).join(lang === 'fa' ? '، ' : ', ')}
+                      </div>
+                    )}
+                  </button>
                 </li>
               );
             })}
@@ -256,6 +276,17 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
             </div>
           </section>
         </>
+      )}
+
+      {detail && detailExercise && (
+        <div className="ex-detail-overlay">
+          <ExerciseDetail
+            exercise={detailExercise}
+            target={detail.target}
+            onBack={() => setDetail(null)}
+            onSelect={(nx) => setDetail(nx.key === detail.key ? detail : { key: nx.key, target: null })}
+          />
+        </div>
       )}
     </div>
   );

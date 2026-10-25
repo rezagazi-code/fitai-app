@@ -593,6 +593,26 @@
   color: var(--text-primary);
 }
 
+/* Home rows are tappable: the whole row opens the exercise detail. */
+.today-lift__btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.today-lift__name-en {
+  display: block;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}
+
 .today-lift__target {
   font-size: var(--text-small);
   color: var(--text-secondary);
