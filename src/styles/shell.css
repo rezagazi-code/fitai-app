@@ -482,3 +482,125 @@
   font-size: var(--text-body);
   margin: 0;
 }
+
+/* ============================================================
+ * Weekly schedule + block strip (v0.1.15)
+ * ============================================================ */
+
+.today-card--rest {
+  text-align: start;
+}
+
+.today-ribbon--rest {
+  opacity: 0.9;
+}
+
+.sched-deload-note {
+  color: var(--accent-gold);
+}
+
+.sched-card {
+  margin-bottom: var(--space-5);
+}
+
+.sched-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+
+.sched-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2) 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  text-align: center;
+  min-width: 0;
+}
+
+.sched-day--today {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.sched-day--done {
+  border-color: var(--accent-success);
+}
+
+.sched-day__weekday {
+  font-size: var(--text-tiny);
+  color: var(--text-primary);
+}
+
+.sched-day__kind {
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+}
+
+.sched-day--done .sched-day__kind {
+  color: var(--accent-success);
+}
+
+.sched-day__name {
+  font-size: var(--text-tiny);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.sched-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.today-lifts {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.today-lift {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.today-lift:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.today-lift__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.today-lift__name {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.today-lift__target {
+  font-size: var(--text-small);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.today-lift__last {
+  margin-top: 2px;
+  font-size: var(--text-small);
+  color: var(--text-muted);
+}

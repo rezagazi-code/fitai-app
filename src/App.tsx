@@ -9,7 +9,7 @@ import ProfileTab from './tabs/ProfileTab';
 import OnboardingWizard from './onboarding/OnboardingWizard';
 import WorkoutSession, { type PlanDay } from './session/WorkoutSession';
 import { getActiveProgram } from './lib/store';
-import { todayPlanDay } from './session/launch';
+import { nextPlanDay, todayPlanDay } from './session/launch';
 import './styles/shell.css';
 
 function Shell() {
@@ -23,9 +23,18 @@ function Shell() {
   const openOnboarding = useCallback(() => setOnboardingOpen(true), []);
 
   const openTodaySession = useCallback(() => {
-    const day = todayPlanDay(getActiveProgram());
+    const program = getActiveProgram();
+    const day = todayPlanDay(program);
     if (day) setSessionDay(day);
-    else setOnboardingOpen(true);
+    // Rest day with a program: no session to open — the rest card offers
+    // the next session instead. Only a missing program opens onboarding.
+    else if (!program) setOnboardingOpen(true);
+  }, []);
+
+  /** Make-up / early start: the next scheduled session (rest card). */
+  const openNextSession = useCallback(() => {
+    const day = nextPlanDay(getActiveProgram());
+    if (day) setSessionDay(day);
   }, []);
 
   return (
@@ -35,6 +44,7 @@ function Shell() {
           <HomeTab
             key={`home-${seq}`}
             onStartWorkout={openTodaySession}
+            onStartNextSession={openNextSession}
             onBuildProgram={openOnboarding}
           />
         )}
@@ -48,6 +58,7 @@ function Shell() {
           <LogTab
             key={`log-${seq}`}
             onStartWorkout={openTodaySession}
+            onStartNextSession={openNextSession}
             onBuildProgram={openOnboarding}
           />
         )}

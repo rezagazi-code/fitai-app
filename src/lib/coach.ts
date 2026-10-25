@@ -18,6 +18,7 @@ import type {
 } from './store';
 import { getActiveProgram, getSessions } from './store';
 import { getExercise } from './exercises';
+import { getSchedule } from './schedule';
 
 export type CoachTone = 'info' | 'praise' | 'nudge';
 
@@ -454,12 +455,19 @@ export function buildCoachContext(): CoachContext {
   const withSets = sessions.filter((s) => s.sets.length > 0);
   const lastSession = withSets.length > 0 ? withSets[withSets.length - 1] : null;
 
+  // Fixed weekly schedule: training days are fixed weekdays, other days
+  // are rest days (never a rotating weekday → no workout preview on a
+  // rest day). Deload weeks keep the same day; only set counts shrink,
+  // and the banner previews the unscaled day.
   let todayPlanDay: ProgramExercise[] | null = null;
   let todayPlanDayIndex: number | null = null;
   if (plan && plan.days.length > 0) {
-    todayPlanDayIndex = now.getDay() % plan.days.length;
-    const day = plan.days[todayPlanDayIndex];
-    todayPlanDay = day && day.length > 0 ? day : null;
+    const sched = getSchedule(plan, now, sessions);
+    if (sched.kind === 'train' && sched.dayIndex != null) {
+      todayPlanDayIndex = sched.dayIndex;
+      const day = plan.days[sched.dayIndex];
+      todayPlanDay = day && day.length > 0 ? day : null;
+    }
   }
 
   let level = 'new';

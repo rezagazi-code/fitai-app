@@ -1,7 +1,13 @@
 /**
  * اپ هوشمند بدنسازی — Home tab ("امروز").
  * Time-of-day greeting, coach banner driven by the active program,
- * today's workout card, quick stats, one-tap session start.
+ * today's workout card (or rest card), weekly calendar, block strip,
+ * quick stats, one-tap session start.
+ *
+ * The today card comes from the fixed weekly schedule, not a daily
+ * rotation: training days are fixed weekdays, other days are rest days
+ * (part of the plan, with the next session named), and week 4 of each
+ * 4-week block is a deload week with fewer sets.
  */
 import type { ReactElement } from 'react';
 import { useEffect, useMemo } from 'react';
@@ -10,6 +16,13 @@ import CoachBanner from '../components/CoachBanner';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
 import { getActiveProgram, getSessions, getVolumeByDay } from '../lib/store';
 import { getExercise } from '../lib/exercises';
+import {
+  deloadSets,
+  EN_WEEKDAYS,
+  FA_WEEKDAYS,
+  getSchedule,
+  lastPerformance,
+} from '../lib/schedule';
 
 /* Original inline icons for the stat medallions. */
 function SessionsIcon(): ReactElement {
@@ -35,6 +48,8 @@ function VolumeIcon(): ReactElement {
 interface HomeTabProps {
   /** Opens the workout session overlay for today's plan day. */
   onStartWorkout: () => void;
+  /** Opens the next scheduled session (rest card: make-up / early start). */
+  onStartNextSession: () => void;
   /** Opens the onboarding wizard to build a program. */
   onBuildProgram: () => void;
 }
@@ -57,23 +72,16 @@ function formatTodayLine(lang: Lang): string {
   }
 }
 
-function sessionsThisWeekCount(): number {
-  const cutoff = Date.now() - 7 * 86400_000;
-  return getSessions().filter((s) => new Date(s.startedAt).getTime() >= cutoff).length;
-}
-
 function volumeThisWeekKg(): number {
   return getVolumeByDay(7).reduce((sum, d) => sum + d.volumeKg, 0);
 }
 
-function formatVolume(kg: number, lang: Lang): string {
-  const digits = new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US');
-  return digits.format(kg);
-}
-
-export default function HomeTab({ onStartWorkout, onBuildProgram }: HomeTabProps): ReactElement {
+export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildProgram }: HomeTabProps): ReactElement {
   const { t, lang } = useLang();
   const program = getActiveProgram();
+  const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
+  const weekdays = lang === 'fa' ? FA_WEEKDAYS : EN_WEEKDAYS;
+  const sessions = useMemo(() => getSessions(), []);
 
   const hour = new Date().getHours();
   const greet = t(`home.greeting.${greetingKey(hour)}`);
@@ -85,28 +93,19 @@ export default function HomeTab({ onStartWorkout, onBuildProgram }: HomeTabProps
     rememberBannerKey(coachMsg.key);
   }, [coachMsg]);
 
-  const weekSessions = sessionsThisWeekCount();
-  const weekVolume = volumeThisWeekKg();
-
-  // Today's workout: pick the program day by weekday (fallback if fewer days).
-  const todayExercises = program && program.days.length > 0
-    ? program.days[new Date().getDay() % program.days.length]
+  // Fixed weekly schedule (Sat–Fri) + 4-week block, anchored at program
+  // creation. Rest days are real schedule days, not missing data.
+  const sched = program ? getSchedule(program, new Date(), sessions) : null;
+  const todayExercises = sched && sched.kind === 'train' && sched.dayIndex != null
+    ? program!.days[sched.dayIndex].map((e) => (sched.isDeload ? { ...e, sets: deloadSets(e.sets) } : e))
     : null;
   const totalSets = todayExercises ? todayExercises.reduce((n, e) => n + e.sets, 0) : 0;
   const estMinutes = todayExercises
     ? Math.max(15, Math.round((totalSets * 150) / 60))
     : 0;
-  const exerciseNames = todayExercises
-    ? todayExercises.slice(0, 3).map((e) => {
-        const ex = getExercise(e.exerciseKey);
-        return ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : e.exerciseKey;
-      })
-    : [];
-  const moreExercises = todayExercises ? Math.max(0, todayExercises.length - 3) : 0;
-
-  const handleStart = () => {
-    onStartWorkout();
-  };
+  const weekSessions = sched ? sched.sessionsDoneThisWeek : 0;
+  const weekVolume = volumeThisWeekKg();
+  const remaining = sched ? Math.max(0, sched.sessionsPlannedThisWeek - sched.sessionsDoneThisWeek) : 0;
 
   return (
     <div className="home-cascade">
@@ -125,7 +124,7 @@ export default function HomeTab({ onStartWorkout, onBuildProgram }: HomeTabProps
         <div className="stat-card">
           <span className="stat-icon" aria-hidden="true"><SessionsIcon /></span>
           <div className="stat-body">
-            <div className="stat-value stat-value--grad">{formatVolume(weekSessions, lang)}</div>
+            <div className="stat-value stat-value--grad">{fmt(weekSessions)}</div>
             <div className="stat-label">{t('home.sessionsThisWeek')}</div>
           </div>
         </div>
@@ -133,45 +132,81 @@ export default function HomeTab({ onStartWorkout, onBuildProgram }: HomeTabProps
           <span className="stat-icon" aria-hidden="true"><VolumeIcon /></span>
           <div className="stat-body">
             <div className="stat-value stat-value--grad">
-              {formatVolume(weekVolume, lang)} <span className="unit">{t('w.kg')}</span>
+              {fmt(weekVolume)} <span className="unit">{t('w.kg')}</span>
             </div>
             <div className="stat-label">{t('home.totalVolume')}</div>
           </div>
         </div>
       </div>
 
-      {todayExercises ? (
+      {sched && todayExercises ? (
         <section className="card today-card today-card--cinematic">
           <span className="today-ribbon" aria-hidden="true">
             <span className="today-ribbon__dot" />
-            {t('home.todayWorkout')}
+            {t('sched.trainToday')}
           </span>
-          <h2 className="card-title">{program!.name}</h2>
+          <h2 className="card-title">{lang === 'fa' ? sched.dayNameFa : sched.dayNameEn}</h2>
+          <p className="card-meta">
+            {t('sched.block')} {fmt(sched.blockNumber)} — {t('sched.week')} {fmt(sched.weekInBlock)} {t('sched.of')} 4
+            {sched.isDeload && <> · {t('sched.deload')}</>}
+          </p>
+          <p className="card-meta">
+            {fmt(sched.sessionsDoneThisWeek)} {t('sched.of')} {fmt(sched.sessionsPlannedThisWeek)} {t('sched.sessionsDoneThisWeek')} — {fmt(remaining)} {t('sched.sessionsLeft')}
+          </p>
+          {sched.isDeload && <p className="card-meta sched-deload-note">{t('sched.deloadNote')}</p>}
           <div className="today-chips">
             <span className="chip chip--active">
-              {formatVolume(todayExercises.length, lang)} {t('home.exercises')}
+              {fmt(todayExercises.length)} {t('home.exercises')}
             </span>
             <span className="chip">
-              {formatVolume(totalSets, lang)} {t('w.sets')}
+              {fmt(totalSets)} {t('w.sets')}
             </span>
             <span className="chip">
-              ≈ {formatVolume(estMinutes, lang)} {t('w.min')}
+              ≈ {fmt(estMinutes)} {t('w.min')}
             </span>
           </div>
-          {exerciseNames.length > 0 && (
-            <div className="today-exercises" aria-label={t('home.todayWorkout')}>
-              {exerciseNames.map((name) => (
-                <span key={name}>{name}</span>
-              ))}
-              {moreExercises > 0 && (
-                <span>
-                  +{formatVolume(moreExercises, lang)}
-                </span>
-              )}
-            </div>
-          )}
-          <button type="button" className="btn-primary btn-shine home-start" onClick={handleStart}>
+          <ul className="today-lifts">
+            {todayExercises.map((e) => {
+              const ex = getExercise(e.exerciseKey);
+              const last = lastPerformance(e.exerciseKey, sessions);
+              return (
+                <li key={e.exerciseKey} className="today-lift">
+                  <div className="today-lift__main">
+                    <span className="today-lift__name">{ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : e.exerciseKey}</span>
+                    <span className="today-lift__target">
+                      {fmt(e.sets)} × {e.reps} · ⏱ {fmt(e.restSeconds)} {t('w.sec')}
+                    </span>
+                  </div>
+                  {last && (
+                    <div className="today-lift__last">
+                      {t('sched.lastTime')}: {fmt(last.weightKg)} {t('w.kg')} × {last.reps.map(fmt).join(lang === 'fa' ? '، ' : ', ')}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <button type="button" className="btn-primary btn-shine home-start" onClick={onStartWorkout}>
             {t('w.startWorkout')}
+          </button>
+        </section>
+      ) : sched ? (
+        <section className="card today-card today-card--rest">
+          <span className="today-ribbon today-ribbon--rest" aria-hidden="true">
+            {t('sched.restToday')}
+          </span>
+          <h2 className="card-title">{t('sched.restToday')}</h2>
+          <p className="card-meta">{t('sched.restBody')}</p>
+          {sched.nextTrain && (
+            <p className="card-meta">
+              {t('sched.nextSession')}: {lang === 'fa' ? sched.nextTrain.dayNameFa : sched.nextTrain.dayNameEn} — {lang === 'fa' ? sched.nextTrain.weekdayFa : sched.nextTrain.weekdayEn}
+            </p>
+          )}
+          <p className="card-meta">
+            {fmt(sched.sessionsDoneThisWeek)} {t('sched.of')} {fmt(sched.sessionsPlannedThisWeek)} {t('sched.sessionsDoneThisWeek')} — {fmt(remaining)} {t('sched.sessionsLeft')}
+          </p>
+          <button type="button" className="btn-primary btn-shine home-start" onClick={onStartNextSession}>
+            {t('sched.startNextSession')}
           </button>
         </section>
       ) : (
@@ -182,6 +217,45 @@ export default function HomeTab({ onStartWorkout, onBuildProgram }: HomeTabProps
             {t('workouts.buildProgram')}
           </button>
         </section>
+      )}
+
+      {sched && (
+        <>
+          <section className="card sched-card">
+            <h2 className="card-title">{t('sched.weekCalendar')}</h2>
+            <div className="sched-calendar" role="list" aria-label={t('sched.weekCalendar')}>
+              {sched.weekDays.map((d) => (
+                <div
+                  key={d.faWeekday}
+                  role="listitem"
+                  className={`sched-day${d.isToday ? ' sched-day--today' : ''}${d.done ? ' sched-day--done' : ''}`}
+                >
+                  <span className="sched-day__weekday">{weekdays[d.faWeekday]}</span>
+                  <span className="sched-day__kind">
+                    {d.done ? '✓ ' : ''}{d.kind === 'train' ? t('sched.train') : t('sched.rest')}
+                    {d.kind === 'train' && sched.isDeload ? ` · ${t('sched.deload')}` : ''}
+                  </span>
+                  {d.kind === 'train' && (
+                    <span className="sched-day__name">{lang === 'fa' ? d.dayNameFa : d.dayNameEn}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="card sched-card">
+            <h2 className="card-title">
+              {t('sched.blockPlan')} — {t('sched.block')} {fmt(sched.blockNumber)}
+            </h2>
+            <div className="sched-block">
+              {[1, 2, 3, 4].map((w) => (
+                <span key={w} className={`chip${w === sched.weekInBlock ? ' chip--active' : ''}`}>
+                  {t('sched.week')} {fmt(w)}{w === 4 ? ` · ${t('sched.deload')}` : ''}
+                </span>
+              ))}
+            </div>
+          </section>
+        </>
       )}
     </div>
   );
