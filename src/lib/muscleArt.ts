@@ -2,10 +2,14 @@
  * اپ هوشمند بدنسازی — raster muscle illustrations.
  *
  * Original muscle-only anatomical images (start + end panels, involved
- * muscles glowing cyan), generated for the app — one per chest exercise.
- * When an exercise has a raster image, ExerciseArt renders it instead of
- * the parametric neon vector; every other exercise keeps the vector
- * fallback until its own family is produced.
+ * muscles glowing cyan), generated for the app — chest, shoulders and
+ * back families. When an exercise has a raster image, ExerciseArt renders
+ * it instead of the parametric neon vector; every other exercise keeps
+ * the vector fallback until its own family is produced.
+ * Back notes: dumbbell-shrug is deliberately NOT mapped — its master
+ * shows an upright row in the end panel, not a shrug (regen candidate).
+ * close-grip-pulldown is mapped but flagged: its start panel shows a
+ * wide bar rather than a close-grip handle.
  */
 const MUSCLE_ART: Record<string, string> = {
   'barbell-bench-press': 'bench-press-barbell',
@@ -48,6 +52,27 @@ const MUSCLE_ART: Record<string, string> = {
   'pike-push-up': 'pike-push-up',
   'kettlebell-press': 'kettlebell-press',
   'cable-front-raise': 'cable-front-raise',
+  // Back (20 of 21 — dumbbell-shrug held, see header note)
+  'barbell-row': 'barbell-row',
+  'deadlift': 'deadlift',
+  'pull-up': 'pull-up',
+  'lat-pulldown': 'lat-pulldown',
+  'close-grip-pulldown': 'close-grip-pulldown',
+  'one-arm-dumbbell-row': 'one-arm-dumbbell-row',
+  't-bar-row': 't-bar-row',
+  'seated-cable-row': 'seated-cable-row',
+  'chin-up': 'chin-up',
+  'romanian-deadlift': 'romanian-deadlift',
+  'underhand-barbell-row': 'underhand-barbell-row',
+  'dumbbell-pullover': 'dumbbell-pullover',
+  'straight-arm-pulldown': 'straight-arm-pulldown',
+  'hyperextension': 'hyperextension',
+  'barbell-shrug': 'barbell-shrug',
+  'machine-row': 'machine-row',
+  'sumo-deadlift': 'sumo-deadlift',
+  'assisted-pull-up': 'assisted-pull-up',
+  'band-row': 'band-row',
+  'stiff-leg-deadlift': 'stiff-leg-deadlift',
 };
 
 /** Public path of the raster muscle image for an exercise key, or null. */
