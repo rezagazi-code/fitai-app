@@ -15,7 +15,7 @@ import { useLang, type Lang } from '../lib/i18n';
 import CoachBanner from '../components/CoachBanner';
 import ExerciseDetail, { type DetailTarget } from '../components/ExerciseDetail';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
-import { getActiveProgram, getSessions, getVolumeByDay } from '../lib/store';
+import { getActiveProgram, getAthleteProfile, getSessions, getVolumeByDay } from '../lib/store';
 import { getExercise } from '../lib/exercises';
 import {
   deloadSets,
@@ -111,6 +111,20 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
   const estMinutes = todayExercises
     ? Math.max(15, Math.round((totalSets * 150) / 60))
     : 0;
+  // Per-muscle engine: priority muscles wear the growth badge; the global
+  // phase shows in one line. Strength programs have no phase (their scheme
+  // is role-independent), so the line hides for them.
+  const athleteProfile = getAthleteProfile();
+  // Badges must follow the PLAN's own priorities, not the profile's: the
+  // profile can be edited without rebuilding, and a badge on an old plan
+  // would claim a growth scheme the stored exercises do not have.
+  // (Old stored plans predate the field, so ?? [] covers runtime-undefined.)
+  const growthPriorities: string[] = program?.priorities ?? [];
+  const goalLit = athleteProfile?.goal ?? program?.goal;
+  const showPhase = program != null && program.goal !== 'strength';
+  const phaseKey =
+    athleteProfile?.phase ?? (goalLit === 'fat-loss' ? 'fatloss' : 'growth');
+
   const weekSessions = sched ? sched.sessionsDoneThisWeek : 0;
   const weekVolume = volumeThisWeekKg();
   const remaining = sched ? Math.max(0, sched.sessionsPlannedThisWeek - sched.sessionsDoneThisWeek) : 0;
@@ -165,6 +179,11 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
           <p className="card-meta">
             {fmt(sched.sessionsDoneThisWeek)} {t('sched.of')} {fmt(sched.sessionsPlannedThisWeek)} {t('sched.sessionsDoneThisWeek')} — {fmt(remaining)} {t('sched.sessionsLeft')}
           </p>
+          {showPhase && (
+            <p className="card-meta">
+              {t('phase.label')}: {t(phaseKey === 'fatloss' ? 'phase.fatloss' : 'phase.growth')}
+            </p>
+          )}
           {sched.isDeload && <p className="card-meta sched-deload-note">{t('sched.deloadNote')}</p>}
           <div className="today-chips">
             <span className="chip chip--active">
@@ -201,6 +220,9 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
                         <span className="chip set-count">
                           {targetLabel(e.sets, e.reps)}
                         </span>
+                        {ex && growthPriorities.includes(ex.muscle) && (
+                          <span className="chip chip--active">{t('priority.growthBadge')}</span>
+                        )}
                         {' · ⏱ '}{fmt(e.restSeconds)} {t('w.sec')}
                       </span>
                     </div>
@@ -233,6 +255,11 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
           <p className="card-meta">
             {fmt(sched.sessionsDoneThisWeek)} {t('sched.of')} {fmt(sched.sessionsPlannedThisWeek)} {t('sched.sessionsDoneThisWeek')} — {fmt(remaining)} {t('sched.sessionsLeft')}
           </p>
+          {showPhase && (
+            <p className="card-meta">
+              {t('phase.label')}: {t(phaseKey === 'fatloss' ? 'phase.fatloss' : 'phase.growth')}
+            </p>
+          )}
           <button type="button" className="btn-primary btn-shine home-start" onClick={onStartNextSession}>
             {t('sched.startNextSession')}
           </button>

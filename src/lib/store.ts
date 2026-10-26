@@ -21,6 +21,9 @@ export interface WorkoutProgram {
   days: ProgramExercise[][]; // days[dayIndex] = exercises
   dayKeys?: string[];
   dayNames?: { fa: string; en: string }[];
+  /** Engine phase/priorities this plan was built with (absent on pre-role plans). */
+  phase?: 'fatloss' | 'growth';
+  priorities?: string[];
   createdAt: string; // ISO
 }
 
@@ -261,6 +264,39 @@ export function getVolumeByDay(days = 30): { date: string; volumeKg: number }[] 
   return [...out.entries()]
     .map(([date, volumeKg]) => ({ date, volumeKg: Math.round(volumeKg) }))
     .sort((a, b) => (a.date < b.date ? -1 : 1));
+}
+
+/* ---------------- athlete profile snapshot ----------------
+ * The onboarding wizard owns 'fitai.userProfile' (full profile incl. goal,
+ * level, equipment, injuries, height/weight). These helpers let tabs read
+ * and patch just the measurement/priority/phase fields without importing
+ * the wizard component module or clobbering the rest of the profile. */
+
+export interface AthleteProfileSnapshot {
+  goal?: 'fat-loss' | 'muscle' | 'strength' | 'fitness';
+  level?: string;
+  daysPerWeek?: number;
+  heightCm?: number;
+  weightKg?: number;
+  measurements?: {
+    waistCm?: number;
+    hipCm?: number;
+    chestCm?: number;
+    armCm?: number;
+    thighCm?: number;
+  };
+  priorities?: string[];
+  phase?: 'fatloss' | 'growth';
+}
+
+export function getAthleteProfile(): AthleteProfileSnapshot | null {
+  return read<AthleteProfileSnapshot | null>('fitai.userProfile', null);
+}
+
+/** Merge a patch into the stored profile, preserving all other fields. */
+export function updateAthleteProfile(patch: Partial<AthleteProfileSnapshot>): void {
+  const cur = getAthleteProfile() ?? {};
+  write('fitai.userProfile', { ...cur, ...patch, savedAt: new Date().toISOString() });
 }
 
 /* ---------------- onboarding flag ---------------- */

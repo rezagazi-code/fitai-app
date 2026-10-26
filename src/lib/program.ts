@@ -170,6 +170,25 @@ export type GoalKey = 'fatloss' | 'muscle' | 'strength' | 'general';
 export type LevelKey = 'beginner' | 'intermediate' | 'advanced';
 export type EquipmentKey = Equipment;
 
+/** Per-muscle role inside one program: growth = priority volume, maintain =
+ * minimal effective volume, fatloss = the fat-loss-phase scheme (intensity
+ * kept, volume slightly lower). */
+export type MuscleRole = 'growth' | 'maintain' | 'fatloss';
+
+/** Global phase: fat loss is whole-body (diet-driven); growth/maintenance is
+ * the per-muscle decision. Never "spot reduction": training a muscle does
+ * not burn fat on that muscle. */
+export type GlobalPhase = 'fatloss' | 'growth';
+
+/** Circumferences in cm, all optional. Stored on the athlete profile. */
+export interface BodyMeasurements {
+  waistCm?: number;
+  hipCm?: number;
+  chestCm?: number;
+  armCm?: number;
+  thighCm?: number;
+}
+
 export interface UserProfile {
   goal: GoalKey;
   level: LevelKey;
@@ -178,6 +197,13 @@ export interface UserProfile {
   equipment: EquipmentKey[];
   /** Free-form; normalized internally (en + fa aliases), e.g. 'shoulder', 'زانو' */
   injuries: string[];
+  /** Optional circumferences (cm) from onboarding / profile. */
+  measurements?: BodyMeasurements;
+  /** Up to 2 muscle groups the athlete confirmed as growth priorities. */
+  priorities?: MuscleGroup[];
+  /** Explicit global phase; when absent the old goal default applies
+   * (fatloss goal → fatloss phase, everything else → growth phase). */
+  phase?: GlobalPhase;
 }
 
 export interface PlanExercise {
@@ -204,6 +230,10 @@ export interface WorkoutPlan {
   level: LevelKey;
   daysPerWeek: number;
   days: PlanDay[];
+  /** Effective global phase this plan was built with. */
+  phase: GlobalPhase;
+  /** Growth-priority muscle groups this plan was built with. */
+  priorities: MuscleGroup[];
 }
 
 /** One training session's log for a single exercise. */
@@ -429,44 +459,111 @@ interface Scheme {
   restSeconds: number;
 }
 
-function schemeFor(goal: GoalKey, e: Exercise): Scheme {
+/** Effective global phase: explicit phase wins, else the old goal default. */
+export function resolvePhase(profile: UserProfile): GlobalPhase {
+  if (profile.phase) return profile.phase;
+  return profile.goal === 'fatloss' ? 'fatloss' : 'growth';
+}
+
+/** Waist-to-height ratio; null when either value is missing. */
+export function waistToHeight(waistCm?: number, heightCm?: number): number | null {
+  if (!waistCm || !heightCm || heightCm <= 0) return null;
+  return waistCm / heightCm;
+}
+
+/**
+ * Suggested global phase from waist-to-height (> 0.5 → fatloss phase).
+ * A health indicator, NOT a medical diagnosis. Null without data.
+ */
+export function suggestPhase(waistCm?: number, heightCm?: number): GlobalPhase | null {
+  const r = waistToHeight(waistCm, heightCm);
+  if (r === null) return null;
+  return r > 0.5 ? 'fatloss' : 'growth';
+}
+
+/**
+ * Suggest up to 2 growth-candidate muscle groups from proportions.
+ * HONEST LIMIT (shown in the UI too): a circumference does not separate
+ * fat from muscle, so this is a rough, user-overridable suggestion, never
+ * a body-composition diagnosis. Each site's circumference/height ratio is
+ * compared against a rough typical anchor; the sites furthest below their
+ * anchor rank first. Sites without a measurement are skipped.
+ */
+const SIZE_ANCHORS: { site: keyof BodyMeasurements; muscle: MuscleGroup; ref: number }[] = [
+  { site: 'armCm', muscle: 'biceps', ref: 0.21 },
+  { site: 'thighCm', muscle: 'legs', ref: 0.33 },
+  { site: 'hipCm', muscle: 'glutes', ref: 0.55 },
+  { site: 'chestCm', muscle: 'chest', ref: 0.56 },
+];
+
+export function suggestGrowthCandidates(
+  m: BodyMeasurements | undefined,
+  heightCm?: number,
+): MuscleGroup[] {
+  if (!m || !heightCm || heightCm <= 0) return [];
+  const scored: { muscle: MuscleGroup; score: number }[] = [];
+  for (const a of SIZE_ANCHORS) {
+    const v = m[a.site];
+    if (!v || v <= 0) continue;
+    scored.push({ muscle: a.muscle, score: v / heightCm / a.ref });
+  }
+  scored.sort((x, y) => x.score - y.score);
+  return scored.slice(0, 2).map((s) => s.muscle);
+}
+
+/**
+ * A muscle's role in this program. Priorities always get the growth scheme
+ * — even in a fat-loss phase (maintaining + growing in a mild deficit is
+ * possible); everything else gets the phase scheme (fatloss) or maintain.
+ */
+export function roleForMuscle(
+  muscle: MuscleGroup,
+  profile: UserProfile,
+  phase: GlobalPhase,
+): MuscleRole {
+  if ((profile.priorities ?? []).includes(muscle)) return 'growth';
+  return phase === 'fatloss' ? 'fatloss' : 'maintain';
+}
+
+function schemeFor(e: Exercise, role: MuscleRole, goal: GoalKey): Scheme {
   const compound = isCompound(e);
   if (isTimed(e)) {
+    // Timed holds unchanged from the pre-role engine.
     const hold =
       goal === 'strength' ? '30s' : goal === 'muscle' ? '45s' : goal === 'fatloss' ? '45s' : '30s';
     return { sets: 3, reps: hold, restSeconds: goal === 'fatloss' ? 45 : 60 };
   }
-  switch (goal) {
-    case 'strength':
-      return {
-        sets: compound ? 5 : 4,
-        reps: '4-6',
-        restSeconds: compound ? 180 : 150,
-      };
-    case 'muscle':
+  // Strength keeps its own scheme (1-6 rep compounds) regardless of role.
+  if (goal === 'strength') {
+    return {
+      sets: compound ? 5 : 4,
+      reps: '4-6',
+      restSeconds: compound ? 180 : 150,
+    };
+  }
+  // Calves exception: high reps, all non-strength paths.
+  if (e.muscle === 'calves') {
+    return { sets: 4, reps: '15-20', restSeconds: 45 };
+  }
+  switch (role) {
+    case 'growth':
       return {
         sets: compound ? 4 : 3,
-        reps: '8-12',
+        reps: compound ? '6-12' : '10-15',
         restSeconds: compound ? 120 : 90,
       };
+    case 'maintain':
+      return {
+        sets: 2,
+        reps: compound ? '8-12' : '10-15',
+        restSeconds: compound ? 90 : 60,
+      };
     case 'fatloss':
-      // Fat loss is not a reason to give every movement the same scheme: main
-      // lifts keep heavier, lower-rep work (strength retention + form), calves
-      // get the high reps they respond to, accessories keep 12-15.
-      if (e.muscle === 'calves') {
-        return { sets: 4, reps: '15-20', restSeconds: 45 };
-      }
+    default:
       return {
         sets: 3,
         reps: compound ? '8-12' : '12-15',
         restSeconds: compound ? 90 : 45,
-      };
-    case 'general':
-    default:
-      return {
-        sets: 3,
-        reps: compound ? '8-12' : '10',
-        restSeconds: compound ? 120 : 90,
       };
   }
 }
@@ -717,6 +814,8 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
   const excluded = injuryExcludedKeys(profile.injuries);
   const templates = splitFor(daysPerWeek);
   const weeklyUse = new Map<string, number>();
+  const phase = resolvePhase(profile);
+  const priorities = [...(profile.priorities ?? [])];
 
   const seedBase = JSON.stringify({
     g: profile.goal,
@@ -724,6 +823,8 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
     d: daysPerWeek,
     e: [...profile.equipment].sort(),
     i: normalizeInjuries(profile.injuries),
+    p: phase,
+    pr: [...priorities].sort(),
   });
 
   const days: PlanDay[] = templates.map((t) => {
@@ -742,7 +843,7 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
         `${seedBase}|${t.key}`,
       );
       for (const e of picked) {
-        const s = schemeFor(profile.goal, e);
+        const s = schemeFor(e, roleForMuscle(e.muscle, profile, phase), profile.goal);
         exercises.push({
           exerciseKey: e.key,
           sets: s.sets,
@@ -765,6 +866,8 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
     level: profile.level,
     daysPerWeek,
     days,
+    phase,
+    priorities,
   };
 }
 

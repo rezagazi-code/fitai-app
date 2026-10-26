@@ -16,7 +16,9 @@ import {
   getActiveProgram,
   getPersonalRecords,
   getSessions,
+  updateAthleteProfile,
 } from '../lib/store';
+import { MUSCLE_GROUPS, MUSCLE_LABELS } from '../lib/exercises';
 
 /* ============================================================
  * Local bilingual strings (i18n.tsx is untouched by contract).
@@ -35,6 +37,21 @@ export const PROFILE_KEYS = {
     body: 'مشخصات بدن',
     height: 'قد',
     weight: 'وزن',
+    measurements: 'اندازه‌ها و اولویت‌ها',
+    waist: 'دور کمر',
+    hip: 'دور باسن',
+    chest: 'دور سینه',
+    arm: 'دور بازو',
+    thigh: 'دور ران',
+    cm: 'سانتی‌متر',
+    priorities: 'اولویت‌های رشد',
+    prioritiesHint: 'حداکثر ۲ عضله — بقیه با حجم نگهداری تمرین می‌کنن',
+    phase: 'فاز برنامه',
+    phaseFatloss: 'کاهش چربی',
+    phaseGrowth: 'حجم و نگهداری',
+    phaseNote: 'چربی‌سوزی سراسری است و با غذا اتفاق می‌افتد؛ تمرین عضله را نگه می‌دارد.',
+    saveMeasurements: 'ذخیره‌ی اندازه‌ها و اولویت‌ها',
+    savedNote: 'ذخیره شد — برای اعمال روی برنامه، «برنامه‌ی تازه» بساز.',
     coachSig: 'مربی هوشمند',
     coachSigSub: 'هر تمرینت رو می‌بینه، برنامه‌ی بعدیت رو باهاش می‌سازه',
     reminderTitle: 'یادآور تمرین',
@@ -55,6 +72,21 @@ export const PROFILE_KEYS = {
     body: 'Body',
     height: 'Height',
     weight: 'Weight',
+    measurements: 'Measurements & priorities',
+    waist: 'Waist',
+    hip: 'Hip',
+    chest: 'Chest',
+    arm: 'Arm',
+    thigh: 'Thigh',
+    cm: 'cm',
+    priorities: 'Growth priorities',
+    prioritiesHint: 'Up to 2 muscles — the rest train on maintenance volume',
+    phase: 'Program phase',
+    phaseFatloss: 'Fat loss',
+    phaseGrowth: 'Growth & maintenance',
+    phaseNote: 'Fat loss is whole-body and comes from food; training preserves muscle.',
+    saveMeasurements: 'Save measurements & priorities',
+    savedNote: 'Saved — build a fresh program to apply it.',
     coachSig: 'AI Coach',
     coachSigSub: 'It watches every workout and builds your next plan from it',
     reminderTitle: 'Training reminder',
@@ -117,6 +149,15 @@ interface StoredProfile {
   daysPerWeek?: number;
   heightCm?: number;
   weightKg?: number;
+  measurements?: {
+    waistCm?: number;
+    hipCm?: number;
+    chestCm?: number;
+    armCm?: number;
+    thighCm?: number;
+  };
+  priorities?: string[];
+  phase?: 'fatloss' | 'growth';
 }
 
 function readProfile(): StoredProfile | null {
@@ -153,6 +194,56 @@ export default function ProfileTab(): ReactElement {
 
   const sessions = getSessions();
   const [reminder, setReminder] = useState(getReminderSettings);
+
+  /* ---- measurements + priorities editing (per-muscle engine) ---- */
+  const savedMeasures = profile?.measurements ?? {};
+  const [waist, setWaist] = useState(savedMeasures.waistCm != null ? String(savedMeasures.waistCm) : '');
+  const [hip, setHip] = useState(savedMeasures.hipCm != null ? String(savedMeasures.hipCm) : '');
+  const [chest, setChest] = useState(savedMeasures.chestCm != null ? String(savedMeasures.chestCm) : '');
+  const [arm, setArm] = useState(savedMeasures.armCm != null ? String(savedMeasures.armCm) : '');
+  const [thigh, setThigh] = useState(savedMeasures.thighCm != null ? String(savedMeasures.thighCm) : '');
+  const [priorities, setPriorities] = useState<string[]>(() =>
+    (profile?.priorities ?? []).filter((x) => (MUSCLE_GROUPS as string[]).includes(x)),
+  );
+  const [justSaved, setJustSaved] = useState(false);
+
+  // The phase is the user's explicit choice, selectable here. It must NOT be
+  // silently re-derived from measurements on save: a user who overrode the
+  // suggestion (e.g. chose growth despite a high waist ratio) would lose
+  // that choice the next time they edit a circumference.
+  const [phase, setPhase] = useState<'fatloss' | 'growth'>(
+    profile?.phase ?? (profile?.goal === 'fat-loss' ? 'fatloss' : 'growth'),
+  );
+
+  const togglePriority = (mm: string): void => {
+    setPriorities((prev) => {
+      if (prev.includes(mm)) return prev.filter((x) => x !== mm);
+      if (prev.length >= 2) return prev; // max 2 — the hint line explains
+      return [...prev, mm];
+    });
+    setJustSaved(false);
+  };
+
+  const saveMeasurements = (): void => {
+    const parseBounded = (raw: string, min: number, max: number): number | undefined => {
+      const v = parseFloat(raw);
+      return Number.isFinite(v) && v >= min && v <= max ? v : undefined;
+    };
+    const measurements = {
+      waistCm: parseBounded(waist, 50, 150),
+      hipCm: parseBounded(hip, 60, 170),
+      chestCm: parseBounded(chest, 60, 170),
+      armCm: parseBounded(arm, 20, 70),
+      thighCm: parseBounded(thigh, 30, 100),
+    };
+    const patch: { measurements: typeof measurements; priorities: string[]; phase: 'fatloss' | 'growth' } = {
+      measurements,
+      priorities,
+      phase,
+    };
+    updateAthleteProfile(patch);
+    setJustSaved(true);
+  };
 
   const updateReminder = (next: { enabled: boolean; hour: number; minute: number }) => {
     setReminder(next);
@@ -277,6 +368,83 @@ export default function ProfileTab(): ReactElement {
               </div>
             )}
           </div>
+        </section>
+      )}
+
+      {/* measurements + priorities editing */}
+      {profile && (
+        <section className="card">
+          <h2 className="card-title">{k.measurements}</h2>
+          <div className="profile-body-grid">
+            {[
+              { label: k.waist, value: waist, set: setWaist, min: 50, max: 150 },
+              { label: k.hip, value: hip, set: setHip, min: 60, max: 170 },
+              { label: k.chest, value: chest, set: setChest, min: 60, max: 170 },
+              { label: k.arm, value: arm, set: setArm, min: 20, max: 70 },
+              { label: k.thigh, value: thigh, set: setThigh, min: 30, max: 100 },
+            ].map((f) => (
+              <div className="profile-body-item" key={f.label}>
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="decimal"
+                  min={f.min}
+                  max={f.max}
+                  value={f.value}
+                  aria-label={`${f.label} (${k.cm})`}
+                  onChange={(e) => {
+                    f.set(e.target.value);
+                    setJustSaved(false);
+                  }}
+                />
+                <span className="profile-body-label">
+                  {f.label} · {k.cm}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="card-meta" style={{ margin: '16px 0 4px' }}>{k.priorities}</p>
+          <p className="card-meta">{k.prioritiesHint}</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {MUSCLE_GROUPS.filter((mm) => mm !== 'fullbody').map((mm) => {
+              const selected = priorities.includes(mm);
+              return (
+                <button
+                  key={mm}
+                  type="button"
+                  className={`chip${selected ? ' chip--active' : ''}`}
+                  aria-pressed={selected}
+                  onClick={() => togglePriority(mm)}
+                >
+                  {lang === 'fa' ? MUSCLE_LABELS[mm].fa : MUSCLE_LABELS[mm].en}
+                </button>
+              );
+            })}
+          </div>
+          <p className="card-meta">{k.phase}</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {(['fatloss', 'growth'] as const).map((ph) => (
+              <button
+                key={ph}
+                type="button"
+                className={`chip${phase === ph ? ' chip--active' : ''}`}
+                aria-pressed={phase === ph}
+                onClick={() => {
+                  setPhase(ph);
+                  setJustSaved(false);
+                }}
+              >
+                {ph === 'fatloss' ? k.phaseFatloss : k.phaseGrowth}
+              </button>
+            ))}
+          </div>
+          <p className="card-meta">{k.phaseNote}</p>
+          <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={saveMeasurements}>
+            {k.saveMeasurements}
+          </button>
+          {justSaved && (
+            <p className="card-meta" style={{ marginTop: 8 }}>{k.savedNote}</p>
+          )}
         </section>
       )}
 

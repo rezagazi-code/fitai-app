@@ -19,7 +19,7 @@ import ExerciseArt from '../components/ExerciseArt';
 import ExerciseDetail from '../components/ExerciseDetail';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
-import { getActiveProgram } from '../lib/store';
+import { getActiveProgram, getAthleteProfile } from '../lib/store';
 import {
   ARCHETYPES,
   archetypeOf,
@@ -29,6 +29,7 @@ import {
   EQUIPMENT_TYPES,
   EXERCISES,
   MUSCLE_GROUPS,
+  MUSCLE_LABELS,
   type Equipment,
   type Exercise,
   type MuscleGroup,
@@ -80,6 +81,17 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
     [program],
   );
 
+  // Per-muscle engine: the program card names the growth priorities and the
+  // global phase in one line each (strength programs have no phase).
+  const athleteProfile = useMemo(() => getAthleteProfile(), []);
+  // Chips follow the PLAN's own priorities (see HomeTab note): profile edits
+  // without a rebuild must not label old-plan exercises as growth priority.
+  const growthPriorities: string[] = program?.priorities ?? [];
+  const showPhase = program != null && program.goal !== 'strength';
+  const phaseKey =
+    athleteProfile?.phase ??
+    ((athleteProfile?.goal ?? program?.goal) === 'fat-loss' ? 'fatloss' : 'growth');
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     return EXERCISES.filter((e) => {
@@ -121,6 +133,23 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
               {totalExercises} {t('workouts.exercisesCount')}
             </span>
           </div>
+          {showPhase && (
+            <p className="card-meta" style={{ marginTop: -8 }}>
+              {t('phase.label')}: {t(phaseKey === 'fatloss' ? 'phase.fatloss' : 'phase.growth')}
+            </p>
+          )}
+          {growthPriorities.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              <span className="chip chip--active">{t('priority.label')}:</span>
+              {growthPriorities.map((m) => (
+                <span className="chip" key={m}>
+                  {lang === 'fa'
+                    ? (MUSCLE_LABELS[m as MuscleGroup]?.fa ?? m)
+                    : (MUSCLE_LABELS[m as MuscleGroup]?.en ?? m)}
+                </span>
+              ))}
+            </div>
+          )}
           {onStartWorkout && (
             <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={onStartWorkout}>
               {t('w.startWorkout')}

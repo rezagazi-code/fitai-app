@@ -13,14 +13,24 @@
  * merges them into lib/i18n.tsx centrally. This file is never edited for
  * copy. Existing dict keys are resolved through useLang().t().
  */
-import { useState, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import { saveProgram, setActiveProgram, setOnboarded } from '../lib/store';
 import {
   generateProgram,
+  suggestGrowthCandidates,
+  suggestPhase,
+  type BodyMeasurements,
+  type GlobalPhase,
   type UserProfile as EngineProfile,
 } from '../lib/program';
-import { EQUIPMENT_TYPES, type Equipment } from '../lib/exercises';
+import {
+  EQUIPMENT_TYPES,
+  MUSCLE_GROUPS,
+  MUSCLE_LABELS,
+  type Equipment,
+  type MuscleGroup,
+} from '../lib/exercises';
 import './onboarding.css';
 
 /* ============================================================
@@ -71,6 +81,30 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.reviewStats': 'قد و وزن',
     'onbw.statsValue': 'قد {h} • وزن {w}',
     'onbw.noStats': 'وارد نشده',
+    'onbw.measureTitle': 'اندازه‌هات چقدره؟',
+    'onbw.measureSubtitle': 'اختیاریه — برای اینکه اپ بفهمه کجا حجم بیاره و کجا نگه داره',
+    'onbw.measureWaist': 'دور کمر (سانتی‌متر)',
+    'onbw.measureHip': 'دور باسن (سانتی‌متر)',
+    'onbw.measureChest': 'دور سینه (سانتی‌متر)',
+    'onbw.measureArm': 'دور بازو (سانتی‌متر)',
+    'onbw.measureThigh': 'دور ران (سانتی‌متر)',
+    'onbw.priorityTitle': 'کدوم عضله‌ها اولویت رشد بگیرن؟',
+    'onbw.prioritySubtitle': 'حداکثر ۲ تا انتخاب کن؛ بقیه با حجم نگهداری تمرین می‌کنن',
+    'onbw.prioritySuggested': 'پیشنهاد اپ',
+    'onbw.priorityNone': 'بدون اندازه، پیشنهادی نیست — خودت انتخاب کن',
+    'onbw.phaseFatloss': 'فاز پیشنهادی: کاهش چربی',
+    'onbw.phaseGrowth': 'فاز پیشنهادی: حجم و نگهداری',
+    'onbw.phaseNote': 'چربی‌سوزی سراسری است و با غذا و کسری کالری اتفاق می‌افتد؛ تمرین عضله را نگه می‌دارد. دور عضله، چربی را از عضله جدا نمی‌کند، پس این پیشنهاد است نه تشخیص.',
+    'onbw.reviewMeasures': 'اندازه‌ها',
+    'onbw.reviewPriorities': 'اولویت‌های رشد',
+    'onbw.reviewPhase': 'فاز برنامه',
+    'onbw.noMeasures': 'وارد نشده',
+    'onbw.noPriorities': 'بدون اولویت خاص',
+    'onbw.mWaist': 'کمر',
+    'onbw.mHip': 'باسن',
+    'onbw.mChest': 'سینه',
+    'onbw.mArm': 'بازو',
+    'onbw.mThigh': 'ران',
     'onbw.finish': 'ساخت برنامه‌ی من',
     'onbw.generating': 'دارم برنامه‌ی مخصوصت رو می‌سازم…',
     'onbw.needSelection': 'اول یه گزینه انتخاب کن 👆',
@@ -123,6 +157,30 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.reviewStats': 'Height & weight',
     'onbw.statsValue': 'Height {h} • Weight {w}',
     'onbw.noStats': 'Not provided',
+    'onbw.measureTitle': 'What are your measurements?',
+    'onbw.measureSubtitle': 'Optional — so the app can tell where to build and where to maintain',
+    'onbw.measureWaist': 'Waist (cm)',
+    'onbw.measureHip': 'Hip (cm)',
+    'onbw.measureChest': 'Chest (cm)',
+    'onbw.measureArm': 'Arm (cm)',
+    'onbw.measureThigh': 'Thigh (cm)',
+    'onbw.priorityTitle': 'Which muscles get growth priority?',
+    'onbw.prioritySubtitle': 'Pick up to 2 — the rest train on maintenance volume',
+    'onbw.prioritySuggested': 'App suggestion',
+    'onbw.priorityNone': 'No measurements, no suggestion — pick yourself',
+    'onbw.phaseFatloss': 'Suggested phase: fat loss',
+    'onbw.phaseGrowth': 'Suggested phase: growth & maintenance',
+    'onbw.phaseNote': 'Fat loss is whole-body and comes from food and a calorie deficit; training preserves muscle. A circumference cannot separate fat from muscle, so this is a suggestion, not a diagnosis.',
+    'onbw.reviewMeasures': 'Measurements',
+    'onbw.reviewPriorities': 'Growth priorities',
+    'onbw.reviewPhase': 'Program phase',
+    'onbw.noMeasures': 'Not provided',
+    'onbw.noPriorities': 'No specific priority',
+    'onbw.mWaist': 'Waist',
+    'onbw.mHip': 'Hip',
+    'onbw.mChest': 'Chest',
+    'onbw.mArm': 'Arm',
+    'onbw.mThigh': 'Thigh',
     'onbw.finish': 'Build my program',
     'onbw.generating': 'Building your personal program…',
     'onbw.needSelection': 'Pick an option first 👆',
@@ -152,6 +210,12 @@ export interface UserProfile {
   injuryNote?: string;
   heightCm?: number;
   weightKg?: number;
+  /** Optional circumferences (cm) — drive the phase suggestion + growth candidates. */
+  measurements?: BodyMeasurements;
+  /** Up to 2 muscle groups confirmed as growth priorities. */
+  priorities?: MuscleGroup[];
+  /** Global phase (fatloss/growth); when absent the goal default applies. */
+  phase?: GlobalPhase;
 }
 
 export interface WorkoutPlanExercise {
@@ -234,6 +298,9 @@ function toEngineProfile(p: UserProfile): EngineProfile {
     equipment: [...p.equipment],
     // 'none' is not an injury — drop it so the engine stays clean
     injuries: p.injuries.filter((i) => i !== 'none'),
+    measurements: p.measurements,
+    priorities: p.priorities,
+    phase: p.phase,
   };
 }
 
@@ -245,6 +312,8 @@ const STEPS = [
   'equipment',
   'injuries',
   'stats',
+  'measures',
+  'priorities',
   'review',
 ] as const;
 type StepId = (typeof STEPS)[number];
@@ -275,14 +344,49 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const [goal, setGoal] = useState<Goal | null>(null);
-  const [level, setLevel] = useState<Level | null>(null);
-  const [days, setDays] = useState(3);
-  const [equipment, setEquipment] = useState<EquipmentKey[]>([]);
-  const [injuries, setInjuries] = useState<InjuryKey[]>([]);
-  const [injuryNote, setInjuryNote] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
+  // Rebuild path (v0.1.19 "fresh program" button) re-opens the wizard: prefill
+  // every step from the saved profile so a rebuild keeps the athlete's data
+  // instead of forcing them to re-enter it. First run: saved is null → defaults.
+  const [goal, setGoal] = useState<Goal | null>(() => getUserProfile()?.goal ?? null);
+  const [level, setLevel] = useState<Level | null>(() => getUserProfile()?.level ?? null);
+  const [days, setDays] = useState(() => getUserProfile()?.daysPerWeek ?? 3);
+  const [equipment, setEquipment] = useState<EquipmentKey[]>(() => getUserProfile()?.equipment ?? []);
+  const [injuries, setInjuries] = useState<InjuryKey[]>(() => getUserProfile()?.injuries ?? []);
+  const [injuryNote, setInjuryNote] = useState(() => getUserProfile()?.injuryNote ?? '');
+  const [height, setHeight] = useState(() => {
+    const h = getUserProfile()?.heightCm;
+    return h != null ? String(h) : '';
+  });
+  const [weight, setWeight] = useState(() => {
+    const w = getUserProfile()?.weightKg;
+    return w != null ? String(w) : '';
+  });
+  const [waist, setWaist] = useState(() => {
+    const v = getUserProfile()?.measurements?.waistCm;
+    return v != null ? String(v) : '';
+  });
+  const [hip, setHip] = useState(() => {
+    const v = getUserProfile()?.measurements?.hipCm;
+    return v != null ? String(v) : '';
+  });
+  const [chest, setChest] = useState(() => {
+    const v = getUserProfile()?.measurements?.chestCm;
+    return v != null ? String(v) : '';
+  });
+  const [arm, setArm] = useState(() => {
+    const v = getUserProfile()?.measurements?.armCm;
+    return v != null ? String(v) : '';
+  });
+  const [thigh, setThigh] = useState(() => {
+    const v = getUserProfile()?.measurements?.thighCm;
+    return v != null ? String(v) : '';
+  });
+  const [priorities, setPriorities] = useState<MuscleGroup[]>(() => {
+    const saved = getUserProfile()?.priorities ?? [];
+    return saved.filter((m): m is MuscleGroup => (MUSCLE_GROUPS as string[]).includes(m));
+  });
+  const [phaseSel, setPhaseSel] = useState<GlobalPhase | null>(() => getUserProfile()?.phase ?? null);
+  const [prioritySeeded, setPrioritySeeded] = useState(false);
 
   const step: StepId = STEPS[stepIdx];
   const total = STEPS.length;
@@ -346,6 +450,51 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
     });
   };
 
+  /* ---------------- measurements + priorities ---------------- */
+  const parseBounded = (raw: string, min: number, max: number): number | undefined => {
+    const v = parseFloat(raw);
+    return Number.isFinite(v) && v >= min && v <= max ? v : undefined;
+  };
+  const parsedHeight = parseBounded(height, 120, 230);
+  const parsedMeasures: BodyMeasurements = {
+    waistCm: parseBounded(waist, 50, 150),
+    hipCm: parseBounded(hip, 60, 170),
+    chestCm: parseBounded(chest, 60, 170),
+    armCm: parseBounded(arm, 20, 70),
+    thighCm: parseBounded(thigh, 30, 100),
+  };
+  const hasAnyMeasure = Object.values(parsedMeasures).some((v) => v !== undefined);
+  const phaseSuggestion = suggestPhase(parsedMeasures.waistCm, parsedHeight);
+  const growthSuggestions = suggestGrowthCandidates(
+    hasAnyMeasure ? parsedMeasures : undefined,
+    parsedHeight,
+  );
+
+  // First arrival at the priorities step: seed the suggestion (phase +
+  // growth candidates) unless the athlete already chose (prefill/rebuild).
+  // Never re-seeds: clearing everything is a deliberate choice, respected.
+  useEffect(() => {
+    if (step !== 'priorities' || prioritySeeded) return;
+    setPrioritySeeded(true);
+    if (phaseSel === null && phaseSuggestion !== null) setPhaseSel(phaseSuggestion);
+    setPriorities((prev) => (prev.length > 0 ? prev : growthSuggestions));
+    // Intentionally runs once per wizard open, on step arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const togglePriority = (m: MuscleGroup): void => {
+    setPriorities((prev) => {
+      if (prev.includes(m)) return prev.filter((x) => x !== m);
+      if (prev.length >= 2) return prev; // max 2 — the hint line explains
+      return [...prev, m];
+    });
+  };
+
+  const muscleName = (m: MuscleGroup): string =>
+    lang === 'fa' ? MUSCLE_LABELS[m].fa : MUSCLE_LABELS[m].en;
+
+  const PRIORITY_MUSCLES = MUSCLE_GROUPS.filter((m) => m !== 'fullbody');
+
   /* ---------------- finish ---------------- */
   const buildProfile = (): UserProfile => {
     const p: UserProfile = {
@@ -361,6 +510,15 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
     if (Number.isFinite(h) && h >= 120 && h <= 230) p.heightCm = h;
     const w = parseFloat(weight);
     if (Number.isFinite(w) && w >= 30 && w <= 300) p.weightKg = w;
+    if (hasAnyMeasure) {
+      const m: BodyMeasurements = {};
+      for (const [k, v] of Object.entries(parsedMeasures)) {
+        if (v !== undefined) (m as Record<string, number>)[k] = v;
+      }
+      p.measurements = m;
+    }
+    if (priorities.length > 0) p.priorities = [...priorities];
+    if (phaseSel !== null) p.phase = phaseSel;
     return p;
   };
 
@@ -392,6 +550,10 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             restSeconds: e.restSeconds,
           })),
         ),
+        // Carry the engine's phase + priorities so tabs can badge truthfully
+        // from the plan itself (not the editable profile).
+        phase: plan.phase,
+        priorities: plan.priorities,
       });
       setActiveProgram(stored.id);
       saveUserProfile(profile, false);
@@ -606,6 +768,92 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
         );
       }
 
+      case 'measures': {
+        const fields: { id: string; label: string; value: string; set: (v: string) => void; min: number; max: number; ph: string }[] = [
+          { id: 'onbw-waist', label: lt('onbw.measureWaist'), value: waist, set: setWaist, min: 50, max: 150, ph: lang === 'fa' ? '۸۰' : '80' },
+          { id: 'onbw-hip', label: lt('onbw.measureHip'), value: hip, set: setHip, min: 60, max: 170, ph: lang === 'fa' ? '۹۵' : '95' },
+          { id: 'onbw-chest', label: lt('onbw.measureChest'), value: chest, set: setChest, min: 60, max: 170, ph: lang === 'fa' ? '۱۰۰' : '100' },
+          { id: 'onbw-arm', label: lt('onbw.measureArm'), value: arm, set: setArm, min: 20, max: 70, ph: lang === 'fa' ? '۳۵' : '35' },
+          { id: 'onbw-thigh', label: lt('onbw.measureThigh'), value: thigh, set: setThigh, min: 30, max: 100, ph: lang === 'fa' ? '۵۵' : '55' },
+        ];
+        return (
+          <>
+            <h2 className="onbw-title">{lt('onbw.measureTitle')}</h2>
+            <p className="onbw-subtitle">{lt('onbw.measureSubtitle')}</p>
+            {fields.map((f) => (
+              <div className="onbw-field" key={f.id}>
+                <label className="onbw-field-label" htmlFor={f.id}>
+                  {f.label}
+                </label>
+                <input
+                  id={f.id}
+                  className="input"
+                  type="number"
+                  inputMode="decimal"
+                  min={f.min}
+                  max={f.max}
+                  value={f.value}
+                  placeholder={f.ph}
+                  onChange={(e) => f.set(e.target.value)}
+                />
+              </div>
+            ))}
+          </>
+        );
+      }
+
+      case 'priorities': {
+        const phaseLabel = (ph: GlobalPhase): string =>
+          ph === 'fatloss' ? lt('onbw.phaseFatloss') : lt('onbw.phaseGrowth');
+        return (
+          <>
+            <h2 className="onbw-title">{lt('onbw.priorityTitle')}</h2>
+            <p className="onbw-subtitle">{lt('onbw.prioritySubtitle')}</p>
+            {phaseSuggestion !== null && (
+              <p className="onbw-subtitle">{phaseLabel(phaseSuggestion)}</p>
+            )}
+            <div className="onbw-chips">
+              {(['fatloss', 'growth'] as GlobalPhase[]).map((ph) => (
+                <button
+                  key={ph}
+                  type="button"
+                  className={`chip onbw-chip-btn${phaseSel === ph ? ' chip--active' : ''}`}
+                  aria-pressed={phaseSel === ph}
+                  onClick={() => setPhaseSel(ph)}
+                >
+                  {t(ph === 'fatloss' ? 'phase.fatloss' : 'phase.growth')}
+                </button>
+              ))}
+            </div>
+            <p className="onbw-subtitle">{lt('onbw.phaseNote')}</p>
+            {growthSuggestions.length > 0 && (
+              <p className="onbw-subtitle">
+                {lt('onbw.prioritySuggested')}: {growthSuggestions.map(muscleName).join(lang === 'fa' ? '، ' : ', ')}
+              </p>
+            )}
+            {growthSuggestions.length === 0 && (
+              <p className="onbw-subtitle">{lt('onbw.priorityNone')}</p>
+            )}
+            <div className="onbw-chips">
+              {PRIORITY_MUSCLES.map((m) => {
+                const selected = priorities.includes(m);
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`chip onbw-chip-btn${selected ? ' chip--active' : ''}`}
+                    aria-pressed={selected}
+                    onClick={() => togglePriority(m)}
+                  >
+                    {muscleName(m)}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        );
+      }
+
       case 'review': {
         const sep = lang === 'fa' ? '، ' : ', ';
         const rows: { id: StepId; label: string; value: string }[] = [
@@ -638,6 +886,39 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
                     .replace('{w}', weight.trim() || '—')
                 : lt('onbw.noStats'),
           },
+          {
+            id: 'measures',
+            label: lt('onbw.reviewMeasures'),
+            value:
+              waist.trim() || hip.trim() || chest.trim() || arm.trim() || thigh.trim()
+                ? [
+                    waist.trim() ? `${lt('onbw.mWaist')} ${waist.trim()}` : '',
+                    hip.trim() ? `${lt('onbw.mHip')} ${hip.trim()}` : '',
+                    chest.trim() ? `${lt('onbw.mChest')} ${chest.trim()}` : '',
+                    arm.trim() ? `${lt('onbw.mArm')} ${arm.trim()}` : '',
+                    thigh.trim() ? `${lt('onbw.mThigh')} ${thigh.trim()}` : '',
+                  ]
+                    .filter(Boolean)
+                    .join(sep)
+                : lt('onbw.noMeasures'),
+          },
+          {
+            id: 'priorities',
+            label: lt('onbw.reviewPriorities'),
+            value: priorities.length > 0 ? priorities.map(muscleName).join(sep) : lt('onbw.noPriorities'),
+          },
+          {
+            id: 'priorities',
+            label: lt('onbw.reviewPhase'),
+            value:
+              phaseSel !== null
+                ? t(phaseSel === 'fatloss' ? 'phase.fatloss' : 'phase.growth')
+                : phaseSuggestion !== null
+                  ? t(phaseSuggestion === 'fatloss' ? 'phase.fatloss' : 'phase.growth')
+                  : goal === 'fat-loss'
+                    ? t('phase.fatloss')
+                    : t('phase.growth'),
+          },
         ];
         return (
           <>
@@ -646,7 +927,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             <div className="onbw-review">
               {rows.map((r, i) => (
                 <button
-                  key={r.id}
+                  key={`${r.id}-${i}`}
                   type="button"
                   className="onbw-review-row onbw-stagger"
                   style={{ animationDelay: `${i * 50}ms` }}
@@ -671,7 +952,14 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
       ? lt('onbw.finish')
       : step === 'stats' && height.trim() === '' && weight.trim() === ''
         ? lt('onbw.skip')
-        : t('common.next');
+        : step === 'measures' &&
+            waist.trim() === '' &&
+            hip.trim() === '' &&
+            chest.trim() === '' &&
+            arm.trim() === '' &&
+            thigh.trim() === ''
+          ? lt('onbw.skip')
+          : t('common.next');
 
   return (
     <div
