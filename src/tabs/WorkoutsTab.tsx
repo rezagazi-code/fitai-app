@@ -126,6 +126,23 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
               {t('w.startWorkout')}
             </button>
           )}
+          {/* Rebuild path: saved programs never change on app update, so a
+              user whose program predates a generator fix had no way to reach
+              the new schemes without reinstalling. This re-opens onboarding;
+              finishing it replaces the active program, records stay. */}
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ width: '100%', marginTop: 8 }}
+            onClick={() => {
+              if (window.confirm(t('workouts.rebuildConfirm'))) onBuildProgram?.();
+            }}
+          >
+            {t('workouts.rebuildProgram')}
+          </button>
+          <p className="card-meta" style={{ marginTop: 4 }}>
+            {t('workouts.rebuildHint')}
+          </p>
         </div>
       ) : (
         <div

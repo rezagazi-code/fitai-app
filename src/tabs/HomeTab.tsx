@@ -81,6 +81,13 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
   const { t, lang } = useLang();
   const program = getActiveProgram();
   const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
+  // Plain words, not symbols: beginners (the users who cannot afford a coach)
+  // must not have to decode "3 × 12-15" — and in RTL the symbol order renders
+  // reversed, so the chip spells the target out: "3 sets · 12-15 reps".
+  const targetLabel = (sets: number, reps: string) =>
+    reps.endsWith('s')
+      ? `${fmt(sets)} ${t('w.set')} · ${reps.slice(0, -1)} ${t('w.sec')}`
+      : `${fmt(sets)} ${t('w.set')} · ${reps} ${t('w.reps')}`;
   const weekdays = lang === 'fa' ? FA_WEEKDAYS : EN_WEEKDAYS;
   const sessions = useMemo(() => getSessions(), []);
 
@@ -170,6 +177,7 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
               ≈ {fmt(estMinutes)} {t('w.min')}
             </span>
           </div>
+          <p className="card-meta">{t('home.setsExplainer')}</p>
           <ul className="today-lifts">
             {todayExercises.map((e) => {
               const ex = getExercise(e.exerciseKey);
@@ -191,7 +199,7 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
                       </span>
                       <span className="today-lift__target">
                         <span className="chip set-count">
-                          {fmt(e.sets)} × {e.reps}
+                          {targetLabel(e.sets, e.reps)}
                         </span>
                         {' · ⏱ '}{fmt(e.restSeconds)} {t('w.sec')}
                       </span>

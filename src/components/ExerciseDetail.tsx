@@ -128,7 +128,9 @@ export default function ExerciseDetail({ exercise, target, onBack, onSelect }: E
           <h4 className="ex-section__title">{t('detail.targets')}</h4>
           <div className="ex-targets">
             <span className="chip set-count">
-              {fmt(target.sets)} × {target.reps} {t('w.sets')}
+              {target.reps.endsWith('s')
+                ? `${fmt(target.sets)} ${t('w.set')} · ${target.reps.slice(0, -1)} ${t('w.sec')}`
+                : `${fmt(target.sets)} ${t('w.set')} · ${target.reps} ${t('w.reps')}`}
             </span>
             <span className="chip">
               ⏱ {fmt(target.restSeconds)} {t('w.sec')} {t('w.rest')}

@@ -51,6 +51,7 @@ const fa: Dict = {
   'w.kg': 'کیلوگرم',
   'w.sec': 'ثانیه',
   'w.min': 'دقیقه',
+  'home.setsExplainer': '«ست» یعنی یک بار انجام کامل حرکت، و «تکرار» یعنی هر ست چند بار حرکت را می‌زنی.',
 
   // Workout flow
   'w.startWorkout': 'شروع تمرین',
@@ -304,6 +305,9 @@ const fa: Dict = {
   'workouts.noProgram': 'هنوز برنامه‌ای نساختی',
   'workouts.noProgramHint': 'با چند سؤال کوتاه، برنامه مخصوص خودت رو بساز',
   'workouts.buildProgram': 'برنامه‌م رو بساز',
+  'workouts.rebuildProgram': 'برنامه‌ی تازه بساز',
+  'workouts.rebuildHint': 'برنامه‌ی فعلی جایگزین می‌شود؛ رکوردهای ثبت‌شده‌ات سر جایشان می‌مانند.',
+  'workouts.rebuildConfirm': 'برنامه‌ی تازه ساخته می‌شود و برنامه‌ی فعلی جایگزین خواهد شد. ادامه می‌دهی؟',
   'workouts.daysPerWeek': 'روز در هفته',
   'workouts.exercisesCount': 'حرکت',
   'workouts.searchPlaceholder': 'جست‌جوی حرکت… (فارسی یا انگلیسی)',
@@ -374,6 +378,7 @@ const en: Dict = {
   'w.rest': 'Rest',
   'w.kg': 'kg',
   'w.sec': 'sec',
+  'home.setsExplainer': 'A "set" is one round of the exercise; a "rep" is one repetition within a set.',
   'w.min': 'min',
 
   // Workout flow
@@ -628,6 +633,9 @@ const en: Dict = {
   'workouts.noProgram': "You haven't built a plan yet",
   'workouts.noProgramHint': 'Answer a few quick questions to build your personal plan',
   'workouts.buildProgram': 'Build my plan',
+  'workouts.rebuildProgram': 'Build a fresh program',
+  'workouts.rebuildHint': 'This replaces the current program; your logged records stay.',
+  'workouts.rebuildConfirm': 'A fresh program will be built and replace the current one. Continue?',
   'workouts.daysPerWeek': 'days per week',
   'workouts.exercisesCount': 'exercises',
   'workouts.searchPlaceholder': 'Search exercises… (Persian or English)',
