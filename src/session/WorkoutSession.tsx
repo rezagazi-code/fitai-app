@@ -25,11 +25,10 @@ import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
 import { useLang } from '../lib/i18n';
 import {
-  nextProgression,
   parseRepRange,
   personalBestWeight,
-  type ProgressionSuggestion,
 } from '../lib/program';
+import { getExerciseHistory } from '../lib/exerciseHistory';
 import {
   getLastPerformance,
   recordVolumeKg,
@@ -213,13 +212,23 @@ function isBodyweightOnly(exerciseKey: string): boolean {
 }
 
 function initialSets(pe: PlanDayExercise): SetDraft[] {
-  const suggestion = nextProgression(pe.exerciseKey, pe.reps);
-  const last = suggestion ? null : getLastPerformance(pe.exerciseKey);
+  // Single source of truth with the detail view: the session pre-fills
+  // from the SAME suggested next load the detail view shows
+  // (getExerciseHistory), so what the athlete saw is what they lift.
+  // The stored program itself is never mutated — only this session's
+  // editable draft rows are pre-filled.
   const { high } = parseRepRange(pe.reps);
+  const history = getExerciseHistory(pe.exerciseKey, pe.reps);
+  const suggested = history.suggested;
+  const last = suggested ? null : getLastPerformance(pe.exerciseKey);
   const rows: SetDraft[] = [];
   for (let i = 0; i < pe.sets; i++) {
-    if (suggestion) {
-      rows.push({ reps: suggestion.reps, weightKg: suggestion.weightKg, done: false });
+    if (suggested && suggested.loadKg != null) {
+      // Weighted: suggested load, plan target reps.
+      rows.push({ reps: high, weightKg: suggested.loadKg, done: false });
+    } else if (suggested && suggested.reps != null) {
+      // Bodyweight: suggested rep target, no load.
+      rows.push({ reps: suggested.reps, weightKg: 0, done: false });
     } else if (last) {
       rows.push({ reps: last.reps, weightKg: last.weightKg, done: false });
     } else {
@@ -227,6 +236,50 @@ function initialSets(pe: PlanDayExercise): SetDraft[] {
     }
   }
   return rows;
+}
+
+/** Session suggestion line, in the same shape the UI already renders. */
+interface SessionSuggestion {
+  weightKg: number;
+  reps: number;
+  reasonFa: string;
+  reasonEn: string;
+}
+
+function sessionSuggestion(pe: PlanDayExercise): SessionSuggestion | null {
+  const { high } = parseRepRange(pe.reps);
+  const { suggested } = getExerciseHistory(pe.exerciseKey, pe.reps);
+  if (!suggested) return null;
+  if (suggested.loadKg != null) {
+    return suggested.kind === 'up'
+      ? {
+          weightKg: suggested.loadKg,
+          reps: high,
+          reasonFa: `چون دفعه قبل همه تکرارها را کامل زدی، امروز ${suggested.loadKg} کیلو پیشنهاد می‌شود.`,
+          reasonEn: `You hit every rep last time, so today calls for ${suggested.loadKg} kg.`,
+        }
+      : {
+          weightKg: suggested.loadKg,
+          reps: high,
+          reasonFa: `تکرار وزنه‌ی دفعه قبل (${suggested.loadKg} کیلو)؛ هدف امروز: همه ست‌ها با فرم تمیز.`,
+          reasonEn: `Repeat last time's load (${suggested.loadKg} kg); today's goal: every set with clean form.`,
+        };
+  }
+  // Bodyweight progression is expressed in reps.
+  const reps = suggested.reps ?? high;
+  return suggested.kind === 'up'
+    ? {
+        weightKg: 0,
+        reps,
+        reasonFa: `چون دفعه قبل همه تکرارها را کامل زدی، امروز ${reps} تکرار پیشنهاد می‌شود.`,
+        reasonEn: `You hit every rep last time, so today calls for ${reps} reps.`,
+      }
+    : {
+        weightKg: 0,
+        reps,
+        reasonFa: `تکرار تکرارهای دفعه قبل (${reps} تکرار)؛ هدف امروز: فرم تمیز تا تکرار آخر.`,
+        reasonEn: `Repeat last time's reps (${reps}); today's goal: clean form to the last rep.`,
+      };
 }
 
 /* ============================================================
@@ -250,7 +303,8 @@ export default function WorkoutSession({
 
   const n = planDay.exercises.length;
 
-  // Per-exercise set drafts, prefilled from AI suggestion → last session → plan.
+  // Per-exercise set drafts, prefilled from the detail-view suggestion →
+  // last session → plan.
   const [setsByExercise, setSetsByExercise] = useState<SetDraft[][]>(() =>
     planDay.exercises.map(initialSets),
   );
@@ -269,9 +323,10 @@ export default function WorkoutSession({
     prKeys: string[];
   } | null>(null);
 
-  // AI suggestion per exercise (computed once at session start).
-  const suggestions = useMemo<(ProgressionSuggestion | null)[]>(
-    () => planDay.exercises.map((pe) => nextProgression(pe.exerciseKey, pe.reps)),
+  // Suggestion per exercise (computed once at session start) — the same
+  // suggestion the detail view shows, so prefill and advice never disagree.
+  const suggestions = useMemo<(SessionSuggestion | null)[]>(
+    () => planDay.exercises.map((pe) => sessionSuggestion(pe)),
     [planDay],
   );
 

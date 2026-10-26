@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { LangProvider } from './lib/i18n';
+import { ensureReminderScheduled } from './lib/reminder';
 import TabBar, { type TabId } from './components/TabBar';
 import HomeTab from './tabs/HomeTab';
 import WorkoutsTab from './tabs/WorkoutsTab';
@@ -21,6 +22,12 @@ function Shell() {
   const refresh = useCallback(() => setSeq((s) => s + 1), []);
 
   const openOnboarding = useCallback(() => setOnboardingOpen(true), []);
+
+  // Daily local reminder: (re)scheduled on every app start from stored
+  // settings. Best-effort and silent — never blocks the UI.
+  useEffect(() => {
+    void ensureReminderScheduled();
+  }, []);
 
   const openTodaySession = useCallback(() => {
     const program = getActiveProgram();

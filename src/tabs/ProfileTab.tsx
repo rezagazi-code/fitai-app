@@ -2,10 +2,16 @@
  * اپ هوشمند بدنسازی — Profile tab.
  * Display-only identity screen: who the athlete is (goal/level from the
  * onboarding profile), their lifetime stats from the local store, the
- * active program, and body measurements. No actions — pure presence.
+ * active program, and body measurements — plus one small setting: the
+ * daily local training reminder (fully local, no server).
  */
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
+import {
+  ensureReminderScheduled,
+  getReminderSettings,
+  saveReminderSettings,
+} from '../lib/reminder';
 import {
   getActiveProgram,
   getPersonalRecords,
@@ -31,6 +37,10 @@ export const PROFILE_KEYS = {
     weight: 'وزن',
     coachSig: 'مربی هوشمند',
     coachSigSub: 'هر تمرینت رو می‌بینه، برنامه‌ی بعدیت رو باهاش می‌سازه',
+    reminderTitle: 'یادآور تمرین',
+    reminderSub: 'هر روز سر همین ساعت، روی گوشی خودت یادآوری می‌شوی — بدون سرور و بدون اینترنت.',
+    reminderOn: 'یادآور روشن باشد',
+    reminderTime: 'ساعت یادآور',
   },
   en: {
     athlete: 'Athlete',
@@ -47,6 +57,10 @@ export const PROFILE_KEYS = {
     weight: 'Weight',
     coachSig: 'AI Coach',
     coachSigSub: 'It watches every workout and builds your next plan from it',
+    reminderTitle: 'Training reminder',
+    reminderSub: 'A daily reminder on your own phone at this hour — no server, no internet.',
+    reminderOn: 'Reminder on',
+    reminderTime: 'Reminder time',
   },
 } as const;
 
@@ -138,6 +152,15 @@ export default function ProfileTab(): ReactElement {
     : null;
 
   const sessions = getSessions();
+  const [reminder, setReminder] = useState(getReminderSettings);
+
+  const updateReminder = (next: { enabled: boolean; hour: number; minute: number }) => {
+    setReminder(next);
+    saveReminderSettings(next);
+    void ensureReminderScheduled();
+  };
+
+  const reminderTimeValue = `${String(reminder.hour).padStart(2, '0')}:${String(reminder.minute).padStart(2, '0')}`;
   const digits = new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US');
   const totalVolume = Math.round(
     sessions.reduce((a, s) => a + s.sets.reduce((x, set) => x + set.reps * set.weightKg, 0), 0),
@@ -256,6 +279,33 @@ export default function ProfileTab(): ReactElement {
           </div>
         </section>
       )}
+
+      {/* daily local reminder */}
+      <section className="card">
+        <h2 className="card-title">{k.reminderTitle}</h2>
+        <p className="card-meta" style={{ margin: '0 0 12px' }}>{k.reminderSub}</p>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <input
+            type="checkbox"
+            checked={reminder.enabled}
+            onChange={(e) => updateReminder({ ...reminder, enabled: e.target.checked })}
+          />
+          {k.reminderOn}
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {k.reminderTime}
+          <input
+            type="time"
+            value={reminderTimeValue}
+            disabled={!reminder.enabled}
+            onChange={(e) => {
+              const [h, m] = e.target.value.split(':').map(Number);
+              if (Number.isNaN(h) || Number.isNaN(m)) return;
+              updateReminder({ ...reminder, hour: h, minute: m });
+            }}
+          />
+        </label>
+      </section>
 
       {/* signature */}
       <section className="card profile-signature">
