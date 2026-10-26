@@ -413,8 +413,14 @@ function isTimed(e: Exercise): boolean {
   return TIMED_KEY_RE.test(e.key);
 }
 
+/* Main-lift patterns: multi-joint movements whose primary value is load, not
+   pump. The old proxy (secondary.length >= 2) misclassified single-leg main
+   lifts like the Bulgarian split squat (only one secondary muscle listed). */
+const MAIN_LIFT_KEY_RE =
+  /squat|lunge|deadlift|hip-thrust|press|row|pull-up|chin-up|dip|bench/;
+
 function isCompound(e: Exercise): boolean {
-  return e.secondary.length >= 2;
+  return MAIN_LIFT_KEY_RE.test(e.key) || e.secondary.length >= 2;
 }
 
 interface Scheme {
@@ -444,17 +450,22 @@ function schemeFor(goal: GoalKey, e: Exercise): Scheme {
         restSeconds: compound ? 120 : 90,
       };
     case 'fatloss':
+      // Fat loss is not a reason to give every movement the same scheme: main
+      // lifts keep heavier, lower-rep work (strength retention + form), calves
+      // get the high reps they respond to, accessories keep 12-15.
+      if (e.muscle === 'calves') {
+        return { sets: 4, reps: '15-20', restSeconds: 45 };
+      }
       return {
         sets: 3,
-        reps: '12-15',
-        // circuit-style, shorter rest
-        restSeconds: compound ? 60 : 45,
+        reps: compound ? '8-12' : '12-15',
+        restSeconds: compound ? 90 : 45,
       };
     case 'general':
     default:
       return {
         sets: 3,
-        reps: '10',
+        reps: compound ? '8-12' : '10',
         restSeconds: compound ? 120 : 90,
       };
   }
