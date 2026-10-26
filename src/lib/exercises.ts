@@ -1078,7 +1078,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes', 'core'],
     ['barbell'],
     'https://musclewiki.com/exercise/barbell-squat',
-    'هالتر روی ذوزنقه، پاها کمی بازتر از عرض شانه. باسن را عقب و پایین بده تا ران موازی زمین شود، بعد با فشار پاشنه بالا بیا.',
+    'هالتر روی ذوزنقه، پاها کمی بازتر از شانه. باسن را عقب و پایین بده تا ران موازی زمین شود، بعد با فشار پاشنه بالا بیا؛ سینه بالا بماند تا کمرت امن بماند.',
     'Bar on your traps, feet just wider than shoulder width. Sit your hips back and down until thighs are parallel, then drive up through your heels.',
   ),
   ex(
@@ -1089,7 +1089,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes', 'core'],
     ['barbell'],
     '',
-    'هالتر روی جلوی شانه (حالت رک)، آرنج‌ها بالا. صاف بنشین و بالا بیا؛ چهارسر ران بیشتر از اسکوات معمولی کار می‌کند.',
+    'هالتر جلوی شانه، آرنج‌ها بالا. صاف بنشین و بالا بیا؛ اگر آرنج‌ها افتاد، وزنه هم می‌افتد — پس آرنج بالا، سینه بالا، چهارسر بیشتر.',
     'Bar on the front of your shoulders in the rack position, elbows high. Squat down upright and stand; your quads work more than in a back squat.',
   ),
   ex(
@@ -1100,7 +1100,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['dumbbell'],
     '',
-    'دمبل‌ها کنار بدن، یک قدم بلند جلو برو و تا زاویه ۹۰ درجه پایین برو؛ زانوی جلو از پنجه جلوتر نرود.',
+    'دمبل‌ها کنار بدن، قدم بلند جلو برو و تا ۹۰ درجه پایین برو؛ زانوی جلو از پنجه جلوتر نرود و تنه صاف بماند. هر قدم، یک تکرار کامل است.',
     'Dumbbells at your sides, take a long step forward and lower to 90 degrees; keep your front knee behind your toes.',
   ),
   ex(
@@ -1111,7 +1111,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['barbell'],
     '',
-    'هالتر روی دوش، قدم جلو و پایین رفتن کنترل‌شده؛ تعادل سخت‌تر از دمبل است پس وزنه را محتاطانه انتخاب کن.',
+    'هالتر روی دوش، قدم جلو و پایین رفتن آرام؛ تعادل سخت‌تر از دمبل است، پس وزنه را محتاطانه انتخاب کن. هر قدم را مثل یک تمرین جداگانه تمیز بزن.',
     'Bar on your shoulders, step forward and lower in control; balance is harder than with dumbbells, so choose the weight carefully.',
   ),
   ex(
@@ -1122,7 +1122,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['machine'],
     '',
-    'کمر کاملاً به تکیه‌گاه چسبیده، سکو را تا زاویه ۹۰ درجه زانو پایین بیاور و بالا ببر؛ زانوها را قفل نکن.',
+    'کمر کاملاً به تکیه‌گاه چسبیده باشد؛ سکو را تا ۹۰ درجه پایین بیاور و بالا ببر، ولی زانوها را قفل نکن. اگر کمر از تکیه‌گاه جدا شد، دامنه را کمتر کن.',
     'Back fully against the pad, lower the platform to a 90-degree knee bend and press up; do not lock your knees.',
   ),
   ex(
@@ -1133,7 +1133,7 @@ export const EXERCISES: Exercise[] = [
     [],
     ['machine'],
     '',
-    'روی دستگاه بنشین و ساق را بالا بیاور تا پا صاف شود؛ در بالا یک ثانیه چهارسر را منقبض کن.',
+    'روی دستگاه بنشین و ساق را بالا بیاور تا پا صاف شود؛ در بالا یک ثانیه چهارسر را سفت کن. پایین را آرام برگرد تا فشار تا آخر بماند.',
     'Sit on the machine and raise your shins until your legs are straight; squeeze your quads for a second at the top.',
   ),
   ex(
@@ -1144,7 +1144,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['machine'],
     '',
-    'روی شکم دراز بکش و پاشنه را به سمت باسن بکش؛ لگن را روی بالشتک نگه دار تا کمر قوس نگیرد.',
+    'روی شکم دراز بکش و پاشنه را به سمت باسن بکش؛ لگن روی بالشتک بماند تا کمر قوس نگیرد. در بالا یک مکث کوتاه، پشت پا را حس کن.',
     'Lie face down and curl your heels toward your glutes; keep your hips on the pad so your back does not arch.',
   ),
   ex(
@@ -1155,7 +1155,7 @@ export const EXERCISES: Exercise[] = [
     [],
     ['machine'],
     '',
-    'بنشین و بالشتک را پشت ساق تنظیم کن، پاشنه را به سمت باسن بکش؛ کشش ابتدای حرکت عمیق‌تر از حالت خوابیده است.',
+    'بنشین، بالشتک را پشت ساق تنظیم کن و پاشنه را به سمت باسن بکش؛ کشش ابتدای حرکت عمیق‌تر از حالت خوابیده است. آرام و کنترل‌شده بزن.',
     'Sit with the pad behind your shins and curl your heels toward your glutes; the stretch is deeper than the lying version.',
   ),
   ex(
@@ -1166,7 +1166,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['machine'],
     '',
-    'شانه‌ها زیر بالشتک، پاها جلوتر از بدن روی سکو؛ پایین برو و بالا بیا. فشار روی چهارسر متمرکز است.',
+    'شانه‌ها زیر بالشتک، پاها کمی جلوتر روی سکو؛ پایین برو و بالا بیا. چهارسر هدف است — پایین را آرام برو و بالا را با قدرت.',
     'Shoulders under the pads, feet forward on the platform; squat down and up. The load concentrates on your quads.',
   ),
   ex(
@@ -1177,7 +1177,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['dumbbell', 'bench'],
     '',
-    'پای عقب روی نیمکت، با پای جلو پایین برو؛ تعادل و قدرت تک‌پا را هم‌زمان می‌سازد. حرکت سختی است، صبور باش.',
+    'پای عقب روی نیمکت، با پای جلو پایین برو. حرکت سختی است — صبور باش و به جای وزنه‌ی سنگین، اول تعادل و عمق را درست کن؛ سوزش چهارسر نشانه‌ی درست زدن است.',
     'Rear foot on the bench, lower on your front leg; builds single-leg balance and strength together. It is tough — be patient.',
   ),
   ex(
@@ -1188,7 +1188,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes', 'core'],
     ['dumbbell', 'kettlebell'],
     '',
-    'دمبل یا کتل‌بل را جلوی سینه بگیر و عمیق بنشین؛ وزنه جلو به حفظ فرم صحیح کمک می‌کند.',
+    'دمبل یا کتل‌بل را جلوی سینه بگیر و عمیق بنشین؛ وزنه‌ی جلو به تو کمک می‌کند صاف بمانی. این بهترین اسکوات برای یاد گرفتن عمق است.',
     'Hold a dumbbell or kettlebell at your chest and squat deep; the front weight helps you keep good form.',
   ),
   ex(
@@ -1199,7 +1199,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes', 'back'],
     ['dumbbell'],
     '',
-    'دمبل‌ها جلوی ران، باسن را عقب بده و تا وسط ساق پایین برو؛ کشش همسترینگ را حس کن و با باسن بالا بیا.',
+    'دمبل‌ها جلوی ران، باسن را عقب بده و تا وسط ساق پایین برو؛ کشش همسترینگ را حس کن و با جلو دادن باسن بالا بیا. کمر صاف، شانه‌ها عقب.',
     'Dumbbells in front of your thighs, push your hips back and lower to mid-shin; feel the hamstring stretch and drive your hips forward.',
   ),
   ex(
@@ -1210,7 +1210,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['dumbbell', 'bench'],
     '',
-    'با یک پا روی نیمکت یا باکس برو بالا و پای دیگر را هم بیاور؛ با پای جلو فشار بده نه با پرش پای عقب.',
+    'با یک پا روی باکس برو بالا و پای دیگر را هم بیاور؛ فشار باید از پای جلو باشد، نه با پرش پای عقب. بالا که رسیدی، یک لحظه بایست و تعادلت را حس کن.',
     'Step up onto a bench or box with one leg and bring the other up; push through the front leg, do not jump off the back leg.',
   ),
   ex(
@@ -1221,7 +1221,7 @@ export const EXERCISES: Exercise[] = [
     [],
     ['bodyweight'],
     '',
-    'به چیزی تکیه بده، زانوها را جلو بده و بدن را عقب خم کن؛ چهارسر به‌صورت ایزوله و عمیق درگیر می‌شود.',
+    'به چیزی تکیه بده، زانوها را جلو بده و بدن را عقب خم کن؛ چهارسر عمیق و ایزوله کار می‌کند. دامنه را کم شروع کن و هر هفته کمی بیشترش کن.',
     'Hold onto something, push your knees forward and lean your torso back; your quads work in deep isolation.',
   ),
   ex(
@@ -1232,7 +1232,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['bodyweight'],
     '',
-    'دست‌ها جلو، بنشین و بالا بیا؛ پایه همه حرکات پا و بهترین گزینه برای گرم کردن.',
+    'دست‌ها جلو، بنشین و بالا بیا. این پایه‌ی همه‌ی حرکات پاست — همین‌جا فرم را تمیز کن تا وقتی وزنه آمد، بدنت آماده باشد.',
     'Arms forward, squat down and stand; the foundation of all leg moves and the best warm-up option.',
   ),
   ex(
@@ -1243,7 +1243,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['bodyweight'],
     '',
-    'به دیوار تکیه بده و تا زاویه ۹۰ درجه زانو پایین برو و نگه دار؛ سوزش چهارسر تضمینی است.',
+    'به دیوار تکیه بده و تا ۹۰ درجه پایین برو و نگه دار؛ سوزش چهارسر یعنی داری درست نگهش می‌داری. هر ثانیه‌ی اضافه، یک پیروزی کوچک است.',
     'Lean against a wall, slide down to a 90-degree knee bend and hold; guaranteed quad burn.',
   ),
   ex(
@@ -1254,7 +1254,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['dumbbell'],
     '',
-    'قدم‌به‌قدم جلو برو و در هر قدم لانج بزن؛ هم قدرت و هم استقامت پا را می‌سازد.',
+    'قدم‌به‌قدم جلو برو و در هر قدم لانج بزن؛ هم قدرت و هم استقامت پا ساخته می‌شود. قدم‌ها بلند و محکم، تنه صاف — تا آخر مسیر همین‌طور بمان.',
     'Step forward continuously, lunging with each step; builds leg strength and endurance together.',
   ),
   ex(
@@ -1265,7 +1265,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes', 'core'],
     ['bodyweight'],
     '',
-    'روی یک پا بنشین و پای دیگر را جلو نگه دار؛ پیشرفته‌ترین اسکوات بدنی است. از نیمکت کم‌ارتفاع شروع کن.',
+    'روی یک پا بنشین و پای دیگر را جلو نگه دار؛ پیشرفته‌ترین اسکوات بدنی است. از نیمکت کم‌ارتفاع شروع کن و هر هفته یک سانت پایین‌تر برو — عجله دشمن این حرکت است.',
     'Squat on one leg with the other extended forward; the most advanced bodyweight squat. Start from a low bench.',
   ),
   ex(
@@ -1276,7 +1276,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes', 'back'],
     ['dumbbell'],
     '',
-    'روی یک پا بایست و با خم شدن از لگن دمبل را پایین بیاور؛ تعادل و همسترینگ را هم‌زمان تمرین می‌دهد.',
+    'روی یک پا بایست و با خم شدن از لگن دمبل را پایین بیاور؛ تعادل و همسترینگ با هم تمرین می‌بینند. اگر تعادلت رفت، به دیوار نزدیک‌تر بایست — اشکالی ندارد.',
     'Stand on one leg and hinge at the hips to lower the dumbbell; trains balance and hamstrings together.',
   ),
   ex(
@@ -1287,7 +1287,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['bodyweight'],
     '',
-    'بنشین و با قدرت بپر بالا، آرام فرود بیا و بلافاصله تکرار بعدی؛ قدرت انفجاری پا را می‌سازد.',
+    'بنشین و با قدرت بپر بالا، آرام و نرم فرود بیا و بلافاصله تکرار بعدی. فرود نرم یعنی زانوهایت سالم می‌مانند؛ قدرت انفجاری همین‌جا ساخته می‌شود.',
     'Squat down, jump up explosively, land softly and repeat at once; builds explosive leg power.',
   ),
   ex(
@@ -1298,7 +1298,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['machine'],
     '',
-    'هالتر روی ریل ثابت است؛ پاها را کمی جلوتر بگذار و بنشین. برای تمرین با وزنه سنگین بدون نیاز به یار تمرینی امن است.',
+    'هالتر روی ریل است؛ پاها را کمی جلوتر بگذار و بنشین. ریل به تو امنیت می‌دهد تا با خیال راحت‌تر سنگین‌تر بزنی — ولی فرم را فدای وزنه نکن.',
     'The bar runs on a fixed rail; place your feet slightly forward and squat. Safe for heavy training without a spotter.',
   ),
   ex(
@@ -1309,7 +1309,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['barbell', 'bench'],
     '',
-    'پشتت یک باکس یا نیمکت است؛ بنشین تا باسن به آن برسد، یک لحظه مکث کن و بالا بیا. فرم نشستن را اصلاح می‌کند.',
+    'پشتت باکس است؛ بنشین تا باسن به آن برسد، یک لحظه مکث کن و با فشار پا بالا بیا. این مکث به تو یاد می‌دهد که از باسن شروع کنی، نه از زانو.',
     'A box or bench is behind you; sit until your glutes touch it, pause a moment, then stand. Fixes your squat pattern.',
   ),
   ex(
@@ -1320,7 +1320,7 @@ export const EXERCISES: Exercise[] = [
     ['glutes'],
     ['bodyweight'],
     '',
-    'یک قدم بزرگ به پهلو بردار و روی همان پا بنشین؛ عضلات داخلی ران را درگیر می‌کند که معمولاً نادیده گرفته می‌شوند.',
+    'قدم بزرگ به پهلو بردار و روی همان پا بنشین؛ داخل ران را حس کن — عضله‌ای که معمولاً نادیده گرفته می‌شود. پای دیگر صاف بماند.',
     'Take a big step to the side and squat on that leg; hits the inner thighs that usually get ignored.',
   ),
 
@@ -1333,7 +1333,7 @@ export const EXERCISES: Exercise[] = [
     ['legs'],
     ['barbell', 'bench'],
     '',
-    'شانه‌ها را به نیمکت تکیه بده، هالتر روی لگن. باسن را بالا ببر تا بدن صاف شود و در بالا دو ثانیه فشار بده.',
+    'شانه‌ها روی نیمکت، هالتر روی لگن. باسن را بالا ببر تا بدن یک خط صاف شود و دو ثانیه در بالا فشارش بده؛ این همان لحظه‌ای است که باسن ساخته می‌شود.',
     'Rest your shoulders on a bench, bar across your hips. Drive your hips up until your body is straight and squeeze for two seconds.',
   ),
   ex(
@@ -1344,7 +1344,7 @@ export const EXERCISES: Exercise[] = [
     ['core'],
     ['bodyweight'],
     '',
-    'به پشت دراز بکش، زانوها خم و پاها روی زمین؛ باسن را بالا ببر و در بالا فشار بده. شروع عالی برای فعال‌سازی باسن.',
+    'به پشت دراز بکش، پاها روی زمین؛ باسن را بالا ببر و در بالا دو ثانیه فشارش بده. بهترین شروع برای اینکه باسن یاد بگیرد در تمرین‌های بزرگ هم کار کند.',
     'Lie on your back, knees bent, feet flat; lift your hips and squeeze at the top. A great glute activation starter.',
   ),
   ex(
@@ -1355,7 +1355,7 @@ export const EXERCISES: Exercise[] = [
     [],
     ['cable'],
     '',
-    'مچ‌بند کابل را به مچ پا وصل کن و پا را مستقیم عقب ببر؛ در انتها باسن را منقبض کن و آرام برگرد.',
+    'پا را مستقیم عقب ببر و در انتها یک لحظه باسن را سفت کن، بعد آرام برگرد. اگر کمرت قوس گرفت، یعنی داری با کمر جبران می‌کنی — دامنه را کمتر کن.',
     'Attach the cable cuff to your ankle and kick your leg straight back; squeeze your glute at the end and return slowly.',
   ),
   ex(
@@ -1366,7 +1366,7 @@ export const EXERCISES: Exercise[] = [
     [],
     ['machine'],
     '',
-    'روی دستگاه بنشین و زانوها را از هم باز کن؛ بخش بیرونی باسن هدف است. حرکت را آرام و کنترل‌شده انجام بده.',
+    'روی دستگاه بنشین و زانوها را آرام از هم باز کن؛ در انتها یک مکث کوتاه بده. بیرون باسن هدف است — تند و ضربه‌ای نزن.',
     'Sit on the machine and push your knees apart; targets the outer glutes. Move slowly and controlled.',
   ),
   ex(
@@ -1377,7 +1377,7 @@ export const EXERCISES: Exercise[] = [
     [],
     ['bodyweight'],
     '',
-    'به پهلو دراز بکش، زانوها خم؛ مثل باز شدن صدف زانوی بالایی را بالا بیاور بدون اینکه لگن بچرخد.',
+    'به پهلو دراز بکش و مثل باز شدن صدف زانوی بالایی را بالا بیاور، ولی لگن اصلاً نچرخد. کوچک و تمیز بزن؛ همین حرکت کوچک، باسن را برای حرکات بزرگ بیدار می‌کند.',
     'Lie on your side with knees bent; open your top knee like a clamshell without rotating your hips.',
   ),
   ex(
@@ -1388,7 +1388,7 @@ export const EXERCISES: Exercise[] = [
     ['core'],
     ['bodyweight'],
     '',
-    'چهار دست و پا، زانوی خم را به پهلو بالا بیاور؛ باسن بیرونی و میان‌تنه هم‌زمان کار می‌کنند.',
+    'چهار دست و پا، زانوی خم را به پهلو بالا بیاور و یک لحظه نگه دار. بیرون باسن باید بسوزد و کمرت تکان نخورد — این یعنی میان‌تنه‌ات هم دارد کار می‌کند.',
     'On all fours, lift your bent knee out to the side; outer glutes and core work together.',
   ),
   ex(
@@ -1399,7 +1399,7 @@ export const EXERCISES: Exercise[] = [
     ['back', 'legs'],
     ['barbell'],
     '',
-    'هالتر روی دوش، با لگن خم شو و تنه را جلو بیاور؛ مثل تعظیم کردن. کمر را صاف نگه دار و وزنه سبک شروع کن.',
+    'هالتر روی دوش، با لگن خم شو و مثل تعظیم تنه را جلو بیاور؛ کمر صاف، وزنه سبک. کشش پشت پا را حس کن، نه فشار کمر را — اگر کمر حس شد، همان‌جا نگه دار و برگرد.',
     'Bar on your shoulders, hinge at the hips and bow your torso forward like a greeting. Keep your back flat and start light.',
   ),
   ex(
@@ -1410,7 +1410,7 @@ export const EXERCISES: Exercise[] = [
     ['legs'],
     ['dumbbell'],
     '',
-    'به‌جای جلو رفتن، یک قدم عقب برو و پایین برو؛ فشار روی زانو کمتر و روی باسن بیشتر از لانج معمولی است.',
+    'به‌جای جلو رفتن، یک قدم عقب برو و کنترل‌شده پایین برو. این لانج با زانو مهربان‌تر است و باسن را بیشتر کار می‌دهد؛ سینه بالا، قدم محکم.',
     'Instead of stepping forward, step back and lower; easier on the knees and harder on the glutes than a regular lunge.',
   ),
   ex(
@@ -1421,7 +1421,7 @@ export const EXERCISES: Exercise[] = [
     ['back', 'legs'],
     ['cable'],
     '',
-    'پشت به کابل پایینی بایست، طناب را از بین پاها بگیر و با جلو دادن باسن بایست؛ الگوی ددلیفت را بدون فشار کمر تمرین می‌دهد.',
+    'پشت به کابل بایست و طناب را از بین پاها بگیر؛ با جلو دادن باسن بایست، نه با کشیدن دست‌ها. این حرکت الفبای ددلیفت است — همین‌جا فرم را یاد بگیر.',
     'Face away from the low cable, grab the rope between your legs and stand by driving your hips forward; trains the deadlift pattern without back strain.',
   ),
   ex(
@@ -1432,7 +1432,7 @@ export const EXERCISES: Exercise[] = [
     ['core'],
     ['bodyweight', 'bench'],
     '',
-    'مثل هیپ تراست ولی با یک پا؛ عدم تقارن دو سمت باسن را مشخص و اصلاح می‌کند.',
+    'مثل هیپ تراست ولی با یک پا؛ اگر یک سمت ضعیف‌تر بود، همین‌جا معلوم می‌شود. سمت ضعیف را اول بزن و با همان وزنه و تکرار، سمت قوی را هم بزن.',
     'Like a hip thrust but on one leg; reveals and fixes glute imbalances between sides.',
   ),
   ex(
@@ -1443,7 +1443,7 @@ export const EXERCISES: Exercise[] = [
     [],
     ['band'],
     '',
-    'کش را دور زانوها بنداز، کمی بنشین و زانوها را از هم باز کن؛ سوزش بیرون باسن را حس می‌کنی.',
+    'کش را دور زانوها بنداز و کمی بنشین؛ زانوها را آرام از هم باز کن و سوزش بیرون باسن را حس کن. عجله نکن — همین سوزش یعنی داری درست می‌زنی.',
     'Loop a band around your knees, squat slightly and push your knees apart; you will feel the outer-glute burn.',
   ),
 
