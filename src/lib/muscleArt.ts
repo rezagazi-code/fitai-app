@@ -2,8 +2,8 @@
  * اپ هوشمند بدنسازی — raster muscle illustrations.
  *
  * Original muscle-only anatomical images (start + end panels, involved
- * muscles glowing cyan), generated for the app — chest, shoulders and
- * back families. When an exercise has a raster image, ExerciseArt renders
+ * muscles glowing cyan), generated for the app — chest, shoulders,
+ * back and legs families. When an exercise has a raster image, ExerciseArt renders
  * it instead of the parametric neon vector; every other exercise keeps
  * the vector fallback until its own family is produced.
  * Back notes: dumbbell-shrug v2 (regen) is mapped — end panel shows a
@@ -74,6 +74,30 @@ const MUSCLE_ART: Record<string, string> = {
   'band-row': 'band-row',
   'stiff-leg-deadlift': 'stiff-leg-deadlift',
   'dumbbell-shrug': 'dumbbell-shrug',
+  // Legs (23 of 23)
+  'barbell-squat': 'barbell-back-squat',
+  'front-squat': 'front-squat',
+  'dumbbell-lunge': 'dumbbell-lunge',
+  'barbell-lunge': 'barbell-lunge',
+  'leg-press': 'leg-press',
+  'leg-extension': 'leg-extension',
+  'lying-leg-curl': 'lying-leg-curl',
+  'seated-leg-curl': 'seated-leg-curl',
+  'hack-squat': 'hack-squat',
+  'bulgarian-split-squat': 'bulgarian-split-squat',
+  'goblet-squat': 'goblet-squat',
+  'db-romanian-deadlift': 'db-romanian-deadlift',
+  'dumbbell-step-up': 'dumbbell-step-up',
+  'sissy-squat': 'sissy-squat',
+  'bodyweight-squat': 'bodyweight-squat',
+  'wall-sit': 'wall-sit',
+  'walking-lunge': 'walking-lunge',
+  'pistol-squat': 'pistol-squat',
+  'single-leg-deadlift': 'single-leg-deadlift',
+  'jump-squat': 'jump-squat',
+  'smith-squat': 'smith-squat',
+  'box-squat': 'box-squat',
+  'lateral-lunge': 'lateral-lunge',
 };
 
 /** Public path of the raster muscle image for an exercise key, or null. */
