@@ -615,7 +615,11 @@
   z-index: 110;
   overflow-y: auto;
   background: var(--bg-base);
-  padding: var(--space-4);
+  /* Edge-to-edge Android draws the WebView under the translucent status
+     bar: without the top inset the hero card — and its back button +
+     archetype chip — crowd the clock/signal/battery icons. Desktop
+     browsers report a 0px inset, so this is a no-op there. */
+  padding: calc(var(--space-4) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-4);
 }
 
 /* ---------- detail: targets + records ---------- */
