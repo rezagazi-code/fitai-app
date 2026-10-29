@@ -3,7 +3,7 @@
  *
  * Original muscle-only anatomical images (start + end panels, involved
  * muscles glowing cyan), generated for the app — chest, shoulders,
- * back, legs and core families. When an exercise has a raster image, ExerciseArt renders
+ * back, legs, core and biceps families. When an exercise has a raster image, ExerciseArt renders
  * it instead of the parametric neon vector; every other exercise keeps
  * the vector fallback until its own family is produced.
  * Back notes: dumbbell-shrug v2 (regen) is mapped — end panel shows a
@@ -116,6 +116,20 @@ const MUSCLE_ART: Record<string, string> = {
   'superman': 'superman',
   'bird-dog': 'bird-dog',
   'reverse-plank': 'reverse-plank',
+  // Biceps (13 of 13)
+  'barbell-curl': 'barbell-curl',
+  'dumbbell-curl': 'dumbbell-curl',
+  'alternating-curl': 'alternating-curl',
+  'hammer-curl': 'hammer-curl',
+  'cable-curl': 'cable-curl',
+  'preacher-curl': 'preacher-curl',
+  'incline-dumbbell-curl': 'incline-dumbbell-curl',
+  'concentration-curl': 'concentration-curl',
+  'reverse-curl': 'reverse-curl',
+  'spider-curl': 'spider-curl',
+  'machine-curl': 'machine-curl',
+  'band-curl': 'band-curl',
+  'single-arm-cable-curl': 'single-arm-cable-curl',
 };
 
 /** Public path of the raster muscle image for an exercise key, or null. */
