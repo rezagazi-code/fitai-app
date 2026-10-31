@@ -3,7 +3,7 @@
  *
  * Original muscle-only anatomical images (start + end panels, involved
  * muscles glowing cyan), generated for the app — chest, shoulders,
- * back, legs, core, biceps, triceps, calves and forearms families. When an exercise has a raster image, ExerciseArt renders
+ * back, legs, core, biceps, triceps, calves, forearms and full-body families. When an exercise has a raster image, ExerciseArt renders
  * it instead of the parametric neon vector; every other exercise keeps
  * the vector fallback until its own family is produced.
  * Back notes: dumbbell-shrug v2 (regen) is mapped — end panel shows a
@@ -159,6 +159,15 @@ const MUSCLE_ART: Record<string, string> = {
   'dead-hang': 'dead-hang',
   'plate-pinch': 'plate-pinch',
   'wrist-roller': 'wrist-roller',
+  // Full body (8 of 8)
+  'burpee': 'burpee',
+  'clean-and-press': 'clean-and-press',
+  'dumbbell-thruster': 'dumbbell-thruster',
+  'kettlebell-swing': 'kettlebell-swing',
+  'dumbbell-snatch': 'dumbbell-snatch',
+  'man-maker': 'man-maker',
+  'turkish-get-up': 'turkish-get-up',
+  'jumping-jack': 'jumping-jack',
 };
 
 /** Public path of the raster muscle image for an exercise key, or null. */
