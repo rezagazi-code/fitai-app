@@ -215,6 +215,8 @@ export interface PlanExercise {
   restSeconds: number;
   noteFa?: string;
   noteEn?: string;
+  /** Progressed target load (next-block programs only). */
+  targetWeightKg?: number;
 }
 
 export interface PlanDay {

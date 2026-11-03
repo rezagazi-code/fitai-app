@@ -167,6 +167,8 @@ export interface PlanDayExercise {
   sets: number;
   reps: string; // e.g. "8-10"
   restSeconds: number;
+  /** Progressed target load from a next-block program (if any). */
+  targetWeightKg?: number;
 }
 
 export interface PlanDay {
@@ -240,12 +242,22 @@ function isBodyweightOnly(exerciseKey: string): boolean {
 }
 
 function initialSets(pe: PlanDayExercise): SetDraft[] {
-  // Single source of truth with the detail view: the session pre-fills
-  // from the SAME suggested next load the detail view shows
-  // (getExerciseHistory), so what the athlete saw is what they lift.
-  // The stored program itself is never mutated — only this session's
-  // editable draft rows are pre-filled.
+  // A progressed next-block program carries its own explicit target:
+  // that target IS the program the athlete was handed, so it wins
+  // over the history suggestion (which would usually agree with it).
+  // Otherwise, single source of truth with the detail view: the
+  // session pre-fills from the SAME suggested next load the detail
+  // view shows (getExerciseHistory), so what the athlete saw is what
+  // they lift. The stored program itself is never mutated — only this
+  // session's editable draft rows are pre-filled.
   const { high } = parseRepRange(pe.reps);
+  if (pe.targetWeightKg != null) {
+    return Array.from({ length: pe.sets }, () => ({
+      reps: high,
+      weightKg: pe.targetWeightKg as number,
+      done: false,
+    }));
+  }
   const history = getExerciseHistory(pe.exerciseKey, pe.reps);
   const suggested = history.suggested;
   const last = suggested ? null : getLastPerformance(pe.exerciseKey);
@@ -750,8 +762,11 @@ export default function WorkoutSession({
     <div className="ws-overlay" role="dialog" aria-modal="true" aria-label={L.sessionTitle}>
       {/* header */}
       <header className="ws-header">
-        <button type="button" className="ws-icon-btn" onClick={() => setConfirmCancel(true)} aria-label={L.cancel}>
-          ✕
+        {/* Labelled exit (not an icon alone): the previous ✕-only button
+            was easy to miss, so users felt trapped in the overlay even
+            though save-and-close and cancel both existed. */}
+        <button type="button" className="ws-icon-btn ws-cancel-btn" onClick={() => setConfirmCancel(true)} aria-label={L.cancel}>
+          <span aria-hidden="true">✕</span> {L.cancel}
         </button>
         <div className="ws-header-center">
           <div className="ws-day-name">{lang === 'fa' ? planDay.nameFa : planDay.nameEn}</div>

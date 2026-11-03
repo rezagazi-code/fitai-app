@@ -61,6 +61,14 @@
   background: var(--surface-soft);
 }
 
+/* Labelled session exit: wide enough for "✕ انصراف" / "✕ Cancel". */
+.ws-cancel-btn {
+  width: auto;
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+  gap: 0.25rem;
+}
+
 /* ---------- progress ---------- */
 
 .ws-progress-wrap {

@@ -13,6 +13,7 @@ import type { ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import CoachBanner from '../components/CoachBanner';
+import NextBlockOffer from '../components/NextBlockOffer';
 import ExerciseDetail, { type DetailTarget } from '../components/ExerciseDetail';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
 import { getActiveProgram, getAthleteProfile, getSessions, getVolumeByDay } from '../lib/store';
@@ -77,6 +78,22 @@ function volumeThisWeekKg(): number {
   return getVolumeByDay(7).reduce((sum, d) => sum + d.volumeKg, 0);
 }
 
+/** Done sets finished in the current Sat–Fri week (any day kind). */
+function doneSetsThisWeek(sessions: ReturnType<typeof getSessions>, weekStart: Date | null): number {
+  if (!weekStart) return 0;
+  const start = new Date(weekStart);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start.getTime() + 7 * 86400_000);
+  let n = 0;
+  for (const s of sessions) {
+    if (!s.finishedAt) continue;
+    const t = new Date(s.startedAt).getTime();
+    if (t < start.getTime() || t >= end.getTime()) continue;
+    n += s.sets.filter((x) => x.done !== false).length;
+  }
+  return n;
+}
+
 export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildProgram }: HomeTabProps): ReactElement {
   const { t, lang } = useLang();
   const program = getActiveProgram();
@@ -127,6 +144,13 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
 
   const weekSessions = sched ? sched.sessionsDoneThisWeek : 0;
   const weekVolume = volumeThisWeekKg();
+  // Bodyweight work has 0 kg volume, so a kg-only stat hid real work
+  // ("0 kg" after a full bodyweight session). Show done sets next to
+  // the kilograms so bodyweight training is visible, not erased.
+  const weekSets = doneSetsThisWeek(sessions, sched ? sched.weekDays[0].date : null);
+  // Re-render after a next-block accept (the active program changes
+  // under HomeTab, which reads the store on every render).
+  const [, setHomeSeq] = useState(0);
   const remaining = sched ? Math.max(0, sched.sessionsPlannedThisWeek - sched.sessionsDoneThisWeek) : 0;
 
   // Tap a today-card row → exercise detail (art, targets, records).
@@ -146,6 +170,10 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
         <CoachBanner coachMessage={coachMsg} hero />
       </div>
 
+      {program && (
+        <NextBlockOffer program={program} onAccepted={() => setHomeSeq((s) => s + 1)} />
+      )}
+
       <div className="home-stats">
         <div className="stat-card">
           <span className="stat-icon" aria-hidden="true"><SessionsIcon /></span>
@@ -159,6 +187,9 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
           <div className="stat-body">
             <div className="stat-value stat-value--grad">
               {fmt(weekVolume)} <span className="unit">{t('w.kg')}</span>
+              {weekSets > 0 && (
+                <span className="unit"> · {fmt(weekSets)} {t('w.sets')}</span>
+              )}
             </div>
             <div className="stat-label">{t('home.totalVolume')}</div>
           </div>
@@ -220,6 +251,11 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
                         <span className="chip set-count">
                           {targetLabel(e.sets, e.reps)}
                         </span>
+                        {e.targetWeightKg != null && (
+                          <span className="chip chip--active">
+                            {t('sched.targetWeight')}: {fmt(e.targetWeightKg)} {t('w.kg')}
+                          </span>
+                        )}
                         {ex && growthPriorities.includes(ex.muscle) && (
                           <span className="chip chip--active">{t('priority.growthBadge')}</span>
                         )}

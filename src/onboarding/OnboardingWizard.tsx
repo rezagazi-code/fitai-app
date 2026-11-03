@@ -15,6 +15,7 @@
  */
 import { useEffect, useState, type ReactElement } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
+import RestNote from '../components/RestNote';
 import { saveProgram, setActiveProgram, setOnboarded } from '../lib/store';
 import {
   generateProgram,
@@ -363,6 +364,10 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   const [shake, setShake] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Rest explanation interstitial: shown BEFORE the program is
+  // generated/saved (never after delivery). The finish button first
+  // opens this note; only "دریافت برنامه" inside it runs handleFinish.
+  const [restNoteShown, setRestNoteShown] = useState(false);
 
   // Rebuild path (v0.1.19 "fresh program" button) re-opens the wizard: prefill
   // every step from the saved profile so a rebuild keeps the athlete's data
@@ -1032,6 +1037,44 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   const quickTotal = 3;
   const progressTotal = mode === 'quick' ? quickTotal : total;
 
+  // Rest explanation interstitial: replaces the wizard sheet until the
+  // athlete presses "دریافت برنامه". No program is generated or saved
+  // while this is on screen — the explanation is read BEFORE delivery.
+  if (restNoteShown) {
+    return (
+      <div
+        className={`onbw-overlay fitai-root ${lang === 'fa' ? 'onbw-rtl' : 'onbw-ltr'}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('app.name')}
+      >
+        <div className="onbw-sheet">
+          <div className="onbw-body">
+            <RestNote />
+            <button
+              type="button"
+              className="btn-primary btn-shine"
+              style={{ width: '100%', marginTop: 16 }}
+              onClick={handleFinish}
+              disabled={busy}
+            >
+              {busy ? lt('onbw.generating') : lt('onbw.finish')}
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              style={{ width: '100%', marginTop: 8 }}
+              onClick={() => setRestNoteShown(false)}
+              disabled={busy}
+            >
+              {t('common.back')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`onbw-overlay fitai-root ${lang === 'fa' ? 'onbw-rtl' : 'onbw-ltr'}`}
@@ -1073,7 +1116,16 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
           <button
             type="button"
             className="btn-primary btn-shine"
-            onClick={step === 'review' || (mode === 'quick' && step === 'days') ? handleFinish : handleNext}
+            onClick={() => {
+              const isFinishStep =
+                step === 'review' || (mode === 'quick' && step === 'days');
+              if (isFinishStep && !restNoteShown) {
+                setRestNoteShown(true);
+                return;
+              }
+              if (isFinishStep) handleFinish();
+              else handleNext();
+            }}
             disabled={busy}
           >
             {busy && <span className="onbw-spinner" aria-hidden="true" />}

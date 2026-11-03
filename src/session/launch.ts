@@ -40,6 +40,7 @@ export function programDayToPlanDay(
       sets: e.sets,
       reps: e.reps,
       restSeconds: e.restSeconds,
+      ...(e.targetWeightKg != null ? { targetWeightKg: e.targetWeightKg } : {}),
     })),
   };
 }

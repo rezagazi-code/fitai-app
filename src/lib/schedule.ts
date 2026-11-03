@@ -174,7 +174,12 @@ export function getSchedule(
 
   const today = weekDays[todayIdx];
   const planned = weekDays.filter((d) => d.kind === 'train').length;
-  const doneCount = weekDays.filter((d) => d.kind === 'train' && d.done).length;
+  // Credit by calendar date, not by plan label: a finished session on
+  // a rest day (make-up / early start) IS this week's training, and a
+  // session finished on a train day counts even if it was the next
+  // session started early. Counting only train-labelled days showed
+  // "0 sessions" right after a real workout — the reported bug.
+  const doneCount = weekDays.filter((d) => d.done).length;
 
   // Next training session: later this week, else the first of next week.
   let nextTrain: NextTrain | null = null;

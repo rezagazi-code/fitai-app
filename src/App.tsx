@@ -9,14 +9,39 @@ import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
 import OnboardingWizard from './onboarding/OnboardingWizard';
 import WorkoutSession, { type PlanDay } from './session/WorkoutSession';
+import LoginGate, { type LoginProfile } from './components/LoginGate';
 import { getActiveProgram } from './lib/store';
 import { nextPlanDay, todayPlanDay } from './session/launch';
 import './styles/shell.css';
+
+function readLoginEntered(): boolean {
+  try {
+    return localStorage.getItem('fitai.loginEntered') === '1';
+  } catch {
+    return false;
+  }
+}
 
 function Shell() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [sessionDay, setSessionDay] = useState<PlanDay | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  // TESTING login gate: shown once, until the login button is pressed.
+  // No validation, no SMS, no backend — the final login (name + family
+  // + phone required) is a later phase. The gate stores whatever was
+  // typed locally, if anything, and nothing else.
+  const [loginEntered, setLoginEntered] = useState<boolean>(readLoginEntered);
+  const handleLoginEnter = (profile: LoginProfile): void => {
+    try {
+      if (profile.firstName || profile.lastName || profile.phone) {
+        localStorage.setItem('fitai.loginProfile', JSON.stringify(profile));
+      }
+      localStorage.setItem('fitai.loginEntered', '1');
+    } catch {
+      /* storage unavailable — still enter for this session */
+    }
+    setLoginEntered(true);
+  };
   /** Bumped after onboarding/session so tabs re-read the store. */
   const [seq, setSeq] = useState(0);
   const refresh = useCallback(() => setSeq((s) => s + 1), []);
@@ -43,6 +68,16 @@ function Shell() {
     const day = nextPlanDay(getActiveProgram());
     if (day) setSessionDay(day);
   }, []);
+
+  if (!loginEntered) {
+    return (
+      <div className="fitai-root shell">
+        <main className="shell-content">
+          <LoginGate onEnter={handleLoginEnter} />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="fitai-root shell">

@@ -117,6 +117,7 @@ const fa: Dict = {
   'sched.blockPlan': 'بلوک تمرینی',
   'sched.deload': 'دیلود',
   'sched.deloadNote': 'این هفته دیلود است — ست‌ها کمتر می‌شود تا برای بلوک بعد آماده شوی، ولی تمرین متوقف نمی‌شود',
+  'sched.targetWeight': 'وزنه هدف',
   'sched.restSeconds': 'ثانیه استراحت',
   // Wave 2: AI coach + log tab
   "b.deload": "چهار هفته‌ست سنگین می‌زنی. این هفته سبک‌تر بزن؛ دیلود تنبلی نیست، بخشی از برنامه‌ست.",
@@ -451,6 +452,7 @@ const en: Dict = {
   'sched.blockPlan': 'Training block',
   'sched.deload': 'Deload',
   'sched.deloadNote': 'This is a deload week — fewer sets so you recover for the next block, not a break from training',
+  'sched.targetWeight': 'Target weight',
   'sched.restSeconds': 's rest',
   // Wave 2: AI coach + log tab
   "b.deload": "You've been pushing hard for four weeks. Go lighter this week; a deload isn't laziness, it's part of the plan.",

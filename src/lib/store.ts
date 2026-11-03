@@ -10,6 +10,9 @@ export interface ProgramExercise {
   sets: number;
   reps: string; // e.g. "8-10" — kept as string for ranges
   restSeconds: number;
+  /** Explicit target load for this block (progressed programs only;
+   * absent on older programs, which prefill from logged history). */
+  targetWeightKg?: number;
 }
 
 export interface WorkoutProgram {
@@ -276,6 +279,10 @@ export interface AthleteProfileSnapshot {
   goal?: 'fat-loss' | 'muscle' | 'strength' | 'fitness';
   level?: string;
   daysPerWeek?: number;
+  /** Full onboarding profile stores these under the same key; the
+   * snapshot type keeps them optional so older reads stay safe. */
+  equipment?: string[];
+  injuries?: string[];
   heightCm?: number;
   weightKg?: number;
   measurements?: {

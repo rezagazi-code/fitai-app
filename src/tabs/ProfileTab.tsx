@@ -20,6 +20,7 @@ import {
 } from '../lib/store';
 import { getExercise, MUSCLE_GROUPS, MUSCLE_LABELS } from '../lib/exercises';
 import { getBannedExerciseKeys, setBannedExercise } from '../lib/banned';
+import { computeHealthScore } from '../lib/healthScore';
 
 /* ============================================================
  * Local bilingual strings (i18n.tsx is untouched by contract).
@@ -54,7 +55,7 @@ export const PROFILE_KEYS = {
     saveMeasurements: 'ذخیره‌ی اندازه‌ها و اولویت‌ها',
     savedNote: 'ذخیره شد — برای اعمال روی برنامه، «برنامه‌ی تازه» بساز.',
     coachSig: 'مربی هوشمند',
-    coachSigSub: 'هر تمرینت رو می‌بینه، برنامه‌ی بعدیت رو باهاش می‌سازه',
+    coachSigSub: 'تمرین‌هات رو دنبال می‌کنه و در پایان هر بلوک، برنامه‌ی پیشرفت‌کرده‌ی بعدی رو بهت پیشنهاد می‌ده',
     bannedTitle: 'حرکات حذف‌شده از برنامه‌ها',
     bannedEmpty: 'حرکتی حذف نشده است — از صفحه‌ی هر حرکت می‌توانی حرکتی را حذف کنی.',
     bannedNote: 'این حرکات در برنامه‌های تازه ساخته نمی‌شوند؛ برنامه‌ی فعلی دست نمی‌خورد.',
@@ -63,6 +64,13 @@ export const PROFILE_KEYS = {
     reminderSub: 'هر روز سر همین ساعت، روی گوشی خودت یادآوری می‌شوی — بدون سرور و بدون اینترنت.',
     reminderOn: 'یادآور روشن باشد',
     reminderTime: 'ساعت یادآور',
+    scoreTitle: 'امتیاز سلامت و چربی‌سوزی',
+    scoreEstimateLabel: 'برآورد عمومی، نه تشخیص پزشکی',
+    scoreNoData: 'داده‌ی کافی برای امتیاز هنوز ثبت نشده است — بعد از چند جلسه تمرین و ثبت اندازه‌ها، امتیاز اینجا نشان داده می‌شود.',
+    scoreConsistency: 'نظم تمرین',
+    scoreWork: 'پیشرفت کار تمرینی',
+    scoreBody: 'برآورد بدنی (نسبت دور کمر به قد)',
+    scoreWeightTrend: 'تغییر وزن از اولین اندازه',
   },
   en: {
     athlete: 'Athlete',
@@ -93,7 +101,7 @@ export const PROFILE_KEYS = {
     saveMeasurements: 'Save measurements & priorities',
     savedNote: 'Saved — build a fresh program to apply it.',
     coachSig: 'AI Coach',
-    coachSigSub: 'It watches every workout and builds your next plan from it',
+    coachSigSub: 'It tracks your workouts and offers you a progressed next program at the end of each block',
     bannedTitle: 'Movements excluded from programs',
     bannedEmpty: 'No movement excluded — exclude one from any exercise page.',
     bannedNote: 'These movements are not used in newly built programs; the current program is untouched.',
@@ -102,6 +110,13 @@ export const PROFILE_KEYS = {
     reminderSub: 'A daily reminder on your own phone at this hour — no server, no internet.',
     reminderOn: 'Reminder on',
     reminderTime: 'Reminder time',
+    scoreTitle: 'Health & fat-burn score',
+    scoreEstimateLabel: 'General estimate, not a medical diagnosis',
+    scoreNoData: 'Not enough data for a score yet — after a few training sessions and recorded measurements, your score will appear here.',
+    scoreConsistency: 'Training consistency',
+    scoreWork: 'Training work progress',
+    scoreBody: 'Body estimate (waist-to-height)',
+    scoreWeightTrend: 'Weight change since the first measurement',
   },
 } as const;
 
@@ -176,6 +191,52 @@ function readProfile(): StoredProfile | null {
   } catch {
     return null;
   }
+}
+
+function HealthScoreCard({
+  k,
+  digits,
+  lang,
+}: {
+  k: Record<K, string>;
+  digits: Intl.NumberFormat;
+  lang: Lang;
+}): ReactElement {
+  const result = computeHealthScore();
+  const componentLabel: Record<string, string> = {
+    consistency: k.scoreConsistency,
+    work: k.scoreWork,
+    body: k.scoreBody,
+  };
+  return (
+    <section className="card" data-health-score>
+      <h2 className="card-title">{k.scoreTitle}</h2>
+      <p className="card-meta">{k.scoreEstimateLabel}</p>
+      {result.score == null ? (
+        <p className="card-meta">{k.scoreNoData}</p>
+      ) : (
+        <>
+          <div className="stat-value stat-value--grad" style={{ fontSize: '2rem' }}>
+            {digits.format(result.score)}
+            <span className="unit"> / {digits.format(100)}</span>
+          </div>
+          <ul style={{ margin: '8px 0', paddingInlineStart: 20 }}>
+            {result.components.map((c) => (
+              <li key={c.key} className="card-meta">
+                {componentLabel[c.key]}: {digits.format(c.value)} —{' '}
+                {lang === 'fa' ? c.detailFa : c.detailEn}
+              </li>
+            ))}
+          </ul>
+          {result.weightTrendKg != null && (
+            <p className="card-meta">
+              {k.scoreWeightTrend}: {digits.format(result.weightTrendKg)} {lang === 'fa' ? 'کیلوگرم' : 'kg'}
+            </p>
+          )}
+        </>
+      )}
+    </section>
+  );
 }
 
 export default function ProfileTab(): ReactElement {
@@ -457,6 +518,12 @@ export default function ProfileTab(): ReactElement {
           )}
         </section>
       )}
+
+      {/* health / fat-burn score: a GENERAL estimate only, computed
+          from recorded training + measurements. No score is shown
+          when there is not enough data — never an invented number,
+          never a diagnosis, never supplement/drug advice. */}
+      <HealthScoreCard k={k} digits={digits} lang={lang} />
 
       {/* banned movements (local filter, new programs only) */}
       <section className="card">
