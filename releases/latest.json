@@ -1,8 +1,8 @@
 {
-  "versionName": "0.1.22",
-  "versionCode": 132,
-  "apkUrl": "https://github.com/rezagazi-code/fitai-app/releases/download/v0.1.22/fitai-v0.1.22.apk",
-  "sha256": "c05e7aa134824d4e093d9127b90880637db22e57f238de04fb5b02d4161d6996",
-  "sizeBytes": 20067368,
+  "versionName": "0.2.0",
+  "versionCode": 136,
+  "apkUrl": "https://github.com/rezagazi-code/fitai-app/releases/download/v0.2.0/fitai-v0.2.0.apk",
+  "sha256": "0010402eed94c6e8095d75b5bc92eec6feff3d95d0de7bf41c8423777f6697c0",
+  "sizeBytes": 20711452,
   "notes": ""
 }
