@@ -112,6 +112,11 @@ export default function BodyMap({
       <p className="bodymap__hint">
         {t('workouts.tapMuscle')} • {t('workouts.scrollBody')}
       </p>
+      {selected !== 'all' && (
+        <p className="bodymap__selected" role="status">
+          {muscleName(selected)} — {t('workouts.bodyMapStep2')}
+        </p>
+      )}
       <div className="bodymap__jumprow" role="group" aria-label={t('workouts.bodyMap')}>
         <button type="button" className="chip" onClick={() => jump('upper')}>
           {t('workouts.upperBody')}

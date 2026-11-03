@@ -20,6 +20,7 @@ import ExerciseDetail from '../components/ExerciseDetail';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
 import { getActiveProgram, getAthleteProfile } from '../lib/store';
+import { getBannedExerciseKeys } from '../lib/banned';
 import {
   ARCHETYPES,
   archetypeOf,
@@ -74,6 +75,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
   const [muscle, setMuscle] = useState<MuscleFilter>('all');
   const [equipment, setEquipment] = useState<EquipFilter>('all');
   const [selected, setSelected] = useState<Exercise | null>(null);
+  const [bannedKeys, setBannedKeys] = useState<string[]>(() => getBannedExerciseKeys());
 
   const program = useMemo(() => getActiveProgram(), []);
   const totalExercises = useMemo(
@@ -201,6 +203,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
           exercise={selected}
           onBack={() => setSelected(null)}
           onSelect={setSelected}
+          onBannedChange={() => setBannedKeys(getBannedExerciseKeys())}
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -284,6 +287,13 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
             </div>
           </div>
 
+          {muscle !== 'all' && (
+            <p className="card-meta" style={{ margin: 0 }}>
+              {lang === 'fa'
+                ? `${results.length} حرکت برای ${t(`lib.muscle.${muscle}`)} — روی یک حرکت بزن (قدم دوم)`
+                : `${results.length} exercises for ${t(`lib.muscle.${muscle}`)} — tap one (step 2)`}
+            </p>
+          )}
           {results.length === 0 ? (
             <div className="card ex-empty">
               <p style={{ margin: '0 0 8px', fontSize: 'var(--text-body)' }}>
@@ -331,7 +341,15 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
                         </span>
                         <span className="ex-meta">·</span>
                         <span className="ex-meta">{compoundLabel(arch.compound, lang)}</span>
-                        {e.videoUrl ? (
+                        {bannedKeys.includes(e.key) ? (
+                          <span className="ex-video-badge">
+                            {lang === 'fa' ? 'حذف‌شده از برنامه' : 'Excluded from programs'}
+                          </span>
+                        ) : muscleArtOf(e.key) ? (
+                          <span className="ex-video-badge">
+                            {lang === 'fa' ? 'آواتار' : 'Avatar'}
+                          </span>
+                        ) : e.videoUrl ? (
                           <span className="ex-video-badge">▶ {t('workouts.hasVideo')}</span>
                         ) : null}
                       </span>

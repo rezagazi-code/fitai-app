@@ -113,6 +113,12 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.programName': 'برنامه {goal}',
     'onbw.edit': 'ویرایش',
     'onbw.generateFailed': 'ساخت برنامه ناموفق بود — دوباره تلاش کن',
+    'onbw.modeTitle': 'چطور شروع کنیم؟',
+    'onbw.modeQuick': 'شروع سریع',
+    'onbw.modeQuickDesc': 'فقط ۳ پرسش — حدود ۲ دقیقه تا اولین ست، بدون حساب کاربری',
+    'onbw.modeFull': 'مسیر کامل',
+    'onbw.modeFullDesc': 'همه‌ی جزئیات: وسیله‌ها، آسیب‌ها، اندازه‌ها و اولویت‌ها',
+    'onbw.quickDefaultNote': 'برنامه‌ی سریع با وزن بدن و دمبل ساخته می‌شود؛ بعداً می‌توانی مسیر کامل را بسازی.',
   },
   en: {
     'onbw.stepOf': 'Step {current} of {total}',
@@ -189,6 +195,12 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.programName': '{goal} program',
     'onbw.edit': 'Edit',
     'onbw.generateFailed': 'Program generation failed — please try again',
+    'onbw.modeTitle': 'How do you want to start?',
+    'onbw.modeQuick': 'Quick start',
+    'onbw.modeQuickDesc': 'Just 3 questions — about 2 minutes to your first set, no account needed',
+    'onbw.modeFull': 'Full path',
+    'onbw.modeFullDesc': 'Every detail: equipment, injuries, measurements and priorities',
+    'onbw.quickDefaultNote': 'The quick program uses bodyweight and dumbbells; you can build the full path later.',
   },
 };
 
@@ -328,8 +340,10 @@ const GOAL_EMOJI: Record<Goal, string> = {
 const INJURY_KEYS: InjuryKey[] = ['shoulder', 'knee', 'lower-back', 'wrist', 'none'];
 
 interface OnboardingWizardProps {
-  /** Called when onboarding completes (or the profile is saved) — the shell closes the wizard. */
-  onDone: () => void;
+  /** Called when onboarding completes — the shell closes the wizard.
+   * `quick` is true when the 3-question path was used, so the shell
+   * can take the athlete straight to the first set. */
+  onDone: (quick?: boolean) => void;
 }
 
 export default function OnboardingWizard({ onDone }: OnboardingWizardProps): ReactElement {
@@ -339,6 +353,12 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
     new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
 
   const [stepIdx, setStepIdx] = useState(0);
+  // Quick path (first-priority): 3 questions — goal, level, days —
+  // then straight to the first set. Fresh users choose a mode first;
+  // rebuilds default to the full path so saved detail is preserved.
+  const [mode, setMode] = useState<'quick' | 'full' | null>(() =>
+    getUserProfile() ? 'full' : null,
+  );
   const [direction, setDirection] = useState<'fwd' | 'back'>('fwd');
   const [shake, setShake] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -497,6 +517,17 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
 
   /* ---------------- finish ---------------- */
   const buildProfile = (): UserProfile => {
+    // Quick path: honest defaults, stated on the mode screen — bodyweight
+    // + dumbbells, no injuries. The athlete can rebuild the full path later.
+    if (mode === 'quick') {
+      return {
+        goal: goal as Goal,
+        level: level as Level,
+        daysPerWeek: days,
+        equipment: ['bodyweight', 'dumbbell'],
+        injuries: ['none'],
+      };
+    }
     const p: UserProfile = {
       goal: goal as Goal,
       level: level as Level,
@@ -558,7 +589,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
       setActiveProgram(stored.id);
       saveUserProfile(profile, false);
       setOnboarded();
-      onDone();
+      onDone(mode === 'quick');
     } catch {
       // Generation is pure and local — a failure here is a real bug;
       // surface it instead of silently closing with nothing saved.
@@ -948,7 +979,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   };
 
   const nextLabel =
-    step === 'review'
+    step === 'review' || (mode === 'quick' && step === 'days')
       ? lt('onbw.finish')
       : step === 'stats' && height.trim() === '' && weight.trim() === ''
         ? lt('onbw.skip')
@@ -960,6 +991,46 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             thigh.trim() === ''
           ? lt('onbw.skip')
           : t('common.next');
+
+  // Mode choice — shown once for fresh users, before any question.
+  if (mode === null) {
+    return (
+      <div
+        className={`onbw-overlay fitai-root ${lang === 'fa' ? 'onbw-rtl' : 'onbw-ltr'}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('app.name')}
+      >
+        <div className="onbw-sheet">
+          <div className="onbw-body">
+            <h2 className="onbw-title">{lt('onbw.modeTitle')}</h2>
+            <div className="onbw-options">
+              <button
+                type="button"
+                className="onbw-option"
+                onClick={() => setMode('quick')}
+              >
+                <span className="onbw-option-label">{lt('onbw.modeQuick')}</span>
+                <span className="onbw-option-desc">{lt('onbw.modeQuickDesc')}</span>
+              </button>
+              <button
+                type="button"
+                className="onbw-option"
+                onClick={() => setMode('full')}
+              >
+                <span className="onbw-option-label">{lt('onbw.modeFull')}</span>
+                <span className="onbw-option-desc">{lt('onbw.modeFullDesc')}</span>
+              </button>
+            </div>
+            <p className="onbw-subtitle">{lt('onbw.quickDefaultNote')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const quickTotal = 3;
+  const progressTotal = mode === 'quick' ? quickTotal : total;
 
   return (
     <div
@@ -973,13 +1044,13 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
           <div className="onbw-progress" aria-hidden="true">
             <div
               className="onbw-progress-fill"
-              style={{ width: `${(((stepIdx + 1) / total) * 100).toFixed(1)}%` }}
+              style={{ width: `${(((stepIdx + 1) / progressTotal) * 100).toFixed(1)}%` }}
             />
           </div>
           <span className="onbw-stepcount">
             {lt('onbw.stepOf')
               .replace('{current}', fmtNum(stepIdx + 1))
-              .replace('{total}', fmtNum(total))}
+              .replace('{total}', fmtNum(progressTotal))}
           </span>
         </div>
 
@@ -1002,7 +1073,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
           <button
             type="button"
             className="btn-primary btn-shine"
-            onClick={step === 'review' ? handleFinish : handleNext}
+            onClick={step === 'review' || (mode === 'quick' && step === 'days') ? handleFinish : handleNext}
             disabled={busy}
           >
             {busy && <span className="onbw-spinner" aria-hidden="true" />}

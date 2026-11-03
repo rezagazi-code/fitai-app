@@ -15,6 +15,7 @@
  */
 
 import { getWorkoutSessions, type WorkoutSessionRecord } from './sessionLog';
+import { getBannedExerciseKeys } from './banned';
 
 export interface ProgressionSuggestion {
   weightKg: number;
@@ -809,9 +810,15 @@ function pickForBlock(
   return { picked, relaxed };
 }
 
+/** Injury exclusions UNION the user's banned-movement filter: a banned
+ * movement never appears in a newly generated program or swap. */
+export function programExcludedKeys(profile: UserProfile): Set<string> {
+  return new Set([...injuryExcludedKeys(profile.injuries), ...getBannedExerciseKeys()]);
+}
+
 export function generateProgram(profile: UserProfile): WorkoutPlan {
   const daysPerWeek = Math.max(2, Math.min(6, Math.round(profile.daysPerWeek)));
-  const excluded = injuryExcludedKeys(profile.injuries);
+  const excluded = programExcludedKeys(profile);
   const templates = splitFor(daysPerWeek);
   const weeklyUse = new Map<string, number>();
   const phase = resolvePhase(profile);
@@ -823,6 +830,7 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
     d: daysPerWeek,
     e: [...profile.equipment].sort(),
     i: normalizeInjuries(profile.injuries),
+    b: [...getBannedExerciseKeys()].sort(),
     p: phase,
     pr: [...priorities].sort(),
   });
@@ -1029,7 +1037,7 @@ export function swapExercise(
     throw new Error(`[program] swapExercise: unknown exerciseKey "${exerciseKey}".`);
   }
 
-  const excluded = injuryExcludedKeys(profile.injuries);
+  const excluded = programExcludedKeys(profile);
   const levelBlocked = new Set(LEVEL_EXCLUDED_KEYS[profile.level]);
   const inDay = new Set(planDay.exercises.map((e) => e.exerciseKey));
   const primaryEquip = meta.equipment[0];

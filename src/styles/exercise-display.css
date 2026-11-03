@@ -799,4 +799,13 @@
   border-color: #ff5252;
   background: rgba(229, 57, 53, 0.28);
   box-shadow: 0 0 16px rgba(229, 57, 53, 0.55);
+  outline: 2px solid #ff5252;
+  outline-offset: 1px;
+}
+
+.bodymap__selected {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 800;
+  color: #ff8a80;
 }

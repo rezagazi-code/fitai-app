@@ -76,9 +76,18 @@ function Shell() {
 
       {onboardingOpen && (
         <OnboardingWizard
-          onDone={() => {
+          onDone={(quick) => {
             setOnboardingOpen(false);
             refresh();
+            // Quick path: land straight on a first set, ~2 minutes
+            // after starting — no detour through the home tab. On a
+            // rest day there is no "today" session, so the next
+            // scheduled session opens instead (same as the rest card).
+            if (quick) {
+              const program = getActiveProgram();
+              const day = todayPlanDay(program) ?? nextPlanDay(program);
+              if (day) setSessionDay(day);
+            }
           }}
         />
       )}

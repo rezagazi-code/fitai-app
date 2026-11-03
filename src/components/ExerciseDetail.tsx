@@ -10,12 +10,13 @@
  * exercise's history + records + a suggested next load (display
  * only — it never mutates a program).
  */
-import { useMemo, type ReactElement } from 'react';
+import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { useLang } from '../lib/i18n';
 import ExerciseArt from './ExerciseArt';
 import MuscleFigure, { type MuscleRow } from './MuscleFigure';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
+import { isBannedExercise, toggleBannedExercise } from '../lib/banned';
 import {
   ARCHETYPES,
   archetypeLabel,
@@ -38,6 +39,8 @@ interface ExerciseDetailProps {
   onBack: () => void;
   /** Switch the detail to another exercise (similar rows); omit to hide similar. */
   onSelect?: (e: Exercise) => void;
+  /** Called after the banned-movement toggle, so lists can refresh. */
+  onBannedChange?: () => void;
 }
 
 /** Per-exercise neon illustration (raster muscle art when mapped). */
@@ -73,8 +76,12 @@ function MuscleEngagement({ exercise, t }: { exercise: Exercise; t: (k: string) 
   );
 }
 
-export default function ExerciseDetail({ exercise, target, onBack, onSelect }: ExerciseDetailProps): ReactElement {
+export default function ExerciseDetail({ exercise, target, onBack, onSelect, onBannedChange }: ExerciseDetailProps): ReactElement {
   const { t, lang } = useLang();
+  // Banned-movement filter: local only, applies to newly built programs.
+  const [banned, setBanned] = useState(() => isBannedExercise(exercise.key));
+  useEffect(() => setBanned(isBannedExercise(exercise.key)), [exercise.key]);
+  const hasAvatar = muscleArtOf(exercise.key) != null;
   const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
   const fmtDate = (iso: string) => {
     try {
@@ -229,8 +236,45 @@ export default function ExerciseDetail({ exercise, target, onBack, onSelect }: E
         </div>
       </div>
 
-      {/* ---------- video ---------- */}
-      {exercise.videoUrl ? (
+      {/* ---------- banned-movement filter (local, new programs only) ---------- */}
+      <div className="ex-section">
+        <button
+          type="button"
+          className={banned ? 'btn-primary' : 'btn-ghost'}
+          style={{ width: '100%' }}
+          aria-pressed={banned}
+          onClick={() => {
+            setBanned(toggleBannedExercise(exercise.key));
+            onBannedChange?.();
+          }}
+        >
+          {banned
+            ? (lang === 'fa' ? '↩ برگرداندن این حرکت به برنامه‌ها' : '↩ Restore this movement to programs')
+            : (lang === 'fa' ? '✕ حذف این حرکت از برنامه‌ها' : '✕ Remove this movement from programs')}
+        </button>
+        <p className="ex-video-note">
+          {lang === 'fa'
+            ? 'فقط روی برنامه‌های تازه‌ای که بعد از این می‌سازی اثر می‌گذارد؛ برنامه‌ی فعلی دست نمی‌خورد.'
+            : 'Only affects programs built after this change; the current program is untouched.'}
+        </p>
+      </div>
+
+      {/* ---------- demo: wired muscle avatar INSTEAD of the video link ----------
+          Only where art is already wired (muscleArtOf != null). Exercises
+          with no wired avatar keep their previous video behaviour. */}
+      {hasAvatar ? (
+        <div className="ex-section">
+          <h4 className="ex-section__title">
+            {lang === 'fa' ? 'نمایش حرکت (آواتار)' : 'Movement demo (avatar)'}
+          </h4>
+          <ExerciseArtBox exercise={exercise} className="ex-hero__art" />
+          <p className="ex-video-note">
+            {lang === 'fa'
+              ? 'به‌جای ویدیو: آواتار شروع و پایان حرکت، با سر و بدون صورت — همان تصویری که برای این حرکت ساخته شده است.'
+              : 'Instead of video: the start-and-end avatar panels for this movement, with a head and no face.'}
+          </p>
+        </div>
+      ) : exercise.videoUrl ? (
         <div className="ex-section">
           <button
             type="button"

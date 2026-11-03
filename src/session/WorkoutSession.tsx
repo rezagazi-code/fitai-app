@@ -69,6 +69,20 @@ export const SESSION_KEYS = {
     restTitle: 'استراحت',
     restSkip: 'رد کردن استراحت',
     restDone: 'استراحت تموم شد، برو سراغ ست بعد 💪',
+    restAdjustPlus: '+۱۵ ثانیه',
+    restAdjustMinus: '−۱۵ ثانیه',
+    restPause: 'مکث استراحت',
+    restResume: 'ادامه استراحت',
+    restReady: 'آماده باش!',
+    nextSetLabel: 'ست بعد',
+    centreLogSet: 'ثبت ست {i} از {n}',
+    centreStartNext: 'شروع ست بعد — {time} مانده',
+    centreNextExercise: 'رفتن به حرکت بعد',
+    centreFinish: 'پایان تمرین',
+    editSet: 'ویرایش',
+    editDone: 'تمام',
+    setTapHint: 'برای ثبت بزن',
+    setLoggedHint: 'ثبت شد — برای لغو بزن',
     prevExercise: 'حرکت قبلی',
     nextExercise: 'حرکت بعدی',
     finishWorkout: 'پایان تمرین',
@@ -110,6 +124,20 @@ export const SESSION_KEYS = {
     restTitle: 'Rest',
     restSkip: 'Skip rest',
     restDone: 'Rest over — hit the next set 💪',
+    restAdjustPlus: '+15 sec',
+    restAdjustMinus: '−15 sec',
+    restPause: 'Pause rest',
+    restResume: 'Resume rest',
+    restReady: 'Get ready!',
+    nextSetLabel: 'Next set',
+    centreLogSet: 'Log set {i} of {n}',
+    centreStartNext: 'Start next set — {time} left',
+    centreNextExercise: 'Go to next exercise',
+    centreFinish: 'Finish workout',
+    editSet: 'Edit',
+    editDone: 'Done',
+    setTapHint: 'Tap to log',
+    setLoggedHint: 'Logged — tap to undo',
     prevExercise: 'Previous',
     nextExercise: 'Next',
     finishWorkout: 'Finish workout',
@@ -314,7 +342,19 @@ export default function WorkoutSession({
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [paused, setPaused] = useState(false);
   const [elapsedSec, setElapsedSec] = useState(0);
-  const [rest, setRest] = useState<{ remaining: number; total: number } | null>(null);
+  /* Rest timer, driven by the SYSTEM CLOCK, never by a screen-bound
+   * counter: endAt is an absolute timestamp, so dimming, locking, or
+   * leaving the app cannot drift it. On return the remaining time is
+   * recomputed from Date.now(). Pause freezes the remaining seconds. */
+  interface RestState {
+    endAt: number;
+    total: number;
+    paused: boolean;
+    pausedRemaining: number;
+    warned: boolean;
+  }
+  const [rest, setRest] = useState<RestState | null>(null);
+  const [restRemaining, setRestRemaining] = useState(0);
   const [restFlash, setRestFlash] = useState(false);
   // Tap the exercise header → detail (art, targets, records).
   const [detailKey, setDetailKey] = useState<string | null>(null);
@@ -364,26 +404,87 @@ export default function WorkoutSession({
     }
   };
 
-  /* ---- rest timer ---- */
+  /* ---- rest timer (system-clock driven) ---- */
+  const finishRest = () => {
+    buzz([60, 80, 60]);
+    setRestFlash(true);
+    setRest(null);
+    setRestRemaining(0);
+    window.setTimeout(() => setRestFlash(false), 4000);
+  };
+
   useEffect(() => {
-    if (!rest) return;
-    if (rest.remaining <= 0) {
-      buzz([60, 80, 60]);
-      setRestFlash(true);
-      setRest(null);
-      window.setTimeout(() => setRestFlash(false), 4000);
-      return;
-    }
-    const id = window.setTimeout(
-      () => setRest((r) => (r ? { ...r, remaining: r.remaining - 1 } : r)),
-      1000,
-    );
-    return () => window.clearTimeout(id);
+    if (!rest || rest.paused) return;
+    const tick = () => {
+      const rem = Math.ceil((rest.endAt - Date.now()) / 1000);
+      if (rem <= 0) {
+        finishRest();
+        return;
+      }
+      setRestRemaining(rem);
+      if (rem <= 10 && !rest.warned) {
+        buzz([40, 40]);
+        setRest((r) => (r ? { ...r, warned: true } : r));
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+    // finishRest/buzz are stable module-level helpers; rest is the clock.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rest]);
 
   const startRest = (seconds: number) => {
     if (seconds <= 0) return;
-    setRest({ remaining: seconds, total: seconds });
+    setRest({
+      endAt: Date.now() + seconds * 1000,
+      total: seconds,
+      paused: false,
+      pausedRemaining: seconds,
+      warned: seconds <= 10,
+    });
+    setRestRemaining(seconds);
+  };
+
+  const adjustRest = (deltaSec: number) => {
+    if (!rest) return;
+    if (rest.paused) {
+      const next = rest.pausedRemaining + deltaSec;
+      if (next <= 0) {
+        finishRest();
+        return;
+      }
+      setRest({ ...rest, pausedRemaining: next });
+      return;
+    }
+    const nextEnd = rest.endAt + deltaSec * 1000;
+    const rem = Math.ceil((nextEnd - Date.now()) / 1000);
+    if (rem <= 0) {
+      finishRest();
+      return;
+    }
+    setRest({ ...rest, endAt: nextEnd });
+    setRestRemaining(rem);
+  };
+
+  const toggleRestPause = () => {
+    if (!rest) return;
+    if (rest.paused) {
+      setRest({
+        ...rest,
+        paused: false,
+        endAt: Date.now() + rest.pausedRemaining * 1000,
+      });
+      setRestRemaining(rest.pausedRemaining);
+    } else {
+      const rem = Math.ceil((rest.endAt - Date.now()) / 1000);
+      setRest({ ...rest, paused: true, pausedRemaining: Math.max(0, rem) });
+    }
+  };
+
+  const skipRest = () => {
+    setRest(null);
+    setRestRemaining(0);
   };
 
   /* ---- swipe navigation ---- */
@@ -403,8 +504,15 @@ export default function WorkoutSession({
     else goPrev();
   };
 
-  const goNext = () => setExIdx((i) => Math.min(n - 1, i + 1));
-  const goPrev = () => setExIdx((i) => Math.max(0, i - 1));
+  const [editingSet, setEditingSet] = useState<number | null>(null);
+  const goNext = () => {
+    setEditingSet(null);
+    setExIdx((i) => Math.min(n - 1, i + 1));
+  };
+  const goPrev = () => {
+    setEditingSet(null);
+    setExIdx((i) => Math.max(0, i - 1));
+  };
 
   /* ---- set mutations ---- */
   const updateSet = (si: number, patch: Partial<SetDraft>) => {
@@ -511,11 +619,6 @@ export default function WorkoutSession({
     });
     return (
       <div className="ws-overlay" role="dialog" aria-modal="true" aria-label={L.summaryTitle}>
-        <div className="ws-celebration" aria-hidden="true">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <span key={i} className={`ws-particle p${i % 7}`} />
-          ))}
-        </div>
         <div className="ws-summary-card">
           <div className="ws-summary-ring" aria-hidden="true">
             <span className="ws-summary-check">✓</span>
@@ -583,7 +686,65 @@ export default function WorkoutSession({
   const last = getLastPerformance(pe.exerciseKey);
   const bwOnly = isBodyweightOnly(pe.exerciseKey);
   const doneCount = rows.filter((r) => r.done).length;
-  const restPct = rest ? Math.max(0, (rest.remaining / rest.total) * 100) : 0;
+  // Display remaining: paused freezes it, otherwise the clock value.
+  const displayRemaining = rest ? (rest.paused ? rest.pausedRemaining : restRemaining) : 0;
+  const restPct = rest ? Math.max(0, (displayRemaining / rest.total) * 100) : 0;
+
+  /* ---- session-line centre button: one wide labelled pill whose
+   * text IS its state. It never competes with an icon-only button:
+   * there is no floating action button in the session at all. */
+  const overallDone = setsByExercise.reduce((c, r) => c + r.filter((s) => s.done).length, 0);
+  const overallPlanned = setsByExercise.reduce((c, r) => c + r.length, 0);
+  const overallPct = overallPlanned > 0 ? (overallDone / overallPlanned) * 100 : 0;
+  // Next undone set, scanning from the current exercise forward.
+  let nextUndone: { exerciseIdx: number; setIdx: number } | null = null;
+  for (let ei = exIdx; ei < planDay.exercises.length && !nextUndone; ei++) {
+    const si = setsByExercise[ei].findIndex((s) => !s.done);
+    if (si >= 0) nextUndone = { exerciseIdx: ei, setIdx: si };
+  }
+  const nextInfo = (() => {
+    if (!nextUndone) return null;
+    const nxPe = planDay.exercises[nextUndone.exerciseIdx];
+    const nxEx = getExercise(nxPe.exerciseKey);
+    const nxRow = setsByExercise[nextUndone.exerciseIdx][nextUndone.setIdx];
+    const nxBw = isBodyweightOnly(nxPe.exerciseKey);
+    return {
+      name: nxEx ? nxEx.nameFa : nxPe.exerciseKey,
+      detail: nxBw
+        ? `${fmt(nxRow.reps, lang)} ${L.reps}`
+        : `${fmt(nxRow.weightKg, lang)} ${L.kg} × ${fmt(nxRow.reps, lang)} ${L.reps}`,
+    };
+  })();
+  const centreLabel = rest
+    ? t(L.centreStartNext, { time: formatClock(displayRemaining, lang) })
+    : !nextUndone
+      ? L.centreFinish
+      : nextUndone.exerciseIdx !== exIdx
+        ? L.centreNextExercise
+        : t(L.centreLogSet, { i: fmt(nextUndone.setIdx + 1, lang), n: fmt(rows.length, lang) });
+  const centreSub = rest
+    ? (nextInfo ? `${L.nextSetLabel}: ${nextInfo.name} — ${nextInfo.detail}` : null)
+    : !nextUndone
+      ? null
+      : nextUndone.exerciseIdx !== exIdx
+        ? (nextInfo?.name ?? null)
+        : exName;
+  const centreAction = () => {
+    if (rest) {
+      skipRest();
+      return;
+    }
+    if (!nextUndone) {
+      setConfirmFinish(true);
+      return;
+    }
+    if (nextUndone.exerciseIdx !== exIdx) {
+      setEditingSet(null);
+      setExIdx(nextUndone.exerciseIdx);
+      return;
+    }
+    toggleSetDone(nextUndone.setIdx);
+  };
 
   return (
     <div className="ws-overlay" role="dialog" aria-modal="true" aria-label={L.sessionTitle}>
@@ -668,52 +829,76 @@ export default function WorkoutSession({
           </div>
         )}
 
-        {/* set rows */}
+        {/* set rows — ONE-TAP: the row itself is the button. Weight/reps
+            are prefilled from the last session / suggestion, so the
+            athlete only confirms. Editing stays available per row, but
+            it is never required to log a set. */}
         <div className="ws-sets">
           {rows.map((row, si) => (
             <div key={si} className={`ws-set ${row.done ? 'is-done' : ''}`}>
-              <div className="ws-set-main">
-                <span className="ws-set-index">
-                  {L.set} {fmt(si + 1, lang)}
+              <button
+                type="button"
+                className="ws-set-rowbtn"
+                data-set-row={si}
+                aria-pressed={row.done}
+                onClick={() => toggleSetDone(si)}
+              >
+                <span className="ws-set-rowbtn__main">
+                  <span className="ws-set-index">
+                    {L.set} {fmt(si + 1, lang)}
+                  </span>
+                  <span className="ws-set-values">
+                    {bwOnly
+                      ? `${fmt(row.reps, lang)} ${L.reps}`
+                      : `${fmt(row.weightKg, lang)} ${L.kg} × ${fmt(row.reps, lang)} ${L.reps}`}
+                  </span>
+                  <span className="ws-set-hint">{row.done ? L.setLoggedHint : L.setTapHint}</span>
                 </span>
-                <label className="ws-field">
-                  <span>{L.reps}</span>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    value={row.reps}
-                    disabled={row.done}
-                    onChange={(e) =>
-                      updateSet(si, { reps: Math.max(0, parseInt(e.target.value, 10) || 0) })
-                    }
-                  />
-                </label>
-                {!bwOnly && (
-                  <label className="ws-field">
-                    <span>{L.kg}</span>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      step={2.5}
-                      value={row.weightKg}
-                      disabled={row.done}
-                      onChange={(e) =>
-                        updateSet(si, { weightKg: Math.max(0, parseFloat(e.target.value) || 0) })
-                      }
-                    />
-                  </label>
-                )}
-                {bwOnly && <span className="ws-bw-tag">{L.noWeight}</span>}
+                <span className={`ws-check ${row.done ? 'is-on' : ''}`} aria-hidden="true">
+                  {row.done ? '✓' : ''}
+                </span>
+              </button>
+              <div className="ws-set-editrow">
                 <button
                   type="button"
-                  className={`ws-check ${row.done ? 'is-on' : ''}`}
-                  onClick={() => toggleSetDone(si)}
-                  aria-pressed={row.done}
+                  className="ws-text-btn"
+                  aria-expanded={editingSet === si}
+                  onClick={() => setEditingSet(editingSet === si ? null : si)}
                 >
-                  {row.done ? '✓' : ''}
+                  {editingSet === si ? L.editDone : L.editSet}
                 </button>
+                {editingSet === si && !row.done && (
+                  <span className="ws-set-editfields">
+                    <label className="ws-field">
+                      <span>{L.reps}</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        value={row.reps}
+                        onChange={(e) =>
+                          updateSet(si, { reps: Math.max(0, parseInt(e.target.value, 10) || 0) })
+                        }
+                      />
+                    </label>
+                    {!bwOnly && (
+                      <label className="ws-field">
+                        <span>{L.kg}</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min={0}
+                          step={2.5}
+                          value={row.weightKg}
+                          onChange={(e) =>
+                            updateSet(si, { weightKg: Math.max(0, parseFloat(e.target.value) || 0) })
+                          }
+                        />
+                      </label>
+                    )}
+                    {bwOnly && <span className="ws-bw-tag">{L.noWeight}</span>}
+                  </span>
+                )}
               </div>
               <div className="ws-rpe">
                 <span className="ws-rpe-label">{L.rpeLabel}</span>
@@ -772,21 +957,63 @@ export default function WorkoutSession({
         </div>
       </main>
 
-      {/* rest timer */}
-      {rest && (
-        <div className="ws-rest">
-          <div className="ws-rest-card">
-            <div className="ws-rest-title">{L.restTitle}</div>
-            <div className={`ws-rest-ring${rest.remaining <= 10 ? ' is-low' : ''}`} style={{ ['--p' as string]: `${restPct}%` }} aria-hidden="true">
-              <span className="ws-rest-time">{formatClock(rest.remaining, lang)}</span>
+      {/* bottom bar — pinned, never scrolling away, never covering
+          the session: the sticky rest timer sits ABOVE the centre
+          button, so both are visible without scrolling. */}
+      <div className="ws-bottom">
+        {rest && (
+          <div className="ws-restbar" role="timer" aria-live="polite" data-rest-bar>
+            <div className="ws-restbar__top">
+              <span className="ws-restbar__title">
+                {L.restTitle}
+                {rest.paused ? ` · ${L.restPause}` : ''}
+              </span>
+              <span className={`ws-restbar__time${displayRemaining <= 10 ? ' is-low' : ''}`}>
+                {formatClock(displayRemaining, lang)}
+              </span>
             </div>
-            <button type="button" className="ws-text-btn" onClick={() => setRest(null)}>
-              {L.restSkip}
-            </button>
+            <div className="ws-restbar__track" aria-hidden="true">
+              <div className="ws-restbar__fill" style={{ width: `${restPct}%` }} />
+            </div>
+            {displayRemaining <= 10 ? (
+              <div className="ws-restbar__ready">
+                {L.restReady}
+                {nextInfo ? ` — ${L.nextSetLabel}: ${nextInfo.name} · ${nextInfo.detail}` : ''}
+              </div>
+            ) : nextInfo ? (
+              <div className="ws-restbar__next">
+                {L.nextSetLabel}: {nextInfo.name} · {nextInfo.detail}
+              </div>
+            ) : null}
+            <div className="ws-restbar__controls">
+              <button type="button" className="ws-restbar__btn" onClick={() => adjustRest(-15)}>
+                {L.restAdjustMinus}
+              </button>
+              <button type="button" className="ws-restbar__btn" onClick={toggleRestPause}>
+                {rest.paused ? L.restResume : L.restPause}
+              </button>
+              <button type="button" className="ws-restbar__btn" onClick={() => adjustRest(15)}>
+                {L.restAdjustPlus}
+              </button>
+              <button type="button" className="ws-restbar__btn ws-restbar__btn--skip" onClick={skipRest}>
+                {L.restSkip}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-      {restFlash && !rest && <div className="ws-rest-flash">{L.restDone}</div>}
+        )}
+        {restFlash && !rest && <div className="ws-rest-flash-inline">{L.restDone}</div>}
+        <button
+          type="button"
+          className="ws-centre"
+          data-centre-action
+          onClick={centreAction}
+          aria-label={centreLabel}
+        >
+          <span className="ws-centre__label">{centreLabel}</span>
+          {centreSub && <span className="ws-centre__sub">{centreSub}</span>}
+          <span className="ws-centre__line" style={{ width: `${overallPct}%` }} aria-hidden="true" />
+        </button>
+      </div>
 
       {/* confirm cancel */}
       {confirmCancel && (

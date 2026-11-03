@@ -18,7 +18,8 @@ import {
   getSessions,
   updateAthleteProfile,
 } from '../lib/store';
-import { MUSCLE_GROUPS, MUSCLE_LABELS } from '../lib/exercises';
+import { getExercise, MUSCLE_GROUPS, MUSCLE_LABELS } from '../lib/exercises';
+import { getBannedExerciseKeys, setBannedExercise } from '../lib/banned';
 
 /* ============================================================
  * Local bilingual strings (i18n.tsx is untouched by contract).
@@ -54,6 +55,10 @@ export const PROFILE_KEYS = {
     savedNote: 'ذخیره شد — برای اعمال روی برنامه، «برنامه‌ی تازه» بساز.',
     coachSig: 'مربی هوشمند',
     coachSigSub: 'هر تمرینت رو می‌بینه، برنامه‌ی بعدیت رو باهاش می‌سازه',
+    bannedTitle: 'حرکات حذف‌شده از برنامه‌ها',
+    bannedEmpty: 'حرکتی حذف نشده است — از صفحه‌ی هر حرکت می‌توانی حرکتی را حذف کنی.',
+    bannedNote: 'این حرکات در برنامه‌های تازه ساخته نمی‌شوند؛ برنامه‌ی فعلی دست نمی‌خورد.',
+    bannedRestore: 'بازگرداندن',
     reminderTitle: 'یادآور تمرین',
     reminderSub: 'هر روز سر همین ساعت، روی گوشی خودت یادآوری می‌شوی — بدون سرور و بدون اینترنت.',
     reminderOn: 'یادآور روشن باشد',
@@ -89,6 +94,10 @@ export const PROFILE_KEYS = {
     savedNote: 'Saved — build a fresh program to apply it.',
     coachSig: 'AI Coach',
     coachSigSub: 'It watches every workout and builds your next plan from it',
+    bannedTitle: 'Movements excluded from programs',
+    bannedEmpty: 'No movement excluded — exclude one from any exercise page.',
+    bannedNote: 'These movements are not used in newly built programs; the current program is untouched.',
+    bannedRestore: 'Restore',
     reminderTitle: 'Training reminder',
     reminderSub: 'A daily reminder on your own phone at this hour — no server, no internet.',
     reminderOn: 'Reminder on',
@@ -194,6 +203,7 @@ export default function ProfileTab(): ReactElement {
 
   const sessions = getSessions();
   const [reminder, setReminder] = useState(getReminderSettings);
+  const [bannedKeys, setBannedKeys] = useState<string[]>(() => getBannedExerciseKeys());
 
   /* ---- measurements + priorities editing (per-muscle engine) ---- */
   const savedMeasures = profile?.measurements ?? {};
@@ -447,6 +457,38 @@ export default function ProfileTab(): ReactElement {
           )}
         </section>
       )}
+
+      {/* banned movements (local filter, new programs only) */}
+      <section className="card">
+        <h2 className="card-title">{k.bannedTitle}</h2>
+        <p className="card-meta" style={{ margin: '0 0 12px' }}>{k.bannedNote}</p>
+        {bannedKeys.length === 0 ? (
+          <p className="card-meta" style={{ margin: 0 }}>{k.bannedEmpty}</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {bannedKeys.map((key) => {
+              const ex = getExercise(key);
+              return (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 'var(--text-body)', fontWeight: 700 }}>
+                    {ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : key}
+                  </span>
+                  <button
+                    type="button"
+                    className="chip"
+                    onClick={() => {
+                      setBannedExercise(key, false);
+                      setBannedKeys(getBannedExerciseKeys());
+                    }}
+                  >
+                    {k.bannedRestore}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* daily local reminder */}
       <section className="card">
