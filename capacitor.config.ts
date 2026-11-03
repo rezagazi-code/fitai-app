@@ -1,9 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-// ⚠️ WORKING PLACEHOLDER — the final app name is TBD; Reza will rename it.
+// Final app name: Musclepro (ماسل پرو). Package id stays ir.fitai.app
+// so existing installs update in place — never change the package id.
 const config: CapacitorConfig = {
   appId: 'ir.fitai.app',
-  appName: 'اپ هوشمند بدنسازی',
+  appName: 'Musclepro',
   webDir: 'dist',
   plugins: {
     CapacitorHttp: {

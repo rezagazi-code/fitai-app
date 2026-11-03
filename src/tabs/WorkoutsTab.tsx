@@ -21,6 +21,7 @@ import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
 import { getActiveProgram, getAthleteProfile } from '../lib/store';
 import { getBannedExerciseKeys } from '../lib/banned';
+import { markMaxEffortDayDone, maxEffortDue, maxEffortExercises } from '../lib/effort';
 import {
   ARCHETYPES,
   archetypeOf,
@@ -76,6 +77,10 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
   const [equipment, setEquipment] = useState<EquipFilter>('all');
   const [selected, setSelected] = useState<Exercise | null>(null);
   const [bannedKeys, setBannedKeys] = useState<string[]>(() => getBannedExerciseKeys());
+  // Max-effort day (second-priority): due at most once per 4-week block,
+  // only once the user actually has personal records to test.
+  const [maxEffortDone, setMaxEffortDone] = useState(false);
+  const maxEffortKeys = maxEffortDue() && !maxEffortDone ? maxEffortExercises(4) : [];
 
   const program = useMemo(() => getActiveProgram(), []);
   const totalExercises = useMemo(
@@ -193,6 +198,49 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
           <p className="card-meta">{t('workouts.noProgramHint')}</p>
           <button type="button" className="btn-primary" onClick={onBuildProgram}>
             {t('workouts.buildProgram')}
+          </button>
+        </div>
+      )}
+
+      {/* ---------- max-effort day (record-test day, not a daily habit) ---------- */}
+      {maxEffortKeys.length > 0 && (
+        <div className="card" data-max-effort-day>
+          <h2 className="card-title">
+            {lang === 'fa' ? 'روز حداکثر تلاش' : 'Max-effort day'}
+          </h2>
+          <p className="card-meta" style={{ margin: '0 0 12px' }}>
+            {lang === 'fa'
+              ? 'روزی برای سنجش رکوردهای تمرینی‌ات با بارهای کنترل‌شده — نه هر روز، حداکثر هر چهار هفته یک بار. هرگز با درد تمرین نکن؛ اگر چیزی درد گرفت، همان‌جا متوقف شو.'
+              : 'A day to test your training records with controlled loads — not daily, at most once per 4-week block. Never train through pain; stop if anything hurts.'}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+            {maxEffortKeys.map((key) => {
+              const ex = EXERCISES.find((e) => e.key === key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className="chip"
+                  style={{ textAlign: lang === 'fa' ? 'right' : 'left' }}
+                  onClick={() => {
+                    const found = EXERCISES.find((e) => e.key === key);
+                    if (found) setSelected(found);
+                  }}
+                >
+                  {ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : key}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              markMaxEffortDayDone();
+              setMaxEffortDone(true);
+            }}
+          >
+            {lang === 'fa' ? 'این روز حداکثر تلاش انجام شد' : 'Mark this max-effort day done'}
           </button>
         </div>
       )}

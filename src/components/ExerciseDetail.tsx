@@ -290,10 +290,27 @@ export default function ExerciseDetail({ exercise, target, onBack, onSelect, onB
         <p className="ex-video-note">{t('workouts.noVideo')}</p>
       )}
 
-      {/* ---------- similar: art cards ---------- */}
+      {/* ---------- unwired glutes note (honest, no invented art) ----------
+          The glutes family is the one family whose avatar art is not yet
+          wired (cable-pull-through, the last of 158, is still missing).
+          Its exercises keep whatever video link is verified, and say so. */}
+      {exercise.muscle === 'glutes' && !hasAvatar && (
+        <p className="ex-video-note">
+          {lang === 'fa'
+            ? 'آواتار حرکت‌های خانواده‌ی سرینی هنوز کامل نشده است (آخرین تصویر، کابل‌پول‌ترو، ساخته نشده) — تا آن موقع، لینک ویدیوی تأییدشده (اگر باشد) همان‌جاست.'
+            : 'Avatar art for the glutes family is not complete yet (the last image, cable-pull-through, is still missing) — until then, the verified video link (if any) stays in place.'}
+        </p>
+      )}
+
+      {/* ---------- similar = same-muscle alternatives: art cards ---------- */}
       {onSelect && similar.length > 0 && (
         <div className="ex-section">
           <h4 className="ex-section__title">{t('workouts.similarExercises')}</h4>
+          <p className="ex-video-note">
+            {lang === 'fa'
+              ? 'این‌ها جایگزین‌های همان عضله‌اند — اگر حرکتی را دوست نداری یا وسیله‌اش را نداری، یکی از همین‌ها را جایگزین کن.'
+              : 'These are same-muscle alternatives — if you dislike a movement or lack its equipment, swap in one of these.'}
+          </p>
           <div className="ex-similar">
             {similar.map((s) => (
               <button key={s.key} type="button" className="ex-sim" onClick={() => onSelect(s)}>

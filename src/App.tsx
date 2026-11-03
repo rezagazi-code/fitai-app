@@ -26,16 +26,14 @@ function Shell() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [sessionDay, setSessionDay] = useState<PlanDay | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
-  // TESTING login gate: shown once, until the login button is pressed.
-  // No validation, no SMS, no backend — the final login (name + family
-  // + phone required) is a later phase. The gate stores whatever was
-  // typed locally, if anything, and nothing else.
+  // REAL local-profile login gate: first name + last name + phone
+  // are REQUIRED (validated inside LoginGate). No SMS, no backend, no
+  // server auth yet — the profile is stored locally only, and the
+  // gate says so honestly on screen.
   const [loginEntered, setLoginEntered] = useState<boolean>(readLoginEntered);
   const handleLoginEnter = (profile: LoginProfile): void => {
     try {
-      if (profile.firstName || profile.lastName || profile.phone) {
-        localStorage.setItem('fitai.loginProfile', JSON.stringify(profile));
-      }
+      localStorage.setItem('fitai.loginProfile', JSON.stringify(profile));
       localStorage.setItem('fitai.loginEntered', '1');
     } catch {
       /* storage unavailable — still enter for this session */

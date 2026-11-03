@@ -10,6 +10,7 @@
  */
 import type { WorkoutProgram } from '../lib/store';
 import { deloadSets, getSchedule } from '../lib/schedule';
+import { adjustDayForRecovery } from '../lib/recovery';
 import type { PlanDay } from './WorkoutSession';
 
 /**
@@ -53,6 +54,27 @@ function applyDeload(day: PlanDay): PlanDay {
   };
 }
 
+/**
+ * Daily recovery adjustment: tired muscles lose one set (min 1).
+ * Applied AFTER deload, in the single launch path, so the session the
+ * user actually trains always matches what Home announced. The
+ * adjustment is recomputed from finished sessions each launch, so
+ * cancelling and reopening never stacks the cut.
+ */
+function applyRecovery(day: PlanDay): PlanDay {
+  const { exercises } = adjustDayForRecovery(
+    day.exercises.map((e) => ({ exerciseKey: e.exerciseKey, sets: e.sets })),
+  );
+  const byKey = new Map(exercises.map((e) => [e.exerciseKey, e.sets]));
+  return {
+    ...day,
+    exercises: day.exercises.map((e) => ({
+      ...e,
+      sets: byKey.get(e.exerciseKey) ?? e.sets,
+    })),
+  };
+}
+
 /** Today's PlanDay for the active program, or null on rest days. */
 export function todayPlanDay(program: WorkoutProgram | null): PlanDay | null {
   if (!program) return null;
@@ -60,7 +82,7 @@ export function todayPlanDay(program: WorkoutProgram | null): PlanDay | null {
   if (sched.kind !== 'train' || sched.dayIndex == null) return null;
   const day = programDayToPlanDay(program, sched.dayIndex);
   if (!day) return null;
-  return sched.isDeload ? applyDeload(day) : day;
+  return applyRecovery(sched.isDeload ? applyDeload(day) : day);
 }
 
 /**
@@ -76,5 +98,5 @@ export function nextPlanDay(program: WorkoutProgram | null): PlanDay | null {
   if (nextSched.kind !== 'train' || nextSched.dayIndex == null) return null;
   const day = programDayToPlanDay(program, nextSched.dayIndex);
   if (!day) return null;
-  return nextSched.isDeload ? applyDeload(day) : day;
+  return applyRecovery(nextSched.isDeload ? applyDeload(day) : day);
 }

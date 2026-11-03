@@ -16,6 +16,7 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import RestNote from '../components/RestNote';
+import { getSelectedGymProfile } from '../lib/gymProfiles';
 import { saveProgram, setActiveProgram, setOnboarded } from '../lib/store';
 import {
   generateProgram,
@@ -375,7 +376,14 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   const [goal, setGoal] = useState<Goal | null>(() => getUserProfile()?.goal ?? null);
   const [level, setLevel] = useState<Level | null>(() => getUserProfile()?.level ?? null);
   const [days, setDays] = useState(() => getUserProfile()?.daysPerWeek ?? 3);
-  const [equipment, setEquipment] = useState<EquipmentKey[]>(() => getUserProfile()?.equipment ?? []);
+  // Equipment prefill order: a saved onboarding profile first (rebuild
+  // keeps the athlete's own choices); otherwise the selected gym
+  // profile's equipment — the "gym" the next program is built for.
+  const [equipment, setEquipment] = useState<EquipmentKey[]>(() => {
+    const saved = getUserProfile()?.equipment;
+    if (saved && saved.length > 0) return saved;
+    return getSelectedGymProfile().equipment as EquipmentKey[];
+  });
   const [injuries, setInjuries] = useState<InjuryKey[]>(() => getUserProfile()?.injuries ?? []);
   const [injuryNote, setInjuryNote] = useState(() => getUserProfile()?.injuryNote ?? '');
   const [height, setHeight] = useState(() => {

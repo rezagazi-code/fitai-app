@@ -1,12 +1,13 @@
 /**
- * اپ هوشمند بدنسازی — login entry screen (TESTING version).
+ * Musclepro — login entry screen (REAL local profile version).
  *
- * Final login (later, not now) wants first name + last name + phone
- * number, required. For testing now, the three fields are shown but
- * pressing the login button alone enters the app: no validation, no
- * SMS, no backend, no server auth — the app stays local-first while
- * the backend decision is still open. The test-mode note on the
- * screen says exactly that, so nobody mistakes this for real auth.
+ * First name + last name + phone number are REQUIRED to enter.
+ * This is a LOCAL profile stored only on this device — no SMS, no
+ * backend, no server sign-in yet. The screen says exactly that, so
+ * nobody mistakes it for server authentication. Phone digits are
+ * normalised from Persian/Arabic digits to Latin before validation;
+ * an Iranian mobile is accepted as 09xxxxxxxxx (11 digits) or
+ * 9xxxxxxxxx (10 digits). Empty or invalid fields do NOT enter.
  */
 import { useState, type ReactElement } from 'react';
 import { useLang } from '../lib/i18n';
@@ -19,8 +20,10 @@ const TEXT = {
     lastName: 'نام خانوادگی',
     phone: 'شماره تلفن',
     login: 'ورود',
-    testNote:
-      'نسخه آزمایشی: برای ورود، فشردن دکمه «ورود» کافی است — اعتبارسنجی و ورود واقعی بعداً اضافه می‌شود.',
+    localNote:
+      'پروفایل محلی: اطلاعاتت فقط روی همین گوشی ذخیره می‌شود و ورود سروری نیست — پیامک و حساب کاربری سروری هنوز ساخته نشده است.',
+    errName: 'نام و نام خانوادگی را کامل وارد کن.',
+    errPhone: 'شماره تلفن معتبر وارد کن (مثل ۰۹۱۲۳۴۵۶۷۸۹).',
   },
   en: {
     title: 'Sign in to Musclepro',
@@ -29,8 +32,10 @@ const TEXT = {
     lastName: 'Last name',
     phone: 'Phone number',
     login: 'Sign in',
-    testNote:
-      'Test version: pressing “Sign in” is enough to enter — validation and real sign-in come later.',
+    localNote:
+      'Local profile: your details are stored only on this device and this is not server sign-in — no SMS and no server account yet.',
+    errName: 'Please enter your full first and last name.',
+    errPhone: 'Please enter a valid phone number (e.g. 09123456789).',
   },
 } as const;
 
@@ -40,6 +45,40 @@ export interface LoginProfile {
   phone: string;
 }
 
+const FA_DIGITS: Record<string, string> = {
+  '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+  '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+  '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+  '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+};
+
+export function normalizePhoneDigits(raw: string): string {
+  let out = raw;
+  for (const [fa, en] of Object.entries(FA_DIGITS)) out = out.split(fa).join(en);
+  return out.replace(/[^\d]/g, '');
+}
+
+/** Iranian mobile: 09xxxxxxxxx (11) or 9xxxxxxxxx (10). */
+export function isValidPhone(raw: string): boolean {
+  const digits = normalizePhoneDigits(raw);
+  return /^09\d{9}$/.test(digits) || /^9\d{9}$/.test(digits);
+}
+
+function readStoredProfile(): LoginProfile {
+  try {
+    const raw = localStorage.getItem('fitai.loginProfile');
+    if (!raw) return { firstName: '', lastName: '', phone: '' };
+    const parsed = JSON.parse(raw) as Partial<LoginProfile>;
+    return {
+      firstName: typeof parsed.firstName === 'string' ? parsed.firstName : '',
+      lastName: typeof parsed.lastName === 'string' ? parsed.lastName : '',
+      phone: typeof parsed.phone === 'string' ? parsed.phone : '',
+    };
+  } catch {
+    return { firstName: '', lastName: '', phone: '' };
+  }
+}
+
 export default function LoginGate({
   onEnter,
 }: {
@@ -47,9 +86,28 @@ export default function LoginGate({
 }): ReactElement {
   const { lang } = useLang();
   const t = TEXT[lang === 'fa' ? 'fa' : 'en'];
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
+  const stored = readStoredProfile();
+  const [firstName, setFirstName] = useState(stored.firstName);
+  const [lastName, setLastName] = useState(stored.lastName);
+  const [phone, setPhone] = useState(stored.phone);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = () => {
+    if (!firstName.trim() || !lastName.trim()) {
+      setError(t.errName);
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      setError(t.errPhone);
+      return;
+    }
+    setError(null);
+    onEnter({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      phone: normalizePhoneDigits(phone),
+    });
+  };
 
   return (
     <div
@@ -99,16 +157,21 @@ export default function LoginGate({
             style={{ width: '100%', marginTop: 4, textAlign: 'left' }}
           />
         </label>
+        {error ? (
+          <p className="card-meta" role="alert" style={{ marginTop: 12, color: '#ff6b6b' }}>
+            {error}
+          </p>
+        ) : null}
         <button
           type="button"
           className="btn-primary btn-shine"
           style={{ width: '100%', marginTop: 20 }}
-          onClick={() => onEnter({ firstName, lastName, phone })}
+          onClick={submit}
         >
           {t.login}
         </button>
         <p className="card-meta" style={{ marginTop: 12 }}>
-          {t.testNote}
+          {t.localNote}
         </p>
       </section>
     </div>

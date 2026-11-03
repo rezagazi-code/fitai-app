@@ -64,6 +64,13 @@ export interface FoodLogEntry {
   unitEn: string;
   grams: number;
   kcal: number;
+  /**
+   * Optional meal photo, downscaled (max 800px, JPEG) and capped in
+   * size before storage — a reviewable memory of the meal, never a
+   * source of invented nutrition data. The photo does not change the
+   * calories; the user enters those.
+   */
+  photoDataUrl?: string;
 }
 
 const LOG_KEY = 'fitai.foodLog';

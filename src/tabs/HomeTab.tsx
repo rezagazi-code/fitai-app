@@ -14,6 +14,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import CoachBanner from '../components/CoachBanner';
 import NextBlockOffer from '../components/NextBlockOffer';
+import RecoveryPanel from '../components/RecoveryPanel';
+import { adjustDayForRecovery } from '../lib/recovery';
 import ExerciseDetail, { type DetailTarget } from '../components/ExerciseDetail';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
 import { getActiveProgram, getAthleteProfile, getSessions, getVolumeByDay } from '../lib/store';
@@ -125,6 +127,12 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
     ? program!.days[sched.dayIndex].map((e) => (sched.isDeload ? { ...e, sets: deloadSets(e.sets) } : e))
     : null;
   const totalSets = todayExercises ? todayExercises.reduce((n, e) => n + e.sets, 0) : 0;
+  // Daily recovery adjustment for TODAY's card, computed the same way
+  // the launch path computes it (after deload) — the note is shown
+  // openly, never silently, and the session uses the same numbers.
+  const todayAdjustment = todayExercises
+    ? adjustDayForRecovery(todayExercises.map((e) => ({ exerciseKey: e.exerciseKey, sets: e.sets }))).adjustment
+    : null;
   const estMinutes = todayExercises
     ? Math.max(15, Math.round((totalSets * 150) / 60))
     : 0;
@@ -173,6 +181,8 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
       {program && (
         <NextBlockOffer program={program} onAccepted={() => setHomeSeq((s) => s + 1)} />
       )}
+
+      {program && <RecoveryPanel adjustment={todayAdjustment} />}
 
       <div className="home-stats">
         <div className="stat-card">

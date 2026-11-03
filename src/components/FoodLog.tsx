@@ -35,6 +35,9 @@ const KEYS = {
     empty: 'امروز هنوز چیزی ثبت نشده است.',
     remove: 'حذف',
     estimateNote: 'همه‌ی کالری‌ها برآورد عمومی‌اند، نه توصیه‌ی شخصی و نه تشخیص.',
+    photo: 'عکس غذا (اختیاری — فقط یادآوری، کالری را عوض نمی‌کند)',
+    photoRemove: 'حذف عکس',
+    photoNote: 'عکس قبل از ثبت نشان داده می‌شود و می‌توانی حذفش کنی؛ عکس، کالری را تعیین نمی‌کند.',
   },
   en: {
     title: 'Food log',
@@ -51,6 +54,9 @@ const KEYS = {
     empty: 'Nothing logged today yet.',
     remove: 'Remove',
     estimateNote: 'All calories are general estimates, not personal advice or a diagnosis.',
+    photo: 'Meal photo (optional — a reminder only, it does not change calories)',
+    photoRemove: 'Remove photo',
+    photoNote: 'The photo is shown before saving and can be removed; a photo never determines calories.',
   },
 } as const;
 
@@ -67,6 +73,35 @@ export default function FoodLog(): ReactElement {
   const [customKcal100, setCustomKcal100] = useState(150);
   const [entries, setEntries] = useState(() => getTodayFoodLog());
   const [total, setTotal] = useState(() => todayFoodKcal());
+  // Meal photo, reviewed BEFORE save: picked → downscaled → previewed;
+  // the user can remove it before pressing log. Capped so localStorage
+  // never balloons: max 800px side, JPEG, and dropped if still >150KB.
+  const [photo, setPhoto] = useState<string | null>(null);
+
+  const handlePhotoFile = (file: File | undefined) => {
+    if (!file) return;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, 800 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      let q = 0.7;
+      let data = canvas.toDataURL('image/jpeg', q);
+      while (data.length > 150 * 1024 && q > 0.3) {
+        q -= 0.1;
+        data = canvas.toDataURL('image/jpeg', q);
+      }
+      if (data.length <= 200 * 1024) setPhoto(data);
+    };
+    img.onerror = () => URL.revokeObjectURL(url);
+    img.src = url;
+  };
 
   const food = IRANIAN_FOODS.find((f) => f.key === foodKey) ?? IRANIAN_FOODS[0];
   const previewKcal =
@@ -82,6 +117,7 @@ export default function FoodLog(): ReactElement {
   };
 
   const handleLog = () => {
+    const photoDataUrl = photo ?? undefined;
     if (mode === 'custom') {
       const name = customName.trim();
       if (!name || grams <= 0) return;
@@ -94,6 +130,7 @@ export default function FoodLog(): ReactElement {
         unitEn: 'g',
         grams,
         kcal: previewKcal,
+        ...(photoDataUrl ? { photoDataUrl } : {}),
       });
     } else if (mode === 'unit') {
       if (qty <= 0) return;
@@ -106,6 +143,7 @@ export default function FoodLog(): ReactElement {
         unitEn: food.unitEn,
         grams: Math.round(food.gramsPerUnit * qty),
         kcal: previewKcal,
+        ...(photoDataUrl ? { photoDataUrl } : {}),
       });
     } else {
       if (grams <= 0) return;
@@ -118,8 +156,10 @@ export default function FoodLog(): ReactElement {
         unitEn: 'g',
         grams,
         kcal: previewKcal,
+        ...(photoDataUrl ? { photoDataUrl } : {}),
       });
     }
+    setPhoto(null);
     refresh();
   };
 
@@ -205,6 +245,27 @@ export default function FoodLog(): ReactElement {
         </div>
       )}
 
+      <div style={{ marginBottom: 12 }}>
+        <label className="card-meta" style={{ display: 'block', marginBottom: 6 }}>
+          {L.photo}
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          aria-label={L.photo}
+          onChange={(e) => handlePhotoFile(e.target.files?.[0])}
+        />
+        {photo && (
+          <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src={photo} alt="" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
+            <button type="button" className="chip" onClick={() => setPhoto(null)}>
+              {L.photoRemove}
+            </button>
+          </div>
+        )}
+        <p className="card-meta" style={{ marginTop: 6 }}>{L.photoNote}</p>
+      </div>
+
       <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={handleLog}>
         {L.log} — {fmt(previewKcal)} {L.kcal}
       </button>
@@ -219,9 +280,14 @@ export default function FoodLog(): ReactElement {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {entries.map((e) => (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
-                <span>
-                  {lang === 'fa' ? e.nameFa : e.nameEn} — {fmt(e.qty)} {lang === 'fa' ? e.unitFa : e.unitEn}
-                  <span className="card-meta"> · {fmt(e.kcal)} {L.kcal}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {e.photoDataUrl && (
+                    <img src={e.photoDataUrl} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+                  )}
+                  <span>
+                    {lang === 'fa' ? e.nameFa : e.nameEn} — {fmt(e.qty)} {lang === 'fa' ? e.unitFa : e.unitEn}
+                    <span className="card-meta"> · {fmt(e.kcal)} {L.kcal}</span>
+                  </span>
                 </span>
                 <button
                   type="button"

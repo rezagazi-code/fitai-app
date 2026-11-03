@@ -29,6 +29,7 @@ import {
   personalBestWeight,
 } from '../lib/program';
 import { getExerciseHistory } from '../lib/exerciseHistory';
+import { EFFORT_WORDS, saveSessionEffort, type EffortWord } from '../lib/effort';
 import {
   getLastPerformance,
   recordVolumeKg,
@@ -374,6 +375,9 @@ export default function WorkoutSession({
     record: WorkoutSessionRecord;
     prKeys: string[];
   } | null>(null);
+  // Four-word effort score, picked on the summary screen (one word, not
+  // a 1–10 slider). Saved after the session itself, keyed by its id.
+  const [effort, setEffort] = useState<EffortWord | null>(null);
 
   // Suggestion per exercise (computed once at session start) — the same
   // suggestion the detail view shows, so prefill and advice never disagree.
@@ -619,6 +623,7 @@ export default function WorkoutSession({
     void _drop;
     void _drop2;
     const saved = saveWorkoutSession(rest);
+    if (effort) saveSessionEffort(saved.id, effort);
     onFinish(saved);
   };
 
@@ -677,6 +682,25 @@ export default function WorkoutSession({
               ))}
             </div>
           )}
+
+          <div style={{ marginTop: 16 }}>
+            <p className="card-meta" style={{ margin: '0 0 8px', textAlign: 'center' }}>
+              {lang === 'fa' ? 'این جلسه چطور بود؟ یک کلمه بگو' : 'How was this session? One word'}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }} data-effort-picker>
+              {EFFORT_WORDS.map((w) => (
+                <button
+                  key={w.key}
+                  type="button"
+                  className={`chip${effort === w.key ? ' chip--active' : ''}`}
+                  aria-pressed={effort === w.key}
+                  onClick={() => setEffort(w.key)}
+                >
+                  {lang === 'fa' ? w.fa : w.en} · {w.rpeHint}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <button type="button" className="btn-primary ws-save" onClick={handleSave}>
             {L.saveAndClose}

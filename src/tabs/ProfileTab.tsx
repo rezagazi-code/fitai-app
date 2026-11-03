@@ -21,6 +21,8 @@ import {
 import { getExercise, MUSCLE_GROUPS, MUSCLE_LABELS } from '../lib/exercises';
 import { getBannedExerciseKeys, setBannedExercise } from '../lib/banned';
 import { computeHealthScore } from '../lib/healthScore';
+import GymProfilePanel from '../components/GymProfilePanel';
+import { downloadDataExport } from '../lib/exportData';
 
 /* ============================================================
  * Local bilingual strings (i18n.tsx is untouched by contract).
@@ -71,6 +73,14 @@ export const PROFILE_KEYS = {
     scoreWork: 'پیشرفت کار تمرینی',
     scoreBody: 'برآورد بدنی (نسبت دور کمر به قد)',
     scoreWeightTrend: 'تغییر وزن از اولین اندازه',
+    loginTitle: 'پروفایل ورود',
+    loginLocalNote: 'پروفایل محلی روی همین گوشی است — ورود سروری نیست. برای تغییرش، خارج شو و دوباره وارد شو.',
+    loginName: 'نام',
+    loginPhone: 'تلفن',
+    signOut: 'خروج',
+    exportTitle: 'داده‌هایت، آزادانه مال خودت',
+    exportSub: 'همه‌ی چیزی که روی همین گوشی ذخیره شده (برنامه‌ها، جلسات، اندازه‌ها، غذاها، برنامه‌های غذایی) را در یک فایل JSON دانلود کن. بدون حساب کاربری، بدون پرداخت، بدون قفل.',
+    exportButton: 'دانلود داده‌هایم (JSON)',
   },
   en: {
     athlete: 'Athlete',
@@ -117,6 +127,14 @@ export const PROFILE_KEYS = {
     scoreWork: 'Training work progress',
     scoreBody: 'Body estimate (waist-to-height)',
     scoreWeightTrend: 'Weight change since the first measurement',
+    loginTitle: 'Login profile',
+    loginLocalNote: 'Local profile on this device only — not server sign-in. To change it, sign out and sign in again.',
+    loginName: 'Name',
+    loginPhone: 'Phone',
+    signOut: 'Sign out',
+    exportTitle: 'Your data, free to take',
+    exportSub: 'Download everything stored on this device (programs, sessions, measurements, food log, meal plans) as one JSON file. No account, no payment, no lock-in.',
+    exportButton: 'Download my data (JSON)',
   },
 } as const;
 
@@ -182,6 +200,22 @@ interface StoredProfile {
   };
   priorities?: string[];
   phase?: 'fatloss' | 'growth';
+}
+
+function readLoginProfile(): { firstName: string; lastName: string; phone: string } | null {
+  try {
+    const raw = localStorage.getItem('fitai.loginProfile');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<{ firstName: string; lastName: string; phone: string }>;
+    if (!parsed.firstName && !parsed.lastName && !parsed.phone) return null;
+    return {
+      firstName: typeof parsed.firstName === 'string' ? parsed.firstName : '',
+      lastName: typeof parsed.lastName === 'string' ? parsed.lastName : '',
+      phone: typeof parsed.phone === 'string' ? parsed.phone : '',
+    };
+  } catch {
+    return null;
+  }
 }
 
 function readProfile(): StoredProfile | null {
@@ -378,6 +412,51 @@ export default function ProfileTab(): ReactElement {
             )}
           </div>
         </div>
+      </section>
+
+      {/* login profile (local only) + sign out */}
+      {(() => {
+        const login = readLoginProfile();
+        if (!login) return null;
+        return (
+          <section className="card" data-login-profile>
+            <h2 className="card-title">{k.loginTitle}</h2>
+            <p className="card-meta" style={{ margin: '0 0 8px' }}>
+              {k.loginName}: {login.firstName} {login.lastName}
+            </p>
+            <p className="card-meta" style={{ margin: '0 0 8px' }} dir="ltr">
+              {k.loginPhone}: {login.phone}
+            </p>
+            <p className="card-meta" style={{ margin: '0 0 12px' }}>{k.loginLocalNote}</p>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => {
+                try {
+                  localStorage.removeItem('fitai.loginEntered');
+                  localStorage.removeItem('fitai.loginProfile');
+                } catch {
+                  /* ignore */
+                }
+                window.location.reload();
+              }}
+            >
+              {k.signOut}
+            </button>
+          </section>
+        );
+      })()}
+
+      {/* gym profiles (second-priority) */}
+      <GymProfilePanel />
+
+      {/* free data export (second-priority) */}
+      <section className="card" data-export>
+        <h2 className="card-title">{k.exportTitle}</h2>
+        <p className="card-meta" style={{ margin: '0 0 12px' }}>{k.exportSub}</p>
+        <button type="button" className="btn-primary" onClick={() => downloadDataExport()}>
+          {k.exportButton}
+        </button>
       </section>
 
       {/* lifetime stats */}

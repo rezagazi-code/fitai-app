@@ -20,7 +20,7 @@ const STORAGE_KEY = 'fitai.lang';
 
 const fa: Dict = {
   // App
-  'app.name': 'اپ هوشمند بدنسازی',
+  'app.name': 'ماسل پرو',
   'app.tagline': 'مربی هوشمندت، هر روز همراهته',
 
   // Tabs
@@ -66,7 +66,7 @@ const fa: Dict = {
   'w.personalBest': 'رکورد شخصی جدید! 🎉',
 
   // Onboarding
-  'onb.title': 'به اپ هوشمند بدنسازی خوش اومدی',
+  'onb.title': 'به ماسل پرو خوش اومدی',
   'onb.subtitle': 'چند تا سؤال کوتاه، بعد برنامه‌ی مخصوص خودت آماده‌ست',
   'onb.yourGoal': 'هدفت از تمرین چیه؟',
   'onb.goalLose': 'چربی‌سوزی',
@@ -355,7 +355,7 @@ const fa: Dict = {
 
 const en: Dict = {
   // App
-  'app.name': 'Smart Workout',
+  'app.name': 'Musclepro',
   'app.tagline': 'Your AI coach, with you every day',
 
   // Tabs
@@ -401,7 +401,7 @@ const en: Dict = {
   'w.personalBest': 'New personal record! 🎉',
 
   // Onboarding
-  'onb.title': 'Welcome to Smart Workout',
+  'onb.title': 'Welcome to Musclepro',
   'onb.subtitle': 'A few quick questions, then your personal plan is ready',
   'onb.yourGoal': 'What\u2019s your training goal?',
   'onb.goalLose': 'Fat loss',

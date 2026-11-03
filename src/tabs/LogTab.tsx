@@ -5,6 +5,10 @@
 import type { ReactElement } from 'react';
 import { useLang } from '../lib/i18n';
 import FoodLog from '../components/FoodLog';
+import VoiceFoodLog from '../components/VoiceFoodLog';
+import MealPlanPanel from '../components/MealPlanPanel';
+import ShoppingListPanel from '../components/ShoppingListPanel';
+import FastingTimer from '../components/FastingTimer';
 import { getActiveProgram, getSessions, type WorkoutSession } from '../lib/store';
 import { todayPlanDay } from '../session/launch';
 import { getSchedule } from '../lib/schedule';
@@ -108,6 +112,14 @@ export default function LogTab({ onStartWorkout, onStartNextSession, onBuildProg
       )}
 
       <FoodLog />
+
+      <VoiceFoodLog />
+
+      <MealPlanPanel />
+
+      <ShoppingListPanel />
+
+      <FastingTimer />
 
       <section className="card">
         <h3 className="card-title">{t('log.recentSessions')}</h3>

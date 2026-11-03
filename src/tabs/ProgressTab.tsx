@@ -13,6 +13,7 @@
  */
 import { useMemo, useState, type ReactElement } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
+import ContinuityPanel from '../components/ContinuityPanel';
 import {
   getSessions,
   getMeasurements,
@@ -649,6 +650,58 @@ function WeightSection({ lang, k }: { lang: Lang; k: Record<K, string> }): React
 }
 
 /* ============================================================
+ * 6. Deep chart — one exercise at a time, last 8 sessions' volume.
+ * Only real logged sessions; an exercise with no sessions is not
+ * listed at all, and a single session shows one bar, not a trend.
+ * ============================================================ */
+function PerExerciseChart({ sessions, lang, k }: { sessions: WorkoutSession[]; lang: Lang; k: Record<K, string> }): ReactElement {
+  const byKey = useMemo(() => {
+    const map = new Map<string, { volumeKg: number; date: string }[]>();
+    for (const s of sessions) {
+      const per = new Map<string, number>();
+      for (const set of s.sets) {
+        per.set(set.exerciseKey, (per.get(set.exerciseKey) ?? 0) + set.reps * set.weightKg);
+      }
+      for (const [key, v] of per) {
+        const arr = map.get(key) ?? [];
+        arr.push({ volumeKg: Math.round(v), date: s.startedAt });
+        map.set(key, arr);
+      }
+    }
+    return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+  }, [sessions]);
+  const [key, setKey] = useState<string>(byKey[0]?.[0] ?? '');
+  const rows = (byKey.find(([kk]) => kk === key)?.[1] ?? []).slice(-8);
+  const maxV = Math.max(1, ...rows.map((r) => r.volumeKg));
+  const fmt = numFmt(lang);
+  const dateFmt = new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-US', { day: 'numeric', month: 'short' });
+  if (byKey.length === 0) return <EmptyState title={k.noSessions} hint={k.noSessionsHint} />;
+  const selected = key || byKey[0][0];
+  return (
+    <div>
+      <select className="input" style={{ width: '100%', marginBottom: 12 }} value={selected} onChange={(e) => setKey(e.target.value)}>
+        {byKey.map(([kk, arr]) => (
+          <option key={kk} value={kk}>
+            {exerciseName(kk, lang)} — {fmt.format(arr.length)} {lang === 'fa' ? 'جلسه' : 'sessions'}
+          </option>
+        ))}
+      </select>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {rows.map((r, i) => (
+          <div key={`${r.date}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="card-meta" style={{ width: 64, flexShrink: 0 }}>{dateFmt.format(new Date(r.date))}</span>
+            <div style={{ flex: 1, height: 14, borderRadius: 7, background: 'rgba(244,246,251,0.07)', overflow: 'hidden' }}>
+              <div style={{ width: `${Math.max(3, (r.volumeKg / maxV) * 100)}%`, height: '100%', borderRadius: 7, background: 'linear-gradient(90deg, #2e9cff, #00f0ff)' }} />
+            </div>
+            <span className="card-meta" style={{ width: 72, textAlign: lang === 'fa' ? 'left' : 'right' }}>{fmt.format(r.volumeKg)} {lang === 'fa' ? 'کیلوگرم' : 'kg'}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
  * Main tab
  * ============================================================ */
 export default function ProgressTab(): ReactElement {
@@ -711,6 +764,20 @@ export default function ProgressTab(): ReactElement {
           <div className="stat-label">{k.statsAvgDuration}</div>
         </div>
       </div>
+
+      {/* Continuity thread + month letter (second-priority) */}
+      <div style={{ marginBottom: 'var(--space-5)' }}>
+        <ContinuityPanel />
+      </div>
+
+      {/* 6. Deep per-exercise chart (later dossier item) */}
+      <section className="card prog-section">
+        <div className="prog-card-head"><VolIcon /><h2 className="card-title">{lang === 'fa' ? 'نمودار عمیق هر حرکت' : 'Deep chart per exercise'}</h2></div>
+        <p className="card-meta">{lang === 'fa' ? 'حجم ۸ جلسه‌ی اخیر همان حرکت — فقط داده‌ی واقعی ثبت‌شده' : 'Volume of the last 8 sessions for one movement — only real logged data'}</p>
+        <div className="prog-chart-wrap">
+          <PerExerciseChart sessions={sessions} lang={lang} k={k} />
+        </div>
+      </section>
 
       {/* 1. Weekly volume trend */}
       <section className="card prog-section">
