@@ -61,7 +61,7 @@ export const SESSION_KEYS = {
     kg: 'کیلو',
     reps: 'تکرار',
     set: 'ست',
-    rpeLabel: 'سختی ست (RPE)',
+    rpeLabel: 'سختی ست',
     rpeHint: 'اختیاری — برای پیشنهاد بهتر دفعه بعد',
     markDone: 'ثبت ست',
     setDone: 'ثبت شد',
@@ -277,6 +277,14 @@ function initialSets(pe: PlanDayExercise): SetDraft[] {
     }
   }
   return rows;
+}
+
+/** Shared prefill for the inline Home session board: the exact same
+ * drafts the overlay builds (target load → suggestion → last session
+ * → plan), so the board and the overlay never disagree on a set. */
+export type SessionSetDraft = SetDraft;
+export function initialSetsForExercise(pe: PlanDayExercise): SetDraft[] {
+  return initialSets(pe);
 }
 
 /** Session suggestion line, in the same shape the UI already renders. */
@@ -696,7 +704,7 @@ export default function WorkoutSession({
                   aria-pressed={effort === w.key}
                   onClick={() => setEffort(w.key)}
                 >
-                  {lang === 'fa' ? w.fa : w.en} · {w.rpeHint}
+                  {lang === 'fa' ? w.fa : w.en} · {lang === 'fa' ? w.rpeHint.replace('RPE ~', 'سختی تقریبی ') : w.rpeHint}
                 </button>
               ))}
             </div>

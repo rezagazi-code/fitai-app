@@ -17,16 +17,14 @@ import NextBlockOffer from '../components/NextBlockOffer';
 import { getDueBlock } from '../lib/nextBlock';
 import RecoveryPanel from '../components/RecoveryPanel';
 import { adjustDayForRecovery } from '../lib/recovery';
-import ExerciseDetail, { type DetailTarget } from '../components/ExerciseDetail';
+import TodaySessionBoard, { type BoardExercise } from '../session/TodaySessionBoard';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
 import { getActiveProgram, getAthleteProfile, getSessions, getVolumeByDay } from '../lib/store';
-import { getExercise } from '../lib/exercises';
 import {
   deloadSets,
   EN_WEEKDAYS,
   FA_WEEKDAYS,
   getSchedule,
-  lastPerformance,
 } from '../lib/schedule';
 
 /* Original inline icons for the stat medallions. */
@@ -51,8 +49,6 @@ function VolumeIcon(): ReactElement {
 }
 
 interface HomeTabProps {
-  /** Opens the workout session overlay for today's plan day. */
-  onStartWorkout: () => void;
   /** Opens the next scheduled session (rest card: make-up / early start). */
   onStartNextSession: () => void;
   /** Opens the onboarding wizard to build a program. */
@@ -97,19 +93,15 @@ function doneSetsThisWeek(sessions: ReturnType<typeof getSessions>, weekStart: D
   return n;
 }
 
-export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildProgram }: HomeTabProps): ReactElement {
+export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabProps): ReactElement {
   const { t, lang } = useLang();
   const program = getActiveProgram();
   const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
-  // Plain words, not symbols: beginners (the users who cannot afford a coach)
-  // must not have to decode "3 × 12-15" — and in RTL the symbol order renders
-  // reversed, so the chip spells the target out: "3 sets · 12-15 reps".
-  const targetLabel = (sets: number, reps: string) =>
-    reps.endsWith('s')
-      ? `${fmt(sets)} ${t('w.set')} · ${reps.slice(0, -1)} ${t('w.sec')}`
-      : `${fmt(sets)} ${t('w.set')} · ${reps} ${t('w.reps')}`;
   const weekdays = lang === 'fa' ? FA_WEEKDAYS : EN_WEEKDAYS;
-  const sessions = useMemo(() => getSessions(), []);
+  // Bumped when the inline board saves a session, so week stats re-read
+  // the store without remounting the board (its drafts must survive).
+  const [refreshTick, setRefreshTick] = useState(0);
+  const sessions = useMemo(() => getSessions(), [refreshTick]);
 
   const hour = new Date().getHours();
   const greet = t(`home.greeting.${greetingKey(hour)}`);
@@ -145,11 +137,6 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
   // phase shows in one line. Strength programs have no phase (their scheme
   // is role-independent), so the line hides for them.
   const athleteProfile = getAthleteProfile();
-  // Badges must follow the PLAN's own priorities, not the profile's: the
-  // profile can be edited without rebuilding, and a badge on an old plan
-  // would claim a growth scheme the stored exercises do not have.
-  // (Old stored plans predate the field, so ?? [] covers runtime-undefined.)
-  const growthPriorities: string[] = program?.priorities ?? [];
   const goalLit = athleteProfile?.goal ?? program?.goal;
   const showPhase = program != null && program.goal !== 'strength';
   const phaseKey =
@@ -166,8 +153,6 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
   const [, setHomeSeq] = useState(0);
   const remaining = sched ? Math.max(0, sched.sessionsPlannedThisWeek - sched.sessionsDoneThisWeek) : 0;
 
-  // Tap a today-card row → exercise detail (art, targets, records).
-  const [detail, setDetail] = useState<{ key: string; target: DetailTarget | null } | null>(null);
   // On-demand monthly program: the week-4 offer is the only path by
   // default, so a user mid-block had no way to see the next month.
   // This opens the same offer flow on demand (see NextBlockOffer
@@ -175,7 +160,22 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
   // accept uses the same path, dismiss writes nothing).
   const [showMonthly, setShowMonthly] = useState(false);
   const dueBlock = program ? getDueBlock(program, new Date(), sessions) : null;
-  const detailExercise = detail ? getExercise(detail.key) ?? null : null;
+  // The inline session board: today's exercises AFTER deload AND the
+  // recovery cut, each carrying its pre-recovery set count so the
+  // board can name the reduction on that exercise's own card.
+  const boardExercises: BoardExercise[] = todayRecovery && todayExercises
+    ? todayRecovery.exercises.map((adj) => {
+        const orig = todayExercises.find((e) => e.exerciseKey === adj.exerciseKey)!;
+        return {
+          exerciseKey: adj.exerciseKey,
+          sets: adj.sets,
+          reps: orig.reps,
+          restSeconds: orig.restSeconds,
+          ...(orig.targetWeightKg != null ? { targetWeightKg: orig.targetWeightKg } : {}),
+          originalSets: orig.sets,
+        };
+      })
+    : [];
 
   return (
     <div className="home-cascade">
@@ -252,13 +252,6 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
               <strong>{t('home.recoveryAdjustment')}:</strong> {lang === 'fa' ? todayAdjustment.noteFa : todayAdjustment.noteEn}
             </p>
           )}
-          {/* Visible session start at the TOP of the today card: the
-              old button sat below all 8 exercise rows, so it was
-              never seen above the fold. Same start path, same label
-              family — the bottom button stays as well. */}
-          <button type="button" className="btn-primary btn-shine home-start home-start--top" data-home-start-top onClick={onStartWorkout}>
-            {t('home.startTodaySession')}
-          </button>
           <div className="today-chips">
             <span className="chip chip--active">
               {fmt(todayExercises.length)} {t('home.exercises')}
@@ -271,53 +264,18 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
             </span>
           </div>
           <p className="card-meta">{t('home.setsExplainer')}</p>
-          <ul className="today-lifts">
-            {todayExercises.map((e) => {
-              const ex = getExercise(e.exerciseKey);
-              const last = lastPerformance(e.exerciseKey, sessions);
-              return (
-                <li key={e.exerciseKey} className="today-lift">
-                  <button
-                    type="button"
-                    className="today-lift__btn"
-                    onClick={() => setDetail({
-                      key: e.exerciseKey,
-                      target: { sets: e.sets, reps: e.reps, restSeconds: e.restSeconds },
-                    })}
-                  >
-                    <div className="today-lift__main">
-                      <span>
-                        <span className="today-lift__name">{ex ? ex.nameFa : e.exerciseKey}</span>
-                        {ex && <span className="today-lift__name-en" dir="ltr">{ex.nameEn}</span>}
-                      </span>
-                      <span className="today-lift__target">
-                        <span className="chip set-count">
-                          {targetLabel(e.sets, e.reps)}
-                        </span>
-                        {e.targetWeightKg != null && (
-                          <span className="chip chip--active">
-                            {t('sched.targetWeight')}: {fmt(e.targetWeightKg)} {t('w.kg')}
-                          </span>
-                        )}
-                        {ex && growthPriorities.includes(ex.muscle) && (
-                          <span className="chip chip--active">{t('priority.growthBadge')}</span>
-                        )}
-                        {' · ⏱ '}{fmt(e.restSeconds)} {t('w.sec')}
-                      </span>
-                    </div>
-                    {last && (
-                      <div className="today-lift__last">
-                        {t('sched.lastTime')}: {fmt(last.weightKg)} {t('w.kg')} × {last.reps.map(fmt).join(lang === 'fa' ? '، ' : ', ')}
-                      </div>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          <button type="button" className="btn-primary btn-shine home-start" onClick={onStartWorkout}>
-            {t('w.startWorkout')}
-          </button>
+          {/* SESSION AS THE PRIMARY VIEW: the today card IS the session
+              now — exercise cards with visible set rows, one-tap
+              logging, sticky rest, recovery on each card. No start
+              gate, no drill-down to reach a set. The overlay session
+              still exists for the rest card / other tabs / onboarding
+              landing; Home no longer hides behind it. */}
+          <TodaySessionBoard
+            planKey={program?.dayKeys?.[sched.dayIndex ?? 0] ?? `day-${(sched.dayIndex ?? 0) + 1}`}
+            planNameFa={sched.dayNameFa ?? program?.name ?? ''}
+            exercises={boardExercises}
+            onSaved={() => setRefreshTick((s) => s + 1)}
+          />
         </section>
       ) : sched ? (
         <section className="card today-card today-card--rest">
@@ -422,16 +380,6 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
         </>
       )}
 
-      {detail && detailExercise && (
-        <div className="ex-detail-overlay">
-          <ExerciseDetail
-            exercise={detailExercise}
-            target={detail.target}
-            onBack={() => setDetail(null)}
-            onSelect={(nx) => setDetail(nx.key === detail.key ? detail : { key: nx.key, target: null })}
-          />
-        </div>
-      )}
     </div>
   );
 }

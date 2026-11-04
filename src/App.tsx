@@ -83,7 +83,6 @@ function Shell() {
         {activeTab === 'home' && (
           <HomeTab
             key={`home-${seq}`}
-            onStartWorkout={openTodaySession}
             onStartNextSession={openNextSession}
             onBuildProgram={openOnboarding}
           />

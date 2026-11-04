@@ -1,0 +1,510 @@
+/* جلسه‌ی امروز روی خانه — کارت‌های تمیز، فاصله‌ی سخاوتمندانه،
+ * تایپوگرافی خوانا، حالت‌های واضح برای ست‌ها. بدون درخشش چشم‌آزار،
+ * بدون انیمیشن دائمی: فقط یک فید ملایم در ورود برد. */
+.tsb {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+  animation: tsb-in 0.35s ease both;
+}
+
+@keyframes tsb-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tsb-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tsb-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.tsb-meta {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tsb-cancel {
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.tsb-band-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* تایمر استراحت چسبان: هنگام اسکرول بین حرکت‌ها بالای صفحه می‌ماند. */
+.tsb-restbar {
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  background: #151b28;
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.tsb-restbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tsb-restbar-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tsb-restbar-time {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+.tsb-restbar-time.is-low {
+  color: var(--accent-gold);
+}
+
+.tsb-restbar-track {
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: rgba(244, 246, 251, 0.1);
+  overflow: hidden;
+}
+
+.tsb-restbar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent-cyan);
+  transition: width 0.25s linear;
+}
+
+.tsb-restbar-next,
+.tsb-restbar-ready {
+  margin-top: 10px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tsb-restbar-ready {
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+.tsb-restbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tsb-restbar-btn {
+  flex: 1 1 auto;
+  border: 1px solid var(--border-subtle);
+  background: rgba(244, 246, 251, 0.05);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 9px 10px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.tsb-restbar-skip {
+  color: var(--accent-danger);
+}
+
+/* کارت حرکت */
+.tsb-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tsb-exercise {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 18px 16px;
+}
+
+.tsb-exercise-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tsb-exercise-name {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.tsb-exercise-en {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.tsb-exercise-meta {
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.tsb-rec-chip {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tsb-rec-chip.is-tired {
+  color: #ffb454;
+  background: rgba(255, 180, 84, 0.13);
+}
+
+.tsb-rec-chip.is-semi {
+  color: var(--accent-cyan);
+  background: rgba(46, 199, 211, 0.12);
+}
+
+.tsb-rec-chip.is-ready {
+  color: var(--accent-success);
+  background: rgba(61, 220, 132, 0.12);
+}
+
+.tsb-rec-chip.is-nodata {
+  color: var(--text-muted);
+  background: rgba(244, 246, 251, 0.07);
+}
+
+.tsb-reduction {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 180, 84, 0.1);
+  color: #ffcf8f;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* ردیف‌های ست — خود ردیف دکمه است */
+.tsb-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tsb-set {
+  border-radius: 14px;
+}
+
+.tsb-set-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: right;
+  border: 1px solid var(--border-subtle);
+  background: rgba(244, 246, 251, 0.04);
+  color: var(--text-primary);
+  border-radius: 14px;
+  padding: 13px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.tsb-set-row:active {
+  transform: scale(0.985);
+}
+
+.tsb-set.is-done .tsb-set-row {
+  background: rgba(61, 220, 132, 0.1);
+  border-color: rgba(61, 220, 132, 0.35);
+}
+
+.tsb-set-index {
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tsb-set-values {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tsb-set.is-done .tsb-set-values {
+  color: var(--accent-success);
+}
+
+.tsb-set-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.tsb-check {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  color: #07130c;
+  font-weight: 800;
+}
+
+.tsb-check.is-on {
+  background: var(--accent-success);
+  border-color: var(--accent-success);
+}
+
+.tsb-set-editrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding-inline-start: 4px;
+}
+
+.tsb-text-btn {
+  border: none;
+  background: transparent;
+  color: var(--accent-cyan);
+  font-size: 0.8125rem;
+  padding: 4px 2px;
+  cursor: pointer;
+}
+
+.tsb-set-editfields {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tsb-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.tsb-field input {
+  width: 76px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.9375rem;
+}
+
+.tsb-bw-tag {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* پایان تمرین */
+.tsb-finish-wrap {
+  margin-top: 4px;
+}
+
+.tsb-finish {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+
+.tsb-finish:disabled {
+  opacity: 0.45;
+}
+
+.tsb-finish-hint {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* خلاصه‌ی پایان */
+.tsb-summary {
+  margin-top: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 22px;
+  padding: 24px 18px;
+  text-align: center;
+}
+
+.tsb-summary-ring {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: rgba(61, 220, 132, 0.14);
+  color: var(--accent-success);
+  font-size: 1.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tsb-summary-title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+
+.tsb-summary-day {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+}
+
+.tsb-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.tsb-summary-stat {
+  background: rgba(244, 246, 251, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px 8px;
+}
+
+.tsb-summary-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tsb-summary-label {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.tsb-unit,
+.tsb-muted {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.tsb-summary-prs {
+  margin: 16px 0 0;
+  color: var(--accent-gold);
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.tsb-summary-saved {
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.tsb-again {
+  margin-top: 18px;
+  width: 100%;
+}
+
+/* دیالوگ‌های تایید */
+.tsb-confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.tsb-confirm-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 22px 18px;
+  text-align: center;
+}
+
+.tsb-confirm-card h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.tsb-confirm-card p {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.tsb-confirm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.tsb-confirm-actions > * {
+  flex: 1;
+}
+
+.tsb-danger-btn {
+  border: none;
+  background: var(--accent-danger);
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tsb {
+    animation: none;
+  }
+}
