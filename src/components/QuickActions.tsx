@@ -53,7 +53,7 @@ export default function QuickActions({
   const [open, setOpen] = useState(false);
 
   const options: Array<{ key: string; label: string; run: () => void }> = [
-    { key: 'food', label: L.food, run: () => scrollToSection('[data-food-log]') },
+    { key: 'food', label: L.food, run: () => scrollToSection('[data-meal-diary]') },
     { key: 'voice', label: L.voice, run: () => scrollToSection('[data-voice-food-log]') },
     { key: 'session', label: L.session, run: () => { setOpen(false); onStartWorkout(); } },
     { key: 'program', label: L.program, run: () => { setOpen(false); onBuildProgram(); } },
