@@ -1,7 +1,9 @@
 /* ============================================================
  * اپ هوشمند بدنسازی — Design Tokens
- * Dark AI-fitness aesthetic. Chic-and-calm («شیک و خلوت»):
- * generous whitespace, one accent per component, clean hierarchy.
+ * Energetic sporty look (Reza 2026-11-04: the old dark theme read
+ * boring and far too dark and did not convey sport vitality).
+ * Brighter surfaces + a vivid accent, still readable and chic —
+ * no flashing, no perpetual pulsing, no eye-strain glow.
  *
  * NOTE: wire this file from src/index.css with
  *   @import "./styles/design-tokens.css";
@@ -9,13 +11,13 @@
 
 :root {
   /* ---------- Color: foundation ---------- */
-  --bg-base: #141b29;          /* page background — lifted from
-    near-black #0a0e14 (2026-11-04 democards: the old base read
-    gloomy); still dark and calm, now a softer slate */
-  --bg-elevated: #1a2233;      /* raised surfaces */
-  --surface: #141927;          /* cards, sheets */
-  --surface-2: #161c2b;        /* inset rows, secondary surfaces */
-  --surface-soft: #1b2133;     /* hover / pressed surfaces */
+  --bg-base: #1f2d4d;          /* page background — lifted again
+    from #141b29 (2026-11-04 vibrant order: the slate still read
+    gloomy); a brighter sporty navy, still dark enough for white text */
+  --bg-elevated: #243457;      /* raised surfaces */
+  --surface: #233154;          /* cards, sheets */
+  --surface-2: #273654;        /* inset rows, secondary surfaces */
+  --surface-soft: #2c3d63;     /* hover / pressed surfaces */
 
   /* ---------- Color: text ----------
      Readability pass 2026-10-24: the old --text-muted (#6b7186)
@@ -23,13 +25,15 @@
      and muted are now AAA-safe; muted is reserved for small,
      non-essential labels only. */
   --text-primary: #f5f7fc;
-  --text-secondary: #d2d9e8;
-  --text-muted: #aab4c8;
+  --text-secondary: #e2e8f5;
+  --text-muted: #bcc6da;
 
   /* ---------- Color: accents (re-skinnable pair) ---------- */
-  --accent-blue: #2e9cff;      /* primary neon — CTA, active states */
-  --accent-cyan: #2ec7d3;      /* secondary — desaturated a step from
-    electric #00f0ff (2026-11-04 eye-strain fix): still cyan, no glare */
+  --accent-blue: #3aa8ff;      /* primary neon — CTA, active states (vivid step up) */
+  --accent-cyan: #17d6c3;      /* secondary — vivid sporty teal; still
+    no glare: glow alphas unchanged, only the hue value is livelier */
+  --accent-volt: #b8f135;      /* energy accent — sport vitality
+    (sparingly: PR flashes, day-total highlights), never full-bleed */
   --accent-danger: #ff5470;    /* warnings/destructive ONLY */
   --accent-success: #3ddc84;   /* records, completions, positive feedback */
   --accent-gold: #ffd166;      /* celebration, PRs, badges */

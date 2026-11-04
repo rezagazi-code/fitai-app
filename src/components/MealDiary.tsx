@@ -291,7 +291,7 @@ export default function MealDiary(): ReactElement {
       <h3 className="card-title">{L.title}</h3>
       <p className="card-meta" style={{ margin: '0 0 8px' }}>{L.subtitle}</p>
       <p style={{ margin: '0 0 12px', fontSize: 'var(--text-h2)', fontWeight: 700 }}>
-        {L.dayTotal}: <span data-diary-day-total>{fmt(dayTotal)}</span> kcal
+        {L.dayTotal}: <span data-diary-day-total style={{ color: 'var(--accent-volt)' }}>{fmt(dayTotal)}</span> kcal
       </p>
 
       <div style={{ marginBottom: 4 }}>
