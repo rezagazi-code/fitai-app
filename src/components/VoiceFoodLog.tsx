@@ -6,6 +6,21 @@
  * allowed and accumulating — and the app turns it into food items.
  * Dinner may be announced BEFORE eating it (prospective logging).
  *
+ * DIAGNOSIS (why Reza's device reports "voice does not work"):
+ * This component uses the Web Speech API (window.SpeechRecognition /
+ * webkitSpeechRecognition). Android's System WebView — the engine a
+ * Capacitor app runs in — does NOT implement that API (Chrome for
+ * Android has it via Google's speech service; the WebView does not),
+ * so on the real phone speechRecognitionAvailable() is false and the
+ * record button was dead. A second failure was silent: recognizer
+ * start() errors and onerror codes (mic permission, network,
+ * no-speech) were swallowed with no message. The fix below makes
+ * both visible: when the API is absent the fallback (typed voice
+ * text, same parser, same reviewed summary) is the primary path with
+ * a plain explanation, and every runtime error maps to a visible
+ * Persian message instead of failing silently. A native speech
+ * plugin would be a separate, device-tested step — not claimed here.
+ *
  * Honesty rules in the UI itself:
  * - If live Persian speech recognition is unavailable in this browser,
  *   the user types/pastes the spoken text instead, and the screen says
@@ -52,6 +67,15 @@ const KEYS = {
     saved: 'ثبت شد.',
     sttNote: 'تشخیص گفتار زنده در این مرورگر در دسترس است.',
     sttUnavailable: 'تشخیص گفتار زنده در این مرورگر در دسترس نیست — از حالت متن ویس استفاده کن.',
+    fallbackTitle: 'ویس روی گوشی با مرورگر داخلی کار نمی‌کند — ولی راهش همین‌جاست',
+    fallbackBody: 'نسخه‌ی اندروید داخل مرورگر داخلی گوشی (WebView) اجرا می‌شود و آن مرورگر، تشخیص گفتار ندارد؛ به همین دلیل دکمه‌ی ضبط روی گوشی بی‌اثر بود. به‌جای آن، همین پایین چیزی را که خوردی با تایپ بنویس — تشخیص غذاها و خلاصه‌ی قابل اصلاح، دقیقاً مثل حالت ویس است.',
+    fallbackNote: 'متن را بنویس، «تشخیص غذاها» را بزن، خلاصه را اصلاح کن، بعد تأیید کن.',
+    errNotAllowed: 'دسترسی به میکروفون داده نشده است. از تنظیمات گوشی، دسترسی میکروفون را برای اپ باز کن و دوباره امتحان کن — یا متن را بنویس.',
+    errNetwork: 'تشخیص گفتار زنده به اینترنت نیاز دارد. اتصال را چک کن — یا متن را بنویس.',
+    errNoSpeech: 'صدایی شنیده نشد. دوباره واضح‌تر بگو — یا متن را بنویس.',
+    errAudio: 'میکروفون در دسترس نیست یا مشغول است — یا متن را بنویس.',
+    errAborted: 'ضبط قطع شد. دوباره امتحان کن — یا متن را بنویس.',
+    errGeneric: 'تشخیص گفتار ناموفق بود — یا متن را بنویس.',
   },
   en: {
     title: 'Log food by voice',
@@ -76,6 +100,15 @@ const KEYS = {
     saved: 'Saved.',
     sttNote: 'Live speech recognition is available in this browser.',
     sttUnavailable: 'Live speech recognition is not available in this browser — use voice-text mode.',
+    fallbackTitle: 'Voice does not work in the phone WebView — but the fallback is right here',
+    fallbackBody: 'The Android app runs inside the phone WebView, which has no speech recognition — that is why the record button did nothing on the phone. Type what you ate below instead: food detection and the editable summary work exactly like the voice path.',
+    fallbackNote: 'Type the text, press "Detect foods", correct the summary, then confirm.',
+    errNotAllowed: 'Microphone access was denied. Allow microphone access for the app in phone settings and try again — or type the text.',
+    errNetwork: 'Live speech recognition needs internet. Check the connection — or type the text.',
+    errNoSpeech: 'No speech was heard. Speak again, more clearly — or type the text.',
+    errAudio: 'The microphone is unavailable or busy — or type the text.',
+    errAborted: 'Recording was interrupted. Try again — or type the text.',
+    errGeneric: 'Speech recognition failed — or type the text.',
   },
 } as const;
 
@@ -112,6 +145,25 @@ export default function VoiceFoodLog(): ReactElement {
   const [water, setWater] = useState(0);
   const [unmatched, setUnmatched] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [sttError, setSttError] = useState<string | null>(null);
+
+  const mapSttError = (code: string): string => {
+    switch (code) {
+      case 'not-allowed':
+      case 'service-not-allowed':
+        return L.errNotAllowed;
+      case 'network':
+        return L.errNetwork;
+      case 'no-speech':
+        return L.errNoSpeech;
+      case 'audio-capture':
+        return L.errAudio;
+      case 'aborted':
+        return L.errAborted;
+      default:
+        return L.errGeneric;
+    }
+  };
   const [addName, setAddName] = useState('');
   const [addKcal, setAddKcal] = useState(150);
   const recognizerRef = useRef<ReturnType<typeof createSpeechRecognizer>>(null);
@@ -130,16 +182,32 @@ export default function VoiceFoodLog(): ReactElement {
       setListening(false);
       return;
     }
+    setSttError(null);
     const rec = createSpeechRecognizer(
       (spoken) => {
         setText((prev) => (prev ? `${prev} ${spoken}` : spoken));
         setListening(false);
       },
-      () => setListening(false),
+      (code) => {
+        setSttError(mapSttError(code));
+        setListening(false);
+      },
     );
-    if (!rec) return;
+    if (!rec) {
+      // API vanished between the availability check and now: say so,
+      // and leave the typed-text fallback (already on screen) as the path.
+      setSttError(L.errGeneric);
+      return;
+    }
     recognizerRef.current = rec;
-    rec.start();
+    try {
+      rec.start();
+    } catch {
+      // start() throws synchronously when capture is not allowed —
+      // previously this failed silently; now it shows a message.
+      setSttError(L.errNotAllowed);
+      return;
+    }
     setListening(true);
   };
 
@@ -192,14 +260,30 @@ export default function VoiceFoodLog(): ReactElement {
         {sttAvailable ? L.sttNote : L.sttUnavailable}
       </p>
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-        <button type="button" className="btn-primary" onClick={handleRecord} disabled={!sttAvailable}>
-          {listening ? L.listening : L.record}
-        </button>
-        {listening && (
-          <button type="button" className="chip" onClick={handleRecord}>{L.stop}</button>
-        )}
-      </div>
+      {!sttAvailable && (
+        <div data-voice-fallback style={{ border: '1px solid var(--border-strong)', borderRadius: 12, padding: 12, marginBottom: 12 }}>
+          <p style={{ margin: '0 0 6px', fontWeight: 700 }}>{L.fallbackTitle}</p>
+          <p className="card-meta" style={{ margin: '0 0 6px' }}>{L.fallbackBody}</p>
+          <p className="card-meta" style={{ margin: 0 }}>{L.fallbackNote}</p>
+        </div>
+      )}
+
+      {sttAvailable && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+          <button type="button" className="btn-primary" onClick={handleRecord}>
+            {listening ? L.listening : L.record}
+          </button>
+          {listening && (
+            <button type="button" className="chip" onClick={handleRecord}>{L.stop}</button>
+          )}
+        </div>
+      )}
+
+      {sttError && (
+        <p data-voice-error style={{ margin: '0 0 12px', color: 'var(--accent-danger)', fontWeight: 600 }}>
+          {sttError}
+        </p>
+      )}
 
       <label className="card-meta" style={{ display: 'block', marginBottom: 4 }}>{L.textMode}</label>
       <textarea
