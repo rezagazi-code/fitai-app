@@ -55,6 +55,8 @@ interface HomeTabProps {
   onStartNextSession: () => void;
   /** Opens the onboarding wizard to build a program. */
   onBuildProgram: () => void;
+  /** Switches to the programs tab (board cancel → new program). */
+  onGoToPrograms: () => void;
 }
 
 function greetingKey(hour: number): 'morning' | 'afternoon' | 'evening' {
@@ -95,7 +97,7 @@ function doneSetsThisWeek(sessions: ReturnType<typeof getSessions>, weekStart: D
   return n;
 }
 
-export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabProps): ReactElement {
+export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToPrograms }: HomeTabProps): ReactElement {
   const { t, lang } = useLang();
   const program = getActiveProgram();
   const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
@@ -249,6 +251,7 @@ export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabP
             exercises={boardExercises}
             onSaved={() => setRefreshTick((s) => s + 1)}
             onOpenDetail={(key) => setBoardDetailKey(key)}
+            onExit={onGoToPrograms}
           />
           <div className="today-chips">
             <span className="chip chip--active">

@@ -17,6 +17,13 @@
  *
  * ست‌ها از همان پیش‌فرض جلسه‌ی پوششی می‌آیند (initialSetsForExercise)
  * تا برد و پوشه هیچ‌وقت روی یک ست با هم اختلاف نداشته باشند.
+ *
+ * دو رفتار عمدی این برد: (۱) انصراف واقعاً خارج می‌شود — وقتی هنوز
+ * چیزی ثبت نشده، بی‌درنگ و بدون دیالوگ؛ وقتی جلسه در جریان است، بعد
+ * از تأیید، به‌جای همان کارت‌ها یک حالت لغوشده‌ی مشخص می‌نشیند.
+ * (۲) هر کارت فقط یک ردیف نام فشرده است؛ با زدن روی ردیف، دقیقاً یک
+ * پنل کشویی زیر همان ردیف باز می‌شود (دمو + ست‌ها + جزئیات) و زدن روی
+ * ردیف دیگر، اولی را می‌بندد — همان الگوی پنل درون‌خطی پدل‌پرو.
  */
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { getExercise, MUSCLE_LABELS } from '../lib/exercises';
@@ -48,6 +55,8 @@ interface TodaySessionBoardProps {
   onSaved: () => void;
   /** Opens the exercise detail view (instructions + verified video). */
   onOpenDetail?: (exerciseKey: string) => void;
+  /** Leaves the session view for the programs tab (cancelled state). */
+  onExit?: () => void;
 }
 
 const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
@@ -101,6 +110,7 @@ export default function TodaySessionBoard({
   exercises,
   onSaved,
   onOpenDetail,
+  onExit,
 }: TodaySessionBoardProps): ReactElement {
   const [drafts, setDrafts] = useState<SessionSetDraft[][]>(() =>
     exercises.map((e) => initialSetsForExercise(e)),
@@ -116,6 +126,13 @@ export default function TodaySessionBoard({
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [summary, setSummary] = useState<SummaryData | null>(null);
+  /* Slide-down: exactly one panel open at a time. The first exercise
+   * starts open so its demo is on the first screen with no tap at all
+   * (and one tap away for every other exercise, never deeper). */
+  const [openCard, setOpenCard] = useState<number | null>(0);
+  /* Cancelled state: a visibly different screen, not the same cards
+   * reset in place (which made cancel feel dead). */
+  const [cancelled, setCancelled] = useState(false);
 
   const rec = useMemo(() => recoveryDisplayMap(), []);
   const startRef = useRef<number | null>(null);
@@ -263,6 +280,24 @@ export default function TodaySessionBoard({
     setRestRemaining(0);
     setEditingCard(null);
     setSummary(null);
+    setOpenCard(0);
+  };
+
+  /* Cancel REALLY exits. Nothing logged yet → exit at once, no dialog
+   * (the old "sets won't be saved" confirm was pointless with nothing
+   * to lose). A session in progress → confirm, then discard and show
+   * the cancelled state instead of the same cards. */
+  const doCancel = () => {
+    setConfirmCancel(false);
+    resetBoard();
+    setCancelled(true);
+  };
+  const handleCancelClick = () => {
+    if (totalDone === 0 && startedAt === null) {
+      doCancel();
+    } else {
+      setConfirmCancel(true);
+    }
   };
 
   const handleFinish = () => {
@@ -310,6 +345,43 @@ export default function TodaySessionBoard({
     setRestRemaining(0);
     onSaved();
   };
+
+  if (cancelled) {
+    return (
+      <div className="tsb-cancelled" data-board-cancelled>
+        <div className="tsb-cancelled-mark" aria-hidden="true">
+          ✕
+        </div>
+        <h3 className="tsb-cancelled-title">جلسه امروز لغو شد</h3>
+        <p className="tsb-cancelled-body">
+          ست‌های ثبت‌شده ذخیره نشدند. هر وقت آماده بودی، دوباره شروع کن یا برنامه‌ی تازه بگیر.
+        </p>
+        <div className="tsb-cancelled-actions">
+          <button
+            type="button"
+            className="btn-primary"
+            data-board-restart
+            onClick={() => {
+              setCancelled(false);
+              resetBoard();
+            }}
+          >
+            شروع دوباره
+          </button>
+          {onExit && (
+            <button
+              type="button"
+              className="btn-secondary"
+              data-board-new-program
+              onClick={onExit}
+            >
+              گرفتن برنامه جدید
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (summary) {
     return (
@@ -374,7 +446,7 @@ export default function TodaySessionBoard({
           type="button"
           className="tsb-cancel"
           data-board-cancel
-          onClick={() => setConfirmCancel(true)}
+          onClick={handleCancelClick}
         >
           ✕ انصراف
         </button>
@@ -445,32 +517,31 @@ export default function TodaySessionBoard({
               className="tsb-exercise"
               data-board-exercise={pe.exerciseKey}
             >
-              <header className="tsb-exercise-head">
-                <div className="tsb-exercise-titles">
-                  {onOpenDetail && ex ? (
-                    <button
-                      type="button"
-                      className="tsb-exercise-name tsb-exercise-name-btn"
-                      data-board-detail={pe.exerciseKey}
-                      onClick={() => onOpenDetail(pe.exerciseKey)}
-                    >
-                      {ex.nameFa}
-                    </button>
-                  ) : (
-                    <h4 className="tsb-exercise-name">{ex ? ex.nameFa : pe.exerciseKey}</h4>
-                  )}
+              {/* Compact name row: tapping expands EXACTLY ONE
+                  slide-down panel directly beneath this row (the
+                  PadelPro inline-panel pattern). Tapping another row
+                  closes this one; tapping this row collapses it. */}
+              <button
+                type="button"
+                className="tsb-row-head"
+                data-board-expand={pe.exerciseKey}
+                aria-expanded={openCard === ei}
+                onClick={() => setOpenCard(openCard === ei ? null : ei)}
+              >
+                <span className="tsb-row-titles">
+                  <span className="tsb-exercise-name">{ex ? ex.nameFa : pe.exerciseKey}</span>
                   {ex && (
-                    <div className="tsb-exercise-en" dir="ltr">
+                    <span className="tsb-exercise-en" dir="ltr">
                       {ex.nameEn}
-                    </div>
+                    </span>
                   )}
-                  <div className="tsb-exercise-meta">
+                  <span className="tsb-exercise-meta">
                     {fa(rows.length)} ست · {fa(doneCount)} ثبت‌شده
                     {pe.targetWeightKg != null && (
                       <> · وزن هدف: {fa(pe.targetWeightKg)} کیلو</>
                     )}
-                  </div>
-                </div>
+                  </span>
+                </span>
                 {r && muscle && (
                   <span
                     className={`tsb-rec-chip${noData ? ' is-nodata' : r.state === 'tired' ? ' is-tired' : r.state === 'semi' ? ' is-semi' : ' is-ready'}`}
@@ -481,7 +552,15 @@ export default function TodaySessionBoard({
                     {noData ? 'بدون داده' : `${fa(r.percent ?? 0)}٪ · ${stateFa}`}
                   </span>
                 )}
-              </header>
+                <span className="tsb-row-chev" aria-hidden="true">
+                  {openCard === ei ? '⌃' : '⌄'}
+                </span>
+              </button>
+              <div
+                className={`tsb-panel${openCard === ei ? ' is-open' : ''}`}
+                data-board-panel={pe.exerciseKey}
+              >
+                <div className="tsb-panel-inner">
               {/* ---------- moving demo, ON the card ----------
 
                   Wired art (147/158) animates start↔end right here —
@@ -591,6 +670,16 @@ export default function TodaySessionBoard({
                   );
                 })}
               </div>
+              {onOpenDetail && ex && (
+                <button
+                  type="button"
+                  className="tsb-detail-btn"
+                  data-board-detail={pe.exerciseKey}
+                  onClick={() => onOpenDetail(pe.exerciseKey)}
+                >
+                  جزئیات و نحوه اجرا
+                </button>
+              )}
               <button
                 type="button"
                 className="tsb-text-btn tsb-edit-toggle"
@@ -599,6 +688,8 @@ export default function TodaySessionBoard({
               >
                 {editingCard === ei ? 'تمام ویرایش' : 'ویرایش ست‌ها'}
               </button>
+                </div>
+              </div>
             </article>
           );
         })}
@@ -633,10 +724,7 @@ export default function TodaySessionBoard({
               <button
                 type="button"
                 className="tsb-danger-btn"
-                onClick={() => {
-                  setConfirmCancel(false);
-                  resetBoard();
-                }}
+                onClick={doCancel}
               >
                 بله، انصراف
               </button>

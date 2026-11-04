@@ -85,6 +85,7 @@ function Shell() {
             key={`home-${seq}`}
             onStartNextSession={openNextSession}
             onBuildProgram={openOnboarding}
+            onGoToPrograms={() => setActiveTab('workouts')}
           />
         )}
         {activeTab === 'workouts' && (
