@@ -19,7 +19,8 @@ import ExerciseDetail from '../components/ExerciseDetail';
 import FourWeekPlan from '../components/FourWeekPlan';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
-import { getActiveProgram, getAthleteProfile } from '../lib/store';
+import { getActiveProgram, getAthleteProfile, getSessions } from '../lib/store';
+import { getSchedule } from '../lib/schedule';
 import { getBannedExerciseKeys } from '../lib/banned';
 import { markMaxEffortDayDone, maxEffortDue, maxEffortExercises } from '../lib/effort';
 import {
@@ -85,6 +86,18 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout, initialMus
   const maxEffortKeys = maxEffortDue() && !maxEffortDone ? maxEffortExercises(4) : [];
 
   const program = useMemo(() => getActiveProgram(), []);
+  // Rest-day honesty: the Start button opens the NEXT session (see App
+  // openTodaySession), so on rest days it must SAY so, with the weekday.
+  const todaySched = useMemo(
+    () => (program ? getSchedule(program, new Date(), getSessions()) : null),
+    // program is memo-stable for the tab's lifetime
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [program],
+  );
+  const startLabel =
+    todaySched?.kind === 'rest' && todaySched.nextTrain
+      ? `${t('sched.startNextSession')} (${lang === 'fa' ? todaySched.nextTrain.weekdayFa : todaySched.nextTrain.weekdayEn})`
+      : t('w.startWorkout');
   const totalExercises = useMemo(
     () => (program ? program.days.reduce((n, d) => n + d.length, 0) : 0),
     [program],
@@ -161,7 +174,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout, initialMus
           )}
           {onStartWorkout && (
             <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={onStartWorkout}>
-              {t('w.startWorkout')}
+              {startLabel}
             </button>
           )}
           <FourWeekPlan program={program} />

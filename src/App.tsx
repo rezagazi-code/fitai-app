@@ -56,10 +56,12 @@ function Shell() {
 
   const openTodaySession = useCallback(() => {
     const program = getActiveProgram();
-    const day = todayPlanDay(program);
+    // Rest day used to open NOTHING (silent dead button on the Programs
+    // card): fall back to the next scheduled session, exactly like the
+    // quick-onboarding finish and the rest card's early start. Only a
+    // missing program opens onboarding.
+    const day = todayPlanDay(program) ?? nextPlanDay(program);
     if (day) setSessionDay(day);
-    // Rest day with a program: no session to open — the rest card offers
-    // the next session instead. Only a missing program opens onboarding.
     else if (!program) setOnboardingOpen(true);
   }, []);
 
