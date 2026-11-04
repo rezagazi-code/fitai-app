@@ -205,6 +205,13 @@ export interface UserProfile {
   /** Explicit global phase; when absent the old goal default applies
    * (fatloss goal → fatloss phase, everything else → growth phase). */
   phase?: GlobalPhase;
+  /** PAR-Q-style health flags from onboarding (e.g. 'heart',
+   * 'pregnancy'). Any flag forces the lowest (beginner) tier in
+   * generateProgram — it never sets a set/rep/load rule of its own. */
+  healthFlags?: string[];
+  /** Session length in minutes (30/45/60/90) from onboarding. Caps the
+   * number of exercises per day; absent = no cap (legacy programs). */
+  sessionMinutes?: number;
 }
 
 export interface PlanExercise {
@@ -237,6 +244,8 @@ export interface WorkoutPlan {
   phase: GlobalPhase;
   /** Growth-priority muscle groups this plan was built with. */
   priorities: MuscleGroup[];
+  /** True when a health flag forced this plan onto the lowest tier. */
+  healthFlagged?: boolean;
 }
 
 /** One training session's log for a single exercise. */
@@ -818,13 +827,34 @@ export function programExcludedKeys(profile: UserProfile): Set<string> {
   return new Set([...injuryExcludedKeys(profile.injuries), ...getBannedExerciseKeys()]);
 }
 
-export function generateProgram(profile: UserProfile): WorkoutPlan {
+export function generateProgram(input: UserProfile): WorkoutPlan {
+  // Safety gate: any health flag forces the engine's existing lowest
+  // tier (beginner). Beginner is a pool gate only — it excludes heavy /
+  // complex lifts; no health-based set/rep/load rule is invented here,
+  // and schemes still come from goal + muscle role as before.
+  const profile: UserProfile =
+    input.healthFlags && input.healthFlags.length > 0
+      ? { ...input, level: 'beginner' }
+      : input;
   const daysPerWeek = Math.max(2, Math.min(6, Math.round(profile.daysPerWeek)));
   const excluded = programExcludedKeys(profile);
   const templates = splitFor(daysPerWeek);
   const weeklyUse = new Map<string, number>();
   const phase = resolvePhase(profile);
   const priorities = [...(profile.priorities ?? [])];
+  // Session-length cap on exercises per day (Fitbod pattern: duration
+  // changes exercise count, never sets per exercise). 90 min = no cap
+  // in practice (no template day exceeds 12 exercises).
+  const sessionCap =
+    profile.sessionMinutes === 30
+      ? 5
+      : profile.sessionMinutes === 45
+        ? 6
+        : profile.sessionMinutes === 60
+          ? 8
+          : profile.sessionMinutes === 90
+            ? 12
+            : undefined;
 
   const seedBase = JSON.stringify({
     g: profile.goal,
@@ -835,6 +865,8 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
     b: [...getBannedExerciseKeys()].sort(),
     p: phase,
     pr: [...priorities].sort(),
+    h: [...(input.healthFlags ?? [])].sort(),
+    m: profile.sessionMinutes ?? null,
   });
 
   const days: PlanDay[] = templates.map((t) => {
@@ -843,6 +875,9 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
     const allKeys: string[] = [];
 
     for (const [muscle, count] of t.blocks) {
+      // Whole blocks only: stop before starting a block that would
+      // push the day past the session-length cap.
+      if (sessionCap !== undefined && exercises.length >= sessionCap) break;
       const { picked, relaxed } = pickForBlock(
         muscle,
         count,
@@ -878,6 +913,7 @@ export function generateProgram(profile: UserProfile): WorkoutPlan {
     days,
     phase,
     priorities,
+    healthFlagged: (input.healthFlags?.length ?? 0) > 0,
   };
 }
 

@@ -57,6 +57,23 @@ export const PROFILE_KEYS = {
     phaseNote: 'چربی‌سوزی سراسری است و با غذا اتفاق می‌افتد؛ تمرین عضله را نگه می‌دارد.',
     saveMeasurements: 'ذخیره‌ی اندازه‌ها و اولویت‌ها',
     savedNote: 'ذخیره شد — برای اعمال روی برنامه، «برنامه‌ی تازه» بساز.',
+    age: 'سن',
+    bmiLabel: 'شاخص توده‌ی بدنی (BMI)',
+    bmiEstimate: 'برآورد عمومی، نه تشخیص پزشکی',
+    bmiUnder: 'کم‌وزن',
+    bmiHealthy: 'محدوده‌ی طبیعی بزرگسالان',
+    bmiOver: 'اضافه‌وزن',
+    bmiObese: 'چاقی',
+    bmiAgeNote: 'برای زیر ۲۰ سال و بالای ۶۵ سال، بازه‌های بزرگسالان دقیق نیست؛ این عدد فقط یک برآورد عمومی است.',
+    healthTitle: 'غربال سلامت',
+    healthNote: 'چون به یکی از پرسش‌های سلامت «بله» گفته‌ای، برنامه‌ات با کمترین شدت ساخته می‌شود. پیش از تمرین سنگین با پزشک یا متخصص سلامت مشورت کن. این یک توصیه‌ی پزشکی نیست؛ فقط یک احتیاط عمومی است.',
+    healthFlag_heart: 'بیماری قلبی / نظارت پزشکی',
+    healthFlag_chestPain: 'درد قفسه‌ی سینه',
+    healthFlag_dizziness: 'سرگیجه / غش',
+    healthFlag_joint: 'مشکل استخوان یا مفصل',
+    healthFlag_medication: 'داروی فشار خون یا قلب',
+    healthFlag_other: 'دلیل دیگر برای احتیاط',
+    healthFlag_pregnancy: 'بارداری / زایمان اخیر',
     suppTitle: 'مکمل‌ها و ویتامین‌های مصرفی',
     suppNote: 'فقط ثبت مصرف خودت است — این بخش چیزی را پیشنهاد نمی‌کند، نیاز تو را تشخیص نمی‌دهد و دوز مناسب را نمی‌گوید.',
     suppEmpty: 'هنوز چیزی ثبت نشده است.',
@@ -124,6 +141,23 @@ export const PROFILE_KEYS = {
     phaseNote: 'Fat loss is whole-body and comes from food; training preserves muscle.',
     saveMeasurements: 'Save measurements & priorities',
     savedNote: 'Saved — build a fresh program to apply it.',
+    age: 'Age',
+    bmiLabel: 'Body mass index (BMI)',
+    bmiEstimate: 'General estimate, not a medical diagnosis',
+    bmiUnder: 'Underweight',
+    bmiHealthy: 'Healthy adult range',
+    bmiOver: 'Overweight',
+    bmiObese: 'Obesity',
+    bmiAgeNote: 'Adult bands are not accurate under 20 or over 65; this number is only a general estimate.',
+    healthTitle: 'Health screen',
+    healthNote: 'Because you answered yes to a health question, your plan is built at the lowest intensity. Please check with a clinician before hard training. This is general information, not medical advice.',
+    healthFlag_heart: 'Heart condition / medical supervision',
+    healthFlag_chestPain: 'Chest pain',
+    healthFlag_dizziness: 'Dizziness / fainting',
+    healthFlag_joint: 'Bone or joint problem',
+    healthFlag_medication: 'Blood pressure / heart medication',
+    healthFlag_other: 'Other reason for caution',
+    healthFlag_pregnancy: 'Pregnancy / recent birth',
     suppTitle: 'Vitamins & supplements you take',
     suppNote: 'Just a log of what you take — this section recommends nothing, diagnoses no need, and never states a right dose.',
     suppEmpty: 'Nothing logged yet.',
@@ -218,6 +252,12 @@ interface StoredProfile {
   daysPerWeek?: number;
   heightCm?: number;
   weightKg?: number;
+  /** Stored and shown only — no age-based program rule exists. */
+  ageYears?: number;
+  /** PAR-Q-style flags from the wizard safety step. */
+  healthFlags?: string[];
+  /** Session length in minutes from the wizard. */
+  sessionMinutes?: number;
   measurements?: {
     waistCm?: number;
     hipCm?: number;
@@ -329,6 +369,9 @@ export default function ProfileTab(): ReactElement {
 
   /* ---- measurements + priorities editing (per-muscle engine) ---- */
   const savedMeasures = profile?.measurements ?? {};
+  const [ageYears, setAgeYears] = useState(
+    profile?.ageYears != null ? String(profile.ageYears) : '',
+  );
   const [waist, setWaist] = useState(savedMeasures.waistCm != null ? String(savedMeasures.waistCm) : '');
   const [hip, setHip] = useState(savedMeasures.hipCm != null ? String(savedMeasures.hipCm) : '');
   const [chest, setChest] = useState(savedMeasures.chestCm != null ? String(savedMeasures.chestCm) : '');
@@ -368,10 +411,17 @@ export default function ProfileTab(): ReactElement {
       armCm: parseBounded(arm, 20, 70),
       thighCm: parseBounded(thigh, 30, 100),
     };
-    const patch: { measurements: typeof measurements; priorities: string[]; phase: 'fatloss' | 'growth' } = {
+    const patch: {
+      measurements: typeof measurements;
+      priorities: string[];
+      phase: 'fatloss' | 'growth';
+      ageYears?: number;
+    } = {
       measurements,
       priorities,
       phase,
+      // Undefined clears a previously saved age (JSON drops the key).
+      ageYears: parseBounded(ageYears, 10, 100),
     };
     updateAthleteProfile(patch);
     setJustSaved(true);
@@ -524,7 +574,7 @@ export default function ProfileTab(): ReactElement {
       </section>
 
       {/* body */}
-      {(profile?.heightCm || profile?.weightKg) && (
+      {(profile?.heightCm || profile?.weightKg || profile?.ageYears != null) && (
         <section className="card">
           <h2 className="card-title">{k.body}</h2>
           <div className="profile-body-grid">
@@ -544,7 +594,55 @@ export default function ProfileTab(): ReactElement {
                 </span>
               </div>
             )}
+            {profile?.ageYears != null && (
+              <div className="profile-body-item">
+                <span className="profile-body-value">{digits.format(profile.ageYears)}</span>
+                <span className="profile-body-label">
+                  {k.age} · {lang === 'fa' ? 'سال' : 'years'}
+                </span>
+              </div>
+            )}
           </div>
+          {profile?.heightCm != null && profile?.weightKg != null && (() => {
+            const bmi = profile.weightKg / ((profile.heightCm / 100) * (profile.heightCm / 100));
+            const band =
+              bmi < 18.5 ? k.bmiUnder : bmi < 25 ? k.bmiHealthy : bmi < 30 ? k.bmiOver : k.bmiObese;
+            const oneDp = new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US', {
+              maximumFractionDigits: 1,
+            });
+            const ageNote =
+              profile.ageYears != null && (profile.ageYears < 20 || profile.ageYears > 65);
+            return (
+              <p className="card-meta" style={{ margin: '12px 0 0' }}>
+                {k.bmiLabel}: {oneDp.format(bmi)} — {band} ({k.bmiEstimate})
+                {ageNote ? ` ${k.bmiAgeNote}` : ''}
+              </p>
+            );
+          })()}
+        </section>
+      )}
+
+      {/* health screen — shown only when the wizard flagged something */}
+      {profile?.healthFlags && profile.healthFlags.length > 0 && (
+        <section className="card" style={{ border: '1px solid #f5b942' }}>
+          <h2 className="card-title">{k.healthTitle}</h2>
+          <p className="card-meta" style={{ margin: '0 0 8px' }}>
+            {profile.healthFlags
+              .map((f) => {
+                const suffix: Record<string, string> = {
+                  heart: 'heart',
+                  'chest-pain': 'chestPain',
+                  dizziness: 'dizziness',
+                  joint: 'joint',
+                  medication: 'medication',
+                  other: 'other',
+                  pregnancy: 'pregnancy',
+                };
+                return (k as Record<string, string>)[`healthFlag_${suffix[f] ?? f}`] ?? f;
+              })
+              .join(lang === 'fa' ? '، ' : ', ')}
+          </p>
+          <p className="card-meta" style={{ margin: 0 }}>{k.healthNote}</p>
         </section>
       )}
 
@@ -579,6 +677,26 @@ export default function ProfileTab(): ReactElement {
                 </span>
               </div>
             ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
+            <input
+              className="input"
+              type="number"
+              inputMode="numeric"
+              min={10}
+              max={100}
+              value={ageYears}
+              aria-label={k.age}
+              placeholder={lang === 'fa' ? '۳۲' : '32'}
+              style={{ maxWidth: 120 }}
+              onChange={(e) => {
+                setAgeYears(e.target.value);
+                setJustSaved(false);
+              }}
+            />
+            <span className="profile-body-label">
+              {k.age} · {lang === 'fa' ? 'سال' : 'years'}
+            </span>
           </div>
           <p className="card-meta" style={{ margin: '16px 0 4px' }}>{k.priorities}</p>
           <p className="card-meta">{k.prioritiesHint}</p>

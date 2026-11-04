@@ -1,8 +1,11 @@
 /**
  * اپ هوشمند بدنسازی — Onboarding wizard (multi-step, full-screen overlay).
  *
- * Steps: goal → level → days/week → equipment → injuries → height/weight
- * → summary review → finish. On finish it calls generateProgram()
+ * Steps: safety → goal → level → days/week → duration → equipment →
+ * injuries → height/weight/age → summary review → finish. The safety
+ * step is a short PAR-Q-style gate: any "yes" forces the lowest program
+ * tier and shows a plain clinician prompt (general info, never a
+ * diagnosis). On finish it calls generateProgram()
  * from ../lib/program (statically imported — the engine ships inside
  * the main bundle), saves the program via the store, persists the
  * profile, marks onboarding done, and calls onDone(). If generation
@@ -119,9 +122,33 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.generateFailed': 'ساخت برنامه ناموفق بود — دوباره تلاش کن',
     'onbw.modeTitle': 'چطور شروع کنیم؟',
     'onbw.modeQuick': 'شروع سریع',
-    'onbw.modeQuickDesc': 'فقط ۳ پرسش — حدود ۲ دقیقه تا اولین ست، بدون حساب کاربری',
+    'onbw.modeQuickDesc': 'پرسش‌های اصلی + یک غربال سلامت کوتاه — حدود ۲ دقیقه تا اولین ست، بدون حساب کاربری',
     'onbw.modeFull': 'مسیر کامل',
-    'onbw.modeFullDesc': 'همه‌ی جزئیات: وسیله‌ها، آسیب‌ها، اندازه‌ها و اولویت‌ها',
+    'onbw.safetyTitle': 'پیش از شروع، چند پرسش سلامت',
+    'onbw.safetySubtitle': 'صادقانه جواب بده؛ این پرسش‌ها فقط تعیین می‌کنند برنامه‌ات با چه شدتی شروع شود',
+    'onbw.health.heart': 'پزشک گفته بیماری قلبی داری، یا فقط با نظارت پزشکی ورزش کنی',
+    'onbw.health.chest-pain': 'هنگام ورزش درد قفسه‌ی سینه می‌گیری، یا در ماه گذشته در حالت استراحت درد داشتی',
+    'onbw.health.dizziness': 'به‌خاطر سرگیجه تعادلت را از دست می‌دهی، یا در سال گذشته غش کرده‌ای',
+    'onbw.health.joint': 'مشکل استخوان، مفصل یا بافت نرمی داری که ورزش می‌تواند بدترش کند',
+    'onbw.health.medication': 'برای فشار خون یا بیماری قلبی دارو مصرف می‌کنی',
+    'onbw.health.other': 'دلیل دیگری هست که بدون مشورت با پزشک نباید فعالیتت را زیاد کنی',
+    'onbw.health.pregnancy': 'باردار هستی، یا در ۶ ماه گذشته زایمان کرده‌ای',
+    'onbw.healthYes': 'بله',
+    'onbw.healthNo': 'خیر',
+    'onbw.healthNone': 'هیچ‌کدام',
+    'onbw.healthNeed': 'به هر ۷ پرسش جواب بده، یا «هیچ‌کدام» را بزن',
+    'onbw.clinicianNote': 'چون به یکی از پرسش‌های سلامت «بله» گفتی، برنامه‌ات با کمترین شدت (سطح مبتدی) ساخته می‌شود. پیش از تمرین سنگین، با پزشک یا متخصص سلامت مشورت کن. این یک توصیه‌ی پزشکی نیست؛ فقط یک احتیاط عمومی است.',
+    'onbw.reviewSafety': 'غربال سلامت',
+    'onbw.reviewSafetyClear': 'موردی نبود',
+    'onbw.age': 'سن (سال)',
+    'onbw.statsAgePart': 'سن {a}',
+    'onbw.durationTitle': 'هر جلسه چقدر طول بکشد؟',
+    'onbw.durationSubtitle': 'مدت جلسه تعداد حرکت‌های هر جلسه را تعیین می‌کند، نه تعداد ست‌ها را',
+    'onbw.durationMin': '{n} دقیقه',
+    'onbw.durationCount': 'حدود {n} حرکت در جلسه',
+    'onbw.durationFull': 'همه‌ی حرکت‌های برنامه، بدون محدودیت',
+    'onbw.reviewDuration': 'مدت جلسه',
+    'onbw.modeFullDesc': 'همه‌ی جزئیات: سلامت، وسیله‌ها، آسیب‌ها، اندازه‌ها و اولویت‌ها',
     'onbw.quickDefaultNote': 'برنامه‌ی سریع با وزن بدن و دمبل ساخته می‌شود؛ بعداً می‌توانی مسیر کامل را بسازی.',
   },
   en: {
@@ -202,9 +229,33 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.generateFailed': 'Program generation failed — please try again',
     'onbw.modeTitle': 'How do you want to start?',
     'onbw.modeQuick': 'Quick start',
-    'onbw.modeQuickDesc': 'Just 3 questions — about 2 minutes to your first set, no account needed',
+    'onbw.modeQuickDesc': 'Core questions + a short health screen — about 2 minutes to your first set, no account needed',
     'onbw.modeFull': 'Full path',
-    'onbw.modeFullDesc': 'Every detail: equipment, injuries, measurements and priorities',
+    'onbw.safetyTitle': 'Before we start, a few health questions',
+    'onbw.safetySubtitle': 'Answer honestly — these only set how gently your plan starts',
+    'onbw.health.heart': 'A doctor said you have a heart condition, or should exercise only with medical supervision',
+    'onbw.health.chest-pain': 'Chest pain during exercise, or at rest in the past month',
+    'onbw.health.dizziness': 'Dizziness causing loss of balance, or fainting in the past year',
+    'onbw.health.joint': 'A bone, joint or soft-tissue problem exercise could make worse',
+    'onbw.health.medication': 'Medication for blood pressure or a heart condition',
+    'onbw.health.other': 'Any other reason not to increase activity without checking with a doctor',
+    'onbw.health.pregnancy': 'Pregnant, or gave birth in the past 6 months',
+    'onbw.healthYes': 'Yes',
+    'onbw.healthNo': 'No',
+    'onbw.healthNone': 'None of these',
+    'onbw.healthNeed': 'Answer all 7, or tap “None of these”',
+    'onbw.clinicianNote': 'Because you answered yes to a health question, your plan is built at the lowest intensity (beginner level). Please check with a clinician before hard training. This is general information, not medical advice.',
+    'onbw.reviewSafety': 'Health screen',
+    'onbw.reviewSafetyClear': 'Nothing flagged',
+    'onbw.age': 'Age (years)',
+    'onbw.statsAgePart': 'Age {a}',
+    'onbw.durationTitle': 'How long should each session be?',
+    'onbw.durationSubtitle': 'Session length sets how many exercises each session has, not sets per exercise',
+    'onbw.durationMin': '{n} min',
+    'onbw.durationCount': 'About {n} exercises per session',
+    'onbw.durationFull': 'The full program, no cap',
+    'onbw.reviewDuration': 'Session length',
+    'onbw.modeFullDesc': 'Every detail: health, equipment, injuries, measurements and priorities',
     'onbw.quickDefaultNote': 'The quick program uses bodyweight and dumbbells; you can build the full path later.',
   },
 };
@@ -217,16 +268,45 @@ export type Goal = 'fat-loss' | 'muscle' | 'strength' | 'fitness';
 export type Level = 'beginner' | 'intermediate' | 'advanced';
 export type EquipmentKey = Equipment;
 export type InjuryKey = 'shoulder' | 'knee' | 'lower-back' | 'wrist' | 'none';
+/** Short PAR-Q-style flags. Pregnancy gets the SAME handling as any
+ * other flag (lowest tier + clinician prompt) — no trimester-specific
+ * programming, filters, or exercise rules are invented for it. */
+export type HealthFlagKey =
+  | 'heart'
+  | 'chest-pain'
+  | 'dizziness'
+  | 'joint'
+  | 'medication'
+  | 'other'
+  | 'pregnancy';
+
+export const HEALTH_FLAGS: HealthFlagKey[] = [
+  'heart',
+  'chest-pain',
+  'dizziness',
+  'joint',
+  'medication',
+  'other',
+  'pregnancy',
+];
 
 export interface UserProfile {
   goal: Goal;
   level: Level;
   daysPerWeek: number;
+  /** Session length in minutes (30/45/60/90). Caps exercises per day
+   * in the engine; absent (quick path, legacy profiles) = no cap. */
+  sessionMinutes?: number;
   equipment: EquipmentKey[];
   injuries: InjuryKey[];
   injuryNote?: string;
+  /** PAR-Q-style flags answered "yes" (empty = none flagged). Any flag
+   * forces the engine's lowest tier; the flags are never a diagnosis. */
+  healthFlags?: HealthFlagKey[];
   heightCm?: number;
   weightKg?: number;
+  /** Stored and shown only — no age-based set/rep/load rule exists. */
+  ageYears?: number;
   /** Optional circumferences (cm) — drive the phase suggestion + growth candidates. */
   measurements?: BodyMeasurements;
   /** Up to 2 muscle groups confirmed as growth priorities. */
@@ -318,14 +398,18 @@ function toEngineProfile(p: UserProfile): EngineProfile {
     measurements: p.measurements,
     priorities: p.priorities,
     phase: p.phase,
+    healthFlags: p.healthFlags,
+    sessionMinutes: p.sessionMinutes,
   };
 }
 
 /* ---------------- step model ---------------- */
 const STEPS = [
+  'safety',
   'goal',
   'level',
   'days',
+  'duration',
   'equipment',
   'injuries',
   'stats',
@@ -379,6 +463,17 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   const [goal, setGoal] = useState<Goal | null>(() => getUserProfile()?.goal ?? null);
   const [level, setLevel] = useState<Level | null>(() => getUserProfile()?.level ?? null);
   const [days, setDays] = useState(() => getUserProfile()?.daysPerWeek ?? 3);
+  // Safety gate: saved "yes" flags prefill as true; everything else
+  // starts unanswered (null) — a rebuild never fabricates a "no" the
+  // athlete never gave. "None of these" sets all to false at once.
+  const [healthAnswers, setHealthAnswers] = useState<Record<HealthFlagKey, boolean | null>>(() => {
+    const saved = getUserProfile()?.healthFlags ?? [];
+    const init = {} as Record<HealthFlagKey, boolean | null>;
+    for (const f of HEALTH_FLAGS) init[f] = saved.includes(f) ? true : null;
+    return init;
+  });
+  const flaggedHealth = HEALTH_FLAGS.filter((f) => healthAnswers[f] === true);
+  const [duration, setDuration] = useState(() => getUserProfile()?.sessionMinutes ?? 60);
   // Equipment prefill order: a saved onboarding profile first (rebuild
   // keeps the athlete's own choices); otherwise the selected gym
   // profile's equipment — the "gym" the next program is built for.
@@ -401,6 +496,10 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   const [weight, setWeight] = useState(() => {
     const w = getUserProfile()?.weightKg;
     return w != null ? String(w) : '';
+  });
+  const [age, setAge] = useState(() => {
+    const a = getUserProfile()?.ageYears;
+    return a != null ? String(a) : '';
   });
   const [waist, setWaist] = useState(() => {
     const v = getUserProfile()?.measurements?.waistCm;
@@ -453,6 +552,10 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
 
   const validationError = (id: StepId): string | null => {
     switch (id) {
+      case 'safety':
+        return HEALTH_FLAGS.every((f) => healthAnswers[f] !== null)
+          ? null
+          : 'onbw.healthNeed';
       case 'goal':
         return goal ? null : 'onbw.needSelection';
       case 'level':
@@ -462,7 +565,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
       case 'injuries':
         return injuries.length > 0 ? null : 'onbw.needInjury';
       default:
-        return null; // days (stepper), stats (optional), review
+        return null; // days (stepper), duration (defaulted), stats (optional), review
     }
   };
 
@@ -554,7 +657,9 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   /* ---------------- finish ---------------- */
   const buildProfile = (): UserProfile => {
     // Quick path: honest defaults, stated on the mode screen — bodyweight
-    // + dumbbells, no injuries. The athlete can rebuild the full path later.
+    // + dumbbells, no injuries. The safety answers ARE carried (the gate
+    // runs before the mode's questions in both paths); session length
+    // stays unset (= no cap) on the quick path.
     if (mode === 'quick') {
       return {
         goal: goal as Goal,
@@ -562,14 +667,17 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
         daysPerWeek: days,
         equipment: ['bodyweight', 'dumbbell'],
         injuries: ['none'],
+        healthFlags: [...flaggedHealth],
       };
     }
     const p: UserProfile = {
       goal: goal as Goal,
       level: level as Level,
       daysPerWeek: days,
+      sessionMinutes: duration,
       equipment: [...equipment],
       injuries: [...injuries],
+      healthFlags: [...flaggedHealth],
     };
     const note = injuryNote.trim();
     if (note) p.injuryNote = note;
@@ -577,6 +685,8 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
     if (Number.isFinite(h) && h >= 120 && h <= 230) p.heightCm = h;
     const w = parseFloat(weight);
     if (Number.isFinite(w) && w >= 30 && w <= 300) p.weightKg = w;
+    const a = parseInt(age, 10);
+    if (Number.isFinite(a) && a >= 10 && a <= 100) p.ageYears = a;
     if (hasAnyMeasure) {
       const m: BodyMeasurements = {};
       for (const [k, v] of Object.entries(parsedMeasures)) {
@@ -602,7 +712,11 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
       const stored = saveProgram({
         name: lt('onbw.programName').replace('{goal}', goalLabel(profile.goal)),
         goal: profile.goal,
-        level: profile.level,
+        // The saved row carries the EFFECTIVE tier (beginner when a
+        // health flag forced it), so the row never claims a tier the
+        // plan was not built at. The athlete's stated level stays in
+        // the profile itself.
+        level: plan.level,
         daysPerWeek: profile.daysPerWeek,
         dayKeys: plan.days.map((d, i) => d.key ?? `day-${i + 1}`),
         dayNames: plan.days.map((d) => ({
@@ -621,6 +735,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
         // from the plan itself (not the editable profile).
         phase: plan.phase,
         priorities: plan.priorities,
+        healthFlagged: plan.healthFlagged,
       });
       setActiveProgram(stored.id);
       // Reza's rule: taking a new program deletes the old program row
@@ -652,6 +767,66 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
 
   const renderStep = (): ReactElement => {
     switch (step) {
+      case 'safety':
+        return (
+          <>
+            <h2 className="onbw-title">{lt('onbw.safetyTitle')}</h2>
+            <p className="onbw-subtitle">{lt('onbw.safetySubtitle')}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {HEALTH_FLAGS.map((f) => {
+                const ans = healthAnswers[f];
+                return (
+                  <div key={f}>
+                    <p className="onbw-subtitle" style={{ margin: '0 0 6px' }}>
+                      {lt(`onbw.health.${f}`)}
+                    </p>
+                    <div className="onbw-chips">
+                      {([true, false] as const).map((v) => (
+                        <button
+                          key={v ? 'yes' : 'no'}
+                          type="button"
+                          className={`chip onbw-chip-btn${ans === v ? ' chip--active' : ''}`}
+                          aria-pressed={ans === v}
+                          onClick={() =>
+                            setHealthAnswers((prev) => ({ ...prev, [f]: v }))
+                          }
+                        >
+                          {v ? lt('onbw.healthYes') : lt('onbw.healthNo')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              className="btn-ghost"
+              style={{ width: '100%', marginTop: 16 }}
+              onClick={() => {
+                const all = {} as Record<HealthFlagKey, boolean | null>;
+                for (const f of HEALTH_FLAGS) all[f] = false;
+                setHealthAnswers(all);
+              }}
+            >
+              {lt('onbw.healthNone')}
+            </button>
+            {flaggedHealth.length > 0 && (
+              <p
+                className="onbw-subtitle"
+                style={{
+                  marginTop: 16,
+                  padding: 12,
+                  border: '1px solid #f5b942',
+                  borderRadius: 12,
+                }}
+              >
+                {lt('onbw.clinicianNote')}
+              </p>
+            )}
+          </>
+        );
+
       case 'goal':
         return (
           <>
@@ -733,6 +908,43 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             </div>
           </>
         );
+
+      case 'duration': {
+        const options: { min: number; count: number | null }[] = [
+          { min: 30, count: 5 },
+          { min: 45, count: 6 },
+          { min: 60, count: 8 },
+          { min: 90, count: null },
+        ];
+        return (
+          <>
+            <h2 className="onbw-title">{lt('onbw.durationTitle')}</h2>
+            <p className="onbw-subtitle">{lt('onbw.durationSubtitle')}</p>
+            <div className="onbw-options">
+              {options.map((o, i) => (
+                <button
+                  key={o.min}
+                  type="button"
+                  className={`onbw-option onbw-stagger${duration === o.min ? ' onbw-option--selected' : ''}`}
+                  style={{ animationDelay: `${i * 60}ms` }}
+                  aria-pressed={duration === o.min}
+                  onClick={() => setDuration(o.min)}
+                >
+                  {duration === o.min && <span className="onbw-check">✓</span>}
+                  <span className="onbw-option-label">
+                    {lt('onbw.durationMin').replace('{n}', fmtNum(o.min))}
+                  </span>
+                  <span className="onbw-option-desc">
+                    {o.count !== null
+                      ? lt('onbw.durationCount').replace('{n}', fmtNum(o.count))
+                      : lt('onbw.durationFull')}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        );
+      }
 
       case 'equipment':
         return (
@@ -845,6 +1057,22 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
                 onChange={(e) => setWeight(e.target.value)}
               />
             </div>
+            <div className="onbw-field">
+              <label className="onbw-field-label" htmlFor="onbw-age">
+                {lt('onbw.age')}
+              </label>
+              <input
+                id="onbw-age"
+                className="input"
+                type="number"
+                inputMode="numeric"
+                min={10}
+                max={100}
+                value={age}
+                placeholder={lang === 'fa' ? '۳۲' : '32'}
+                onChange={(e) => setAge(e.target.value)}
+              />
+            </div>
           </>
         );
       }
@@ -938,12 +1166,25 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
       case 'review': {
         const sep = lang === 'fa' ? '، ' : ', ';
         const rows: { id: StepId; label: string; value: string }[] = [
+          {
+            id: 'safety',
+            label: lt('onbw.reviewSafety'),
+            value:
+              flaggedHealth.length > 0
+                ? flaggedHealth.map((f) => lt(`onbw.health.${f}`)).join(sep)
+                : lt('onbw.reviewSafetyClear'),
+          },
           { id: 'goal', label: lt('onbw.reviewGoal'), value: goal ? goalLabel(goal) : '—' },
           { id: 'level', label: lt('onbw.reviewLevel'), value: level ? levelLabel(level) : '—' },
           {
             id: 'days',
             label: lt('onbw.reviewDays'),
             value: lt('onbw.daysValue').replace('{n}', fmtNum(days)),
+          },
+          {
+            id: 'duration',
+            label: lt('onbw.reviewDuration'),
+            value: lt('onbw.durationMin').replace('{n}', fmtNum(duration)),
           },
           {
             id: 'equipment',
@@ -961,10 +1202,16 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             id: 'stats',
             label: lt('onbw.reviewStats'),
             value:
-              height.trim() || weight.trim()
-                ? lt('onbw.statsValue')
-                    .replace('{h}', height.trim() || '—')
-                    .replace('{w}', weight.trim() || '—')
+              height.trim() || weight.trim() || age.trim()
+                ? (height.trim() || weight.trim()
+                    ? lt('onbw.statsValue')
+                        .replace('{h}', height.trim() || '—')
+                        .replace('{w}', weight.trim() || '—')
+                    : '') +
+                  (age.trim()
+                    ? (height.trim() || weight.trim() ? ' • ' : '') +
+                      lt('onbw.statsAgePart').replace('{a}', age.trim())
+                    : '')
                 : lt('onbw.noStats'),
           },
           {
@@ -1022,6 +1269,14 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
                 </button>
               ))}
             </div>
+            {flaggedHealth.length > 0 && (
+              <p
+                className="onbw-subtitle"
+                style={{ marginTop: 12, padding: 12, border: '1px solid #f5b942', borderRadius: 12 }}
+              >
+                {lt('onbw.clinicianNote')}
+              </p>
+            )}
           </>
         );
       }
@@ -1031,7 +1286,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   const nextLabel =
     step === 'review' || (mode === 'quick' && step === 'days')
       ? lt('onbw.finish')
-      : step === 'stats' && height.trim() === '' && weight.trim() === ''
+      : step === 'stats' && height.trim() === '' && weight.trim() === '' && age.trim() === ''
         ? lt('onbw.skip')
         : step === 'measures' &&
             waist.trim() === '' &&
@@ -1079,7 +1334,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
     );
   }
 
-  const quickTotal = 3;
+  const quickTotal = 4; // safety + goal + level + days
   const progressTotal = mode === 'quick' ? quickTotal : total;
 
   // Rest explanation interstitial: replaces the wizard sheet until the

@@ -27,6 +27,8 @@ export interface WorkoutProgram {
   /** Engine phase/priorities this plan was built with (absent on pre-role plans). */
   phase?: 'fatloss' | 'growth';
   priorities?: string[];
+  /** True when a health flag forced this plan onto the lowest tier. */
+  healthFlagged?: boolean;
   createdAt: string; // ISO
 }
 
@@ -297,6 +299,15 @@ export interface AthleteProfileSnapshot {
   injuries?: string[];
   heightCm?: number;
   weightKg?: number;
+  /** Optional age in years (wizard stats step / profile card). Stored
+   * and shown only — no age-based set/rep/load rule exists. */
+  ageYears?: number;
+  /** PAR-Q-style health flags (wizard safety step). Any flag forces
+   * the lowest program tier; the flags themselves are never a
+   * diagnosis and never drive supplement/drug advice. */
+  healthFlags?: string[];
+  /** Session length in minutes from the wizard (30/45/60/90). */
+  sessionMinutes?: number;
   measurements?: {
     waistCm?: number;
     hipCm?: number;

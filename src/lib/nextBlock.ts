@@ -230,6 +230,10 @@ function engineProfileFrom(
     measurements: profile?.measurements,
     priorities: (program.priorities ?? profile?.priorities ?? []) as MuscleGroup[],
     phase: program.phase ?? profile?.phase,
+    // Safety + duration carry into next-block programs too, so a
+    // flagged athlete never silently regains the higher tier.
+    healthFlags: profile?.healthFlags,
+    sessionMinutes: profile?.sessionMinutes,
   };
 }
 
