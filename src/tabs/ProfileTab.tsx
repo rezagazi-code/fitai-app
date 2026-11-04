@@ -22,6 +22,7 @@ import { getExercise, MUSCLE_GROUPS, MUSCLE_LABELS } from '../lib/exercises';
 import { getBannedExerciseKeys, setBannedExercise } from '../lib/banned';
 import { computeHealthScore } from '../lib/healthScore';
 import GymProfilePanel from '../components/GymProfilePanel';
+import SupplementLog from '../components/SupplementLog';
 import { downloadDataExport } from '../lib/exportData';
 
 /* ============================================================
@@ -56,6 +57,19 @@ export const PROFILE_KEYS = {
     phaseNote: 'چربی‌سوزی سراسری است و با غذا اتفاق می‌افتد؛ تمرین عضله را نگه می‌دارد.',
     saveMeasurements: 'ذخیره‌ی اندازه‌ها و اولویت‌ها',
     savedNote: 'ذخیره شد — برای اعمال روی برنامه، «برنامه‌ی تازه» بساز.',
+    suppTitle: 'مکمل‌ها و ویتامین‌های مصرفی',
+    suppNote: 'فقط ثبت مصرف خودت است — این بخش چیزی را پیشنهاد نمی‌کند، نیاز تو را تشخیص نمی‌دهد و دوز مناسب را نمی‌گوید.',
+    suppEmpty: 'هنوز چیزی ثبت نشده است.',
+    suppScan: 'اسکن بارکد / QR',
+    suppManual: 'ورود دستی',
+    suppName: 'نام محصول',
+    suppDose: 'دوز (اختیاری، همان‌طور که خودت مصرف می‌کنی)',
+    suppCode: 'کد اسکن‌شده',
+    suppSave: 'ذخیره',
+    suppDelete: 'حذف',
+    suppCameraUnavailable: 'دوربین در دسترس نیست — کد را دستی وارد کن.',
+    suppScanning: 'دوربین را روی بارکد یا QR بگیر…',
+    suppNameRequired: 'نام محصول را بنویس.',
     coachSig: 'مربی هوشمند',
     coachSigSub: 'تمرین‌هات رو دنبال می‌کنه و در پایان هر بلوک، برنامه‌ی پیشرفت‌کرده‌ی بعدی رو بهت پیشنهاد می‌ده',
     bannedTitle: 'حرکات حذف‌شده از برنامه‌ها',
@@ -110,6 +124,19 @@ export const PROFILE_KEYS = {
     phaseNote: 'Fat loss is whole-body and comes from food; training preserves muscle.',
     saveMeasurements: 'Save measurements & priorities',
     savedNote: 'Saved — build a fresh program to apply it.',
+    suppTitle: 'Vitamins & supplements you take',
+    suppNote: 'Just a log of what you take — this section recommends nothing, diagnoses no need, and never states a right dose.',
+    suppEmpty: 'Nothing logged yet.',
+    suppScan: 'Scan barcode / QR',
+    suppManual: 'Manual entry',
+    suppName: 'Product name',
+    suppDose: 'Dose (optional, as you take it)',
+    suppCode: 'Scanned code',
+    suppSave: 'Save',
+    suppDelete: 'Delete',
+    suppCameraUnavailable: 'Camera is not available — enter the code manually.',
+    suppScanning: 'Point the camera at the barcode or QR…',
+    suppNameRequired: 'Enter the product name.',
     coachSig: 'AI Coach',
     coachSigSub: 'It tracks your workouts and offers you a progressed next program at the end of each block',
     bannedTitle: 'Movements excluded from programs',
@@ -597,6 +624,9 @@ export default function ProfileTab(): ReactElement {
           )}
         </section>
       )}
+
+      {/* supplement / vitamin log: logging only, never a recommendation */}
+      <SupplementLog k={k} lang={lang} />
 
       {/* health / fat-burn score: a GENERAL estimate only, computed
           from recorded training + measurements. No score is shown
