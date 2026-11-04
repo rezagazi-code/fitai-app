@@ -459,6 +459,9 @@ function PrList({ prs, lang, k }: { prs: PrRow[]; lang: Lang; k: Record<K, strin
           >
             <div className="prog-pr-main">
               <span className="prog-pr-name">{exerciseName(p.exerciseKey, lang)}</span>
+              {lang === 'fa' && ex && (
+                <span dir="ltr" style={{ fontSize: '0.8125rem', opacity: 0.75 }}>{ex.nameEn}</span>
+              )}
               <span className="prog-pr-sub">
                 {fmt.format(p.weightKg)} {k.weightUnit ?? ''} × {fmt.format(p.reps)} {k.repsShort}
                 {' — '}
@@ -682,7 +685,10 @@ function PerExerciseChart({ sessions, lang, k }: { sessions: WorkoutSession[]; l
       <select className="input" style={{ width: '100%', marginBottom: 12 }} value={selected} onChange={(e) => setKey(e.target.value)}>
         {byKey.map(([kk, arr]) => (
           <option key={kk} value={kk}>
-            {exerciseName(kk, lang)} — {fmt.format(arr.length)} {lang === 'fa' ? 'جلسه' : 'sessions'}
+            {(() => {
+              const e = EX_BY_KEY.get(kk);
+              return lang === 'fa' && e ? `${e.nameFa} (${e.nameEn})` : exerciseName(kk, lang);
+            })()} — {fmt.format(arr.length)} {lang === 'fa' ? 'جلسه' : 'sessions'}
           </option>
         ))}
       </select>

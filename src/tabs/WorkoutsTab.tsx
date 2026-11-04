@@ -227,7 +227,18 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
                     if (found) setSelected(found);
                   }}
                 >
-                  {ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : key}
+                  {ex ? (
+                    lang === 'fa' ? (
+                      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <span>{ex.nameFa}</span>
+                        <span dir="ltr" style={{ fontSize: '0.8125rem', opacity: 0.75 }}>{ex.nameEn}</span>
+                      </span>
+                    ) : (
+                      ex.nameEn
+                    )
+                  ) : (
+                    key
+                  )}
                 </button>
               );
             })}

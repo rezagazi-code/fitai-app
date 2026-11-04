@@ -9,8 +9,10 @@
 
 :root {
   /* ---------- Color: foundation ---------- */
-  --bg-base: #0a0e14;          /* page background (dossier §5) */
-  --bg-elevated: #10141d;      /* raised surfaces */
+  --bg-base: #141b29;          /* page background — lifted from
+    near-black #0a0e14 (2026-11-04 democards: the old base read
+    gloomy); still dark and calm, now a softer slate */
+  --bg-elevated: #1a2233;      /* raised surfaces */
   --surface: #141927;          /* cards, sheets */
   --surface-2: #161c2b;        /* inset rows, secondary surfaces */
   --surface-soft: #1b2133;     /* hover / pressed surfaces */
@@ -21,8 +23,8 @@
      and muted are now AAA-safe; muted is reserved for small,
      non-essential labels only. */
   --text-primary: #f5f7fc;
-  --text-secondary: #c3cbdc;
-  --text-muted: #98a2b8;
+  --text-secondary: #d2d9e8;
+  --text-muted: #aab4c8;
 
   /* ---------- Color: accents (re-skinnable pair) ---------- */
   --accent-blue: #2e9cff;      /* primary neon — CTA, active states */

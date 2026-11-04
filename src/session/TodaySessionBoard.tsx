@@ -6,7 +6,9 @@
  * جزئیات برای رسیدن به ست‌ها. ثبت اولین ست، جلسه را شروع می‌کند؛
  * دکمه‌ی «پایان تمرین» پایین صفحه آن را ذخیره می‌کند و خلاصه‌ی کوتاهی
  * نشان می‌دهد. تایمر استراحت چسبان است و ریکاوری روی همان کارت حرکت
- * دیده می‌شود، نه در پاراگرافی پایین صفحه.
+ * دیده می‌شود، نه در پاراگرافی پایین صفحه. هر کارت نمایش حرکتی
+ * خودش را همان‌جا دارد (انیمیشن رفت‌وبرگشت شروع↔پایان روی همان
+ * تصویر آواتار)؛ ویدیو فقط برای ۹ حرکتی که لینک تأییدشده دارند.
  *
  * عمداً کاملاً فارسی است: همه‌ی برچسب‌ها، دکمه‌ها، ردیف‌های ست،
  * تایمر استراحت و باندهای ریکاوری فارسی‌اند. نام انگلیسی حرکت فقط
@@ -18,6 +20,8 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { getExercise, MUSCLE_LABELS } from '../lib/exercises';
+import { muscleArtOf } from '../lib/muscleArt';
+import AnimatedDemo from '../components/AnimatedDemo';
 import { recoveryDisplayMap } from '../lib/recovery';
 import { personalBestWeight } from '../lib/program';
 import {
@@ -42,6 +46,8 @@ interface TodaySessionBoardProps {
   exercises: BoardExercise[];
   /** Called after a session is saved, so Home stats re-read the store. */
   onSaved: () => void;
+  /** Opens the exercise detail view (instructions + verified video). */
+  onOpenDetail?: (exerciseKey: string) => void;
 }
 
 const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
@@ -94,6 +100,7 @@ export default function TodaySessionBoard({
   planNameFa,
   exercises,
   onSaved,
+  onOpenDetail,
 }: TodaySessionBoardProps): ReactElement {
   const [drafts, setDrafts] = useState<SessionSetDraft[][]>(() =>
     exercises.map((e) => initialSetsForExercise(e)),
@@ -102,7 +109,10 @@ export default function TodaySessionBoard({
   const [elapsedSec, setElapsedSec] = useState(0);
   const [rest, setRest] = useState<RestState | null>(null);
   const [restRemaining, setRestRemaining] = useState(0);
-  const [editing, setEditing] = useState<{ ei: number; si: number } | null>(null);
+  /* One edit switch per card (not one «ویرایش» link under every set
+   * row — 24 links on an 8-exercise day buried the primary action).
+   * When a card's switch is on, every unlogged row shows its fields. */
+  const [editingCard, setEditingCard] = useState<number | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [summary, setSummary] = useState<SummaryData | null>(null);
@@ -251,7 +261,7 @@ export default function TodaySessionBoard({
     setElapsedSec(0);
     setRest(null);
     setRestRemaining(0);
-    setEditing(null);
+    setEditingCard(null);
     setSummary(null);
   };
 
@@ -433,7 +443,18 @@ export default function TodaySessionBoard({
             >
               <header className="tsb-exercise-head">
                 <div className="tsb-exercise-titles">
-                  <h4 className="tsb-exercise-name">{ex ? ex.nameFa : pe.exerciseKey}</h4>
+                  {onOpenDetail && ex ? (
+                    <button
+                      type="button"
+                      className="tsb-exercise-name tsb-exercise-name-btn"
+                      data-board-detail={pe.exerciseKey}
+                      onClick={() => onOpenDetail(pe.exerciseKey)}
+                    >
+                      {ex.nameFa}
+                    </button>
+                  ) : (
+                    <h4 className="tsb-exercise-name">{ex ? ex.nameFa : pe.exerciseKey}</h4>
+                  )}
                   {ex && (
                     <div className="tsb-exercise-en" dir="ltr">
                       {ex.nameEn}
@@ -457,6 +478,40 @@ export default function TodaySessionBoard({
                   </span>
                 )}
               </header>
+              {/* ---------- moving demo, ON the card ----------
+
+                  Wired art (147/158) animates start↔end right here —
+                  the flagship claim lives on this card, not behind a
+                  tap. Video appears ONLY where a verified URL already
+                  exists (exactly 9 exercises); unlinked exercises get
+                  the animation only, never a fabricated link. Glutes
+                  (11/11 unwired — cable-pull-through still missing)
+                  get an honest placeholder, never a fake demo. */}
+              {ex && muscleArtOf(pe.exerciseKey) ? (
+                <div className="tsb-demo-wrap">
+                  <AnimatedDemo
+                    src={muscleArtOf(pe.exerciseKey) as string}
+                    alt={ex.nameFa}
+                    onOpenDetail={onOpenDetail ? () => onOpenDetail(pe.exerciseKey) : undefined}
+                  />
+                  {ex.videoUrl !== '' && (
+                    <button
+                      type="button"
+                      className="tsb-video-btn"
+                      data-board-video={pe.exerciseKey}
+                      onClick={() => window.open(ex.videoUrl, '_blank', 'noopener')}
+                    >
+                      ▶ ویدیو
+                    </button>
+                  )}
+                </div>
+              ) : ex ? (
+                <p className="tsb-demo-note" data-board-demo-missing={pe.exerciseKey}>
+                  {muscle === 'glutes'
+                    ? 'نمایش این حرکت هنوز آماده نیست — آواتار خانواده‌ی سرینی کامل نشده است. برای نحوه اجرا روی نام حرکت بزن.'
+                    : 'نمایش این حرکت هنوز آماده نیست. برای نحوه اجرا روی نام حرکت بزن.'}
+                </p>
+              ) : null}
               {reduced && muscle && (
                 <p className="tsb-reduction" data-board-reduction={pe.exerciseKey}>
                   یک ست کم شد — چون {MUSCLE_LABELS[muscle].fa} خسته است (از {fa(pe.originalSets)} ست
@@ -465,7 +520,7 @@ export default function TodaySessionBoard({
               )}
               <div className="tsb-sets">
                 {rows.map((row, si) => {
-                  const isEditing = editing?.ei === ei && editing?.si === si;
+                  const isEditing = editingCard === ei;
                   return (
                     <div key={si} className={`tsb-set${row.done ? ' is-done' : ''}`}>
                       <button
@@ -490,18 +545,8 @@ export default function TodaySessionBoard({
                           {row.done ? '✓' : ''}
                         </span>
                       </button>
-                      <div className="tsb-set-editrow">
-                        <button
-                          type="button"
-                          className="tsb-text-btn"
-                          aria-expanded={isEditing}
-                          onClick={() =>
-                            setEditing(isEditing ? null : { ei, si })
-                          }
-                        >
-                          {isEditing ? 'تمام' : 'ویرایش'}
-                        </button>
-                        {isEditing && !row.done && (
+                      {isEditing && !row.done && (
+                        <div className="tsb-set-editrow">
                           <span className="tsb-set-editfields">
                             <label className="tsb-field">
                               <span>تکرار</span>
@@ -536,12 +581,20 @@ export default function TodaySessionBoard({
                             )}
                             {bwOnly && <span className="tsb-bw-tag">بادی‌ویت</span>}
                           </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
+              <button
+                type="button"
+                className="tsb-text-btn tsb-edit-toggle"
+                aria-expanded={editingCard === ei}
+                onClick={() => setEditingCard(editingCard === ei ? null : ei)}
+              >
+                {editingCard === ei ? 'تمام ویرایش' : 'ویرایش ست‌ها'}
+              </button>
             </article>
           );
         })}

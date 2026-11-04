@@ -58,7 +58,7 @@
   position: sticky;
   top: 12px;
   z-index: 30;
-  background: #151b28;
+  background: #1c2536;
   border: 1px solid var(--border-strong);
   border-radius: 18px;
   padding: 14px 16px;
@@ -175,7 +175,7 @@
 
 .tsb-exercise-meta {
   margin-top: 6px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
 }
 
@@ -507,4 +507,49 @@
   .tsb {
     animation: none;
   }
+}
+
+/* ---------- moving demo on the card (democard) ---------- */
+.tsb-exercise-name-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: right;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.tsb-demo-wrap {
+  margin: 12px 0 4px;
+}
+
+.tsb-video-btn {
+  margin-top: 8px;
+  border: 1px solid rgba(46, 156, 255, 0.45);
+  background: rgba(46, 156, 255, 0.12);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tsb-demo-note {
+  margin: 12px 0 4px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* One edit switch per card, not a link under every set row. */
+.tsb-edit-toggle {
+  margin-top: 10px;
+}
+
+/* Primary set action: larger tap target, one clear action per row. */
+.tsb-set-row {
+  padding: 15px 16px;
+  min-height: 56px;
 }

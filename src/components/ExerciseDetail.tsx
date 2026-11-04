@@ -13,6 +13,7 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { useLang } from '../lib/i18n';
 import ExerciseArt from './ExerciseArt';
+import AnimatedDemo from './AnimatedDemo';
 import MuscleFigure, { type MuscleRow } from './MuscleFigure';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
@@ -259,20 +260,39 @@ export default function ExerciseDetail({ exercise, target, onBack, onSelect, onB
         </p>
       </div>
 
-      {/* ---------- demo: wired muscle avatar INSTEAD of the video link ----------
-          Only where art is already wired (muscleArtOf != null). Exercises
-          with no wired avatar keep their previous video behaviour. */}
+      {/* ---------- demo: wired muscle avatar as a start↔end animation ----------
+          Only where art is already wired (muscleArtOf != null). The
+          verified video link, where one exists (exactly 9 exercises),
+          sits ALONGSIDE the animation now — links + animation, not
+          instead. Exercises with no wired avatar keep their previous
+          video behaviour. */}
       {hasAvatar ? (
         <div className="ex-section">
           <h4 className="ex-section__title">
             {lang === 'fa' ? 'نمایش حرکت (آواتار)' : 'Movement demo (avatar)'}
           </h4>
-          <ExerciseArtBox exercise={exercise} className="ex-hero__art" />
+          <AnimatedDemo
+            src={muscleArtOf(exercise.key) as string}
+            alt={exercise.nameFa}
+          />
           <p className="ex-video-note">
             {lang === 'fa'
-              ? 'به‌جای ویدیو: آواتار شروع و پایان حرکت، با سر و بدون صورت — همان تصویری که برای این حرکت ساخته شده است.'
-              : 'Instead of video: the start-and-end avatar panels for this movement, with a head and no face.'}
+              ? 'آواتار شروع و پایان حرکت، با سر و بدون صورت — به‌صورت انیمیشن رفت‌وبرگشت؛ برای توقف روی آن بزن.'
+              : 'Start-and-end avatar panels for this movement, with a head and no face — as a ping-pong animation; tap it to pause.'}
           </p>
+          {exercise.videoUrl !== '' && (
+            <>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ width: '100%' }}
+                onClick={() => window.open(exercise.videoUrl, '_blank', 'noopener')}
+              >
+                ▶ {t('workouts.watchVideo')}
+              </button>
+              <p className="ex-video-note">{t('workouts.videoOpensExternally')}</p>
+            </>
+          )}
         </div>
       ) : exercise.videoUrl ? (
         <div className="ex-section">

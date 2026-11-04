@@ -118,7 +118,14 @@ export default function NextBlockOffer({
           <ul style={{ margin: '8px 0', paddingInlineStart: 20 }}>
             {shown.map((c) => (
               <li key={`${c.oldExerciseKey}->${c.exerciseKey}`} className="card-meta">
-                {c.reason === 'plateau-swap' ? t.swapLabel : t.progressLabel}: {c.nameFa} — {c.oldLabelFa} → {c.newLabelFa}
+                {c.reason === 'plateau-swap' ? t.swapLabel : t.progressLabel}: {lang === 'fa' ? c.nameFa : c.nameEn}
+                {lang === 'fa' && (
+                  <>
+                    {' '}
+                    <span dir="ltr" style={{ fontSize: '0.8125rem', opacity: 0.75 }}>({c.nameEn})</span>
+                  </>
+                )}{' '}
+                — {c.oldLabelFa} → {c.newLabelFa}
               </li>
             ))}
           </ul>

@@ -145,7 +145,18 @@ export default function RecoveryPanel({ adjustment, todayOriginal, todayAdjusted
                   const muscleLabel = ex ? MUSCLE_LABELS[ex.muscle][fa ? 'fa' : 'en'] : '';
                   return (
                     <li key={r.exerciseKey} data-reduced-exercise={r.exerciseKey}>
-                      {ex ? (fa ? ex.nameFa : ex.nameEn) : r.exerciseKey} — {fa ? `از ${r.sets} ست به ${r.after} ست` : `from ${r.sets} sets to ${r.after} sets`}
+                      {ex ? (
+                        fa ? (
+                          <>
+                            {ex.nameFa}{' '}
+                            <span dir="ltr" style={{ fontSize: '0.8125rem', opacity: 0.75 }}>({ex.nameEn})</span>
+                          </>
+                        ) : (
+                          ex.nameEn
+                        )
+                      ) : (
+                        r.exerciseKey
+                      )}{' '}— {fa ? `از ${r.sets} ست به ${r.after} ست` : `from ${r.sets} sets to ${r.after} sets`}
                       {muscleLabel ? ` (${muscleLabel} ${L.reducedWhy})` : ''}
                     </li>
                   );

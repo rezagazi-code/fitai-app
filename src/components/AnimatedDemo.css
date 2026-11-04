@@ -1,0 +1,90 @@
+/* نمایش حرکتی: رفت‌وبرگشت ملایم شروع↔پایان روی همان تصویر آواتار.
+ * فقط شفافیت (opacity) عوض می‌شود، با ease ملایم؛ بدون چشمک، بدون
+ * پالس دائمی، بدون درخشش بیشتر. هر جهت ~۱٫۲ ثانیه طول می‌کشد. */
+.anim-demo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  background: #101827;
+  cursor: pointer;
+  padding: 0;
+}
+
+.anim-demo-layer {
+  position: absolute;
+  inset: 0;
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+}
+
+.anim-demo-start {
+  background-position: 0% 50%;
+  animation: anim-demo-to-end 1.2s ease-in-out infinite alternate;
+}
+
+.anim-demo-end {
+  background-position: 100% 50%;
+  animation: anim-demo-from-start 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes anim-demo-to-end {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes anim-demo-from-start {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.anim-demo.is-paused .anim-demo-layer {
+  animation-play-state: paused;
+}
+
+.anim-demo-state {
+  position: absolute;
+  bottom: 8px;
+  inset-inline-start: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #e8eefb;
+  background: rgba(10, 16, 28, 0.62);
+  border-radius: 999px;
+  padding: 4px 10px;
+  pointer-events: none;
+}
+
+.anim-demo-detail {
+  position: absolute;
+  bottom: 8px;
+  inset-inline-end: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #e8eefb;
+  background: rgba(46, 156, 255, 0.28);
+  border: 1px solid rgba(46, 156, 255, 0.45);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.anim-demo-alt {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-demo-start,
+  .anim-demo-end {
+    animation: none;
+  }
+  .anim-demo-end {
+    opacity: 0;
+  }
+}

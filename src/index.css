@@ -15,12 +15,14 @@ body,
 
 body {
   margin: 0;
-  /* Dossier §5: near-black #0A0E14 + ambient neon mesh (fixed, screen-wide) */
+  /* Softer slate #141b29 + softened neon mesh (fixed, screen-wide).
+   * The old near-black #0A0E14 + stronger mesh read gloomy; the mesh
+   * alphas are cut so the page reads lighter, with no added glow. */
   background:
-    radial-gradient(52rem 34rem at 12% -6%, rgba(46, 156, 255, 0.13), transparent 62%),
-    radial-gradient(46rem 30rem at 94% 4%, rgba(0, 240, 255, 0.08), transparent 60%),
-    radial-gradient(60rem 44rem at 50% 118%, rgba(46, 60, 255, 0.10), transparent 64%),
-    #0a0e14;
+    radial-gradient(52rem 34rem at 12% -6%, rgba(46, 156, 255, 0.08), transparent 62%),
+    radial-gradient(46rem 30rem at 94% 4%, rgba(0, 240, 255, 0.05), transparent 60%),
+    radial-gradient(60rem 44rem at 50% 118%, rgba(46, 60, 255, 0.06), transparent 64%),
+    #141b29;
   background-attachment: fixed;
   color: #f4f6fb;
   font-family: "Vazirmatn", "IRANSans", Tahoma, system-ui, sans-serif;

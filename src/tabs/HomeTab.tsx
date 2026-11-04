@@ -18,6 +18,8 @@ import { getDueBlock } from '../lib/nextBlock';
 import RecoveryPanel from '../components/RecoveryPanel';
 import { adjustDayForRecovery } from '../lib/recovery';
 import TodaySessionBoard, { type BoardExercise } from '../session/TodaySessionBoard';
+import ExerciseDetail from '../components/ExerciseDetail';
+import { getExercise } from '../lib/exercises';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
 import { getActiveProgram, getAthleteProfile, getSessions, getVolumeByDay } from '../lib/store';
 import {
@@ -101,6 +103,9 @@ export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabP
   // Bumped when the inline board saves a session, so week stats re-read
   // the store without remounting the board (its drafts must survive).
   const [refreshTick, setRefreshTick] = useState(0);
+  /* Drill-down from a session-board card (demo or name tap) into the
+   * exercise detail view; back returns to the same board. */
+  const [boardDetailKey, setBoardDetailKey] = useState<string | null>(null);
   const sessions = useMemo(() => getSessions(), [refreshTick]);
 
   const hour = new Date().getHours();
@@ -186,9 +191,7 @@ export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabP
         </h1>
       </header>
 
-      <div className="home-banner">
-        <CoachBanner coachMessage={coachMsg} hero />
-      </div>
+
 
       {program && (
         <NextBlockOffer program={program} onAccepted={() => setHomeSeq((s) => s + 1)} />
@@ -201,29 +204,13 @@ export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabP
           card, above the start button, so the user sees WHY before
           starting without scrolling. */}
 
-      <div className="home-stats">
-        <div className="stat-card">
-          <span className="stat-icon" aria-hidden="true"><SessionsIcon /></span>
-          <div className="stat-body">
-            <div className="stat-value stat-value--grad">{fmt(weekSessions)}</div>
-            <div className="stat-label">{t('home.sessionsThisWeek')}</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon" aria-hidden="true"><VolumeIcon /></span>
-          <div className="stat-body">
-            <div className="stat-value stat-value--grad">
-              {fmt(weekVolume)} <span className="unit">{t('w.kg')}</span>
-              {weekSets > 0 && (
-                <span className="unit"> · {fmt(weekSets)} {t('w.sets')}</span>
-              )}
-            </div>
-            <div className="stat-label">{t('home.totalVolume')}</div>
-          </div>
-        </div>
-      </div>
-
-      {sched && todayExercises ? (
+      {boardDetailKey && getExercise(boardDetailKey) ? (
+        <ExerciseDetail
+          exercise={getExercise(boardDetailKey) as NonNullable<ReturnType<typeof getExercise>>}
+          onBack={() => setBoardDetailKey(null)}
+          onSelect={(e) => setBoardDetailKey(e.key)}
+        />
+      ) : sched && todayExercises ? (
         <section className="card today-card today-card--cinematic">
           <span className="today-ribbon" aria-hidden="true">
             <span className="today-ribbon__dot" />
@@ -252,6 +239,17 @@ export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabP
               <strong>{t('home.recoveryAdjustment')}:</strong> {lang === 'fa' ? todayAdjustment.noteFa : todayAdjustment.noteEn}
             </p>
           )}
+          {/* SESSION AS THE PRIMARY VIEW, FIRST: the board sits directly
+              under the card header (not below chips + explainer), so
+              the first exercise's moving demo is above the fold on the
+              first screen. Chips + explainer follow below the board. */}
+          <TodaySessionBoard
+            planKey={program?.dayKeys?.[sched.dayIndex ?? 0] ?? `day-${(sched.dayIndex ?? 0) + 1}`}
+            planNameFa={sched.dayNameFa ?? program?.name ?? ''}
+            exercises={boardExercises}
+            onSaved={() => setRefreshTick((s) => s + 1)}
+            onOpenDetail={(key) => setBoardDetailKey(key)}
+          />
           <div className="today-chips">
             <span className="chip chip--active">
               {fmt(todayExercises.length)} {t('home.exercises')}
@@ -264,18 +262,6 @@ export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabP
             </span>
           </div>
           <p className="card-meta">{t('home.setsExplainer')}</p>
-          {/* SESSION AS THE PRIMARY VIEW: the today card IS the session
-              now — exercise cards with visible set rows, one-tap
-              logging, sticky rest, recovery on each card. No start
-              gate, no drill-down to reach a set. The overlay session
-              still exists for the rest card / other tabs / onboarding
-              landing; Home no longer hides behind it. */}
-          <TodaySessionBoard
-            planKey={program?.dayKeys?.[sched.dayIndex ?? 0] ?? `day-${(sched.dayIndex ?? 0) + 1}`}
-            planNameFa={sched.dayNameFa ?? program?.name ?? ''}
-            exercises={boardExercises}
-            onSaved={() => setRefreshTick((s) => s + 1)}
-          />
         </section>
       ) : sched ? (
         <section className="card today-card today-card--rest">
@@ -310,6 +296,37 @@ export default function HomeTab({ onStartNextSession, onBuildProgram }: HomeTabP
           </button>
         </section>
       )}
+
+      {/* Session first: on train days the today card (with the
+          board's moving demos) sits directly under the greeting, so
+          the first exercise demo is above the fold. The coach banner
+          and week stats follow below the card — same content, lower
+          priority than today's session. */}
+      <div className="home-banner">
+        <CoachBanner coachMessage={coachMsg} hero />
+      </div>
+
+      <div className="home-stats">
+        <div className="stat-card">
+          <span className="stat-icon" aria-hidden="true"><SessionsIcon /></span>
+          <div className="stat-body">
+            <div className="stat-value stat-value--grad">{fmt(weekSessions)}</div>
+            <div className="stat-label">{t('home.sessionsThisWeek')}</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <span className="stat-icon" aria-hidden="true"><VolumeIcon /></span>
+          <div className="stat-body">
+            <div className="stat-value stat-value--grad">
+              {fmt(weekVolume)} <span className="unit">{t('w.kg')}</span>
+              {weekSets > 0 && (
+                <span className="unit"> · {fmt(weekSets)} {t('w.sets')}</span>
+              )}
+            </div>
+            <div className="stat-label">{t('home.totalVolume')}</div>
+          </div>
+        </div>
+      </div>
 
       {program && (
         <RecoveryPanel

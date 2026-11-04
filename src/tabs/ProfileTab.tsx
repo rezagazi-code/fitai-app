@@ -616,8 +616,19 @@ export default function ProfileTab(): ReactElement {
               const ex = getExercise(key);
               return (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 'var(--text-body)', fontWeight: 700 }}>
-                    {ex ? (lang === 'fa' ? ex.nameFa : ex.nameEn) : key}
+                  <span style={{ fontSize: 'var(--text-body)', fontWeight: 700, display: 'flex', flexDirection: 'column' }}>
+                    {ex ? (
+                      lang === 'fa' ? (
+                        <>
+                          <span>{ex.nameFa}</span>
+                          <span dir="ltr" style={{ fontSize: '0.8125rem', opacity: 0.75, fontWeight: 400 }}>{ex.nameEn}</span>
+                        </>
+                      ) : (
+                        ex.nameEn
+                      )
+                    ) : (
+                      key
+                    )}
                   </span>
                   <button
                     type="button"
