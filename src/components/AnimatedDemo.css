@@ -1,6 +1,6 @@
 /* نمایش حرکتی: رفت‌وبرگشت ملایم شروع↔پایان روی همان تصویر آواتار.
  * فقط شفافیت (opacity) عوض می‌شود، با ease ملایم؛ بدون چشمک، بدون
- * پالس دائمی، بدون درخشش بیشتر. هر جهت ~۱٫۲ ثانیه طول می‌کشد. */
+ * پالس دائمی، بدون درخشش بیشتر. هر جهت ~۲ ثانیه طول می‌کشد. */
 .anim-demo {
   position: relative;
   width: 100%;
@@ -22,12 +22,12 @@
 
 .anim-demo-start {
   background-position: 0% 50%;
-  animation: anim-demo-to-end 1.2s ease-in-out infinite alternate;
+  animation: anim-demo-to-end 2s ease-in-out infinite alternate;
 }
 
 .anim-demo-end {
   background-position: 100% 50%;
-  animation: anim-demo-from-start 1.2s ease-in-out infinite alternate;
+  animation: anim-demo-from-start 2s ease-in-out infinite alternate;
 }
 
 @keyframes anim-demo-to-end {
