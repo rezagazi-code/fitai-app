@@ -185,7 +185,7 @@ export default function VoiceFoodLog(): ReactElement {
   };
 
   return (
-    <section className="card" data-voice-food-log>
+    <section className="card" id="voice-food-log" data-voice-food-log>
       <h3 className="card-title">{L.title}</h3>
       <p className="card-meta" style={{ margin: '0 0 12px' }}>{L.subtitle}</p>
       <p className="card-meta" style={{ margin: '0 0 12px' }}>

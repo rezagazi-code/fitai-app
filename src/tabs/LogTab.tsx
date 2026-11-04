@@ -2,10 +2,11 @@
  * اپ هوشمند بدنسازی — Log tab.
  * Entry point to the active workout session + recent session history.
  */
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import { useLang } from '../lib/i18n';
 import QuickActions from '../components/QuickActions';
 import FoodLog from '../components/FoodLog';
+import MealDiary from '../components/MealDiary';
 import VoiceFoodLog from '../components/VoiceFoodLog';
 import MealPlanPanel from '../components/MealPlanPanel';
 import ShoppingListPanel from '../components/ShoppingListPanel';
@@ -40,6 +41,24 @@ function formatDate(iso: string, lang: 'fa' | 'en'): string {
   } catch {
     return iso.slice(0, 10);
   }
+}
+
+function FoodToolsToggle(): ReactElement {
+  const { t } = useLang();
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="card" data-food-tools-toggle>
+      <button
+        type="button"
+        className="chip"
+        style={{ width: '100%', minHeight: 44 }}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {t('log.moreFoodTools')}
+      </button>
+      {open && <div style={{ marginTop: 12 }}><FoodLog /></div>}
+    </section>
+  );
 }
 
 export default function LogTab({ onStartWorkout, onStartNextSession, onBuildProgram }: LogTabProps): ReactElement {
@@ -121,9 +140,15 @@ export default function LogTab({ onStartWorkout, onStartNextSession, onBuildProg
         onBuildProgram={onBuildProgram}
       />
 
-      <FoodLog />
+      <MealDiary />
 
       <VoiceFoodLog />
+
+      {/* Advanced food tools (barcode, nutrient detail, saved meals,
+          meal photo) stay available but collapsed: the old stacked
+          food section is what users skipped, so it no longer sits in
+          the main scroll path. Nothing was removed. */}
+      <FoodToolsToggle />
 
       <MealPlanPanel />
 

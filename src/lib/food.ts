@@ -53,9 +53,14 @@ export function kcalForGrams(food: FoodItem, grams: number): number {
   return Math.round((food.kcalPerUnit / food.gramsPerUnit) * grams);
 }
 
+/** Meal slot for the meal-by-meal diary. Absent = logged before meals
+ * existed (e.g. old entries, voice entries) — shown under "other". */
+export type MealKey = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
 export interface FoodLogEntry {
   id: string;
   date: string; // YYYY-MM-DD, local date
+  meal?: MealKey;
   foodKey: string | null; // null = custom entry
   nameFa: string;
   nameEn: string;
@@ -128,6 +133,22 @@ export function addFoodLogEntry(entry: Omit<FoodLogEntry, 'id' | 'date'>, date =
 
 export function removeFoodLogEntry(id: string): void {
   writeLog(readLog().filter((e) => e.id !== id));
+}
+
+/** Change an entry's quantity, rescaling its calories proportionally
+ * from the stored per-unit value (never re-guessed from the catalog). */
+export function updateFoodLogEntryQty(id: string, qty: number): void {
+  if (!(qty > 0)) return;
+  writeLog(readLog().map((e) => {
+    if (e.id !== id) return e;
+    const perUnit = e.qty > 0 ? e.kcal / e.qty : e.kcal;
+    return { ...e, qty, kcal: Math.round(perUnit * qty), grams: Math.round((e.qty > 0 ? e.grams / e.qty : 0) * qty) };
+  }));
+}
+
+/** Move an entry into a meal slot (e.g. a voice-logged item). */
+export function setFoodLogEntryMeal(id: string, meal: MealKey): void {
+  writeLog(readLog().map((e) => (e.id === id ? { ...e, meal } : e)));
 }
 
 export function todayFoodKcal(): number {
