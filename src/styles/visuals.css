@@ -51,19 +51,19 @@
     linear-gradient(135deg, rgba(20, 28, 46, 0.98), rgba(12, 16, 28, 0.98));
   box-shadow:
     var(--shadow-card),
-    0 0 54px rgba(46, 156, 255, 0.2),
+    0 0 30px rgba(46, 156, 255, 0.10),
     inset 0 1px 0 rgba(244, 246, 251, 0.1);
 }
 
 .coach-banner--hero .coach-banner__avatar {
   width: 54px;
   height: 54px;
-  background: linear-gradient(135deg, #2e9cff, #00c8e6);
-  border: 1px solid rgba(0, 240, 255, 0.65);
+  background: linear-gradient(135deg, #2e9cff, #2ec7d3);
+  border: 1px solid rgba(46, 199, 211, 0.30);
   color: #04121f;
   box-shadow:
-    0 0 30px rgba(46, 156, 255, 0.55),
-    inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    0 0 16px rgba(46, 156, 255, 0.22),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
 }
 
 .coach-banner--hero .coach-banner__avatar svg {
@@ -271,26 +271,23 @@
   color: transparent;
 }
 
-/* ---------- center action: the jewel ---------- */
+/* ---------- center action: the jewel, calmed ----------
+   The old infinite float + breathing halo were the glowing centre
+   button users felt as glare. Static jewel now; press feedback
+   (scale) is the motion, not a perpetual animation. */
 .tabbar .tabbar-center {
   background: var(--grad-cta);
   box-shadow: var(--shadow-jewel);
-  animation: fitai-jewel-float 4.5s ease-in-out infinite;
-}
-
-@keyframes fitai-jewel-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2.5px); }
+  transition: transform 0.1s ease, box-shadow 0.18s ease;
 }
 
 .tabbar .tabbar-center::before {
-  /* halo ring */
+  /* halo ring, static */
   content: "";
   position: absolute;
   inset: -5px;
   border-radius: var(--radius-full);
-  border: 1.5px solid rgba(0, 240, 255, 0.35);
-  animation: coach-breathe 3s ease-in-out infinite;
+  border: 1.5px solid rgba(46, 199, 211, 0.20);
   pointer-events: none;
 }
 
@@ -306,14 +303,13 @@
 }
 
 .tabbar .tabbar-center:active {
-  transform: scale(0.9);
-  animation: none;
+  transform: scale(0.97);
 }
 
 .tabbar .tabbar-center--active {
   box-shadow:
     var(--shadow-jewel),
-    0 0 44px rgba(0, 240, 255, 0.55);
+    0 0 24px rgba(46, 199, 211, 0.25);
 }
 
 /* ---------- onboarding: hero gradient title + luminous options ---------- */

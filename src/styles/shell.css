@@ -101,7 +101,25 @@
 }
 
 .tabbar-center--active {
-  box-shadow: 0 0 32px rgba(46, 156, 255, 0.45);
+  box-shadow: 0 0 20px rgba(46, 156, 255, 0.20);
+}
+
+/* Top-of-card start button + monthly action: visible without scrolling. */
+.home-start--top {
+  margin-top: 0;
+  margin-bottom: var(--space-4);
+}
+
+.monthly-action {
+  margin-bottom: var(--space-5);
+}
+
+.monthly-action__btn {
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.monthly-action__btn:active {
+  transform: scale(0.97);
 }
 
 /* ---------- coach banner (the signature conversational strip) ---------- */
@@ -291,6 +309,17 @@
 .home-cascade > *:nth-child(2) { animation-delay: 0.09s; }
 .home-cascade > *:nth-child(3) { animation-delay: 0.16s; }
 .home-cascade > *:nth-child(4) { animation-delay: 0.23s; }
+.home-cascade > *:nth-child(5) { animation-delay: 0.30s; }
+.home-cascade > *:nth-child(6) { animation-delay: 0.37s; }
+.home-cascade > *:nth-child(7) { animation-delay: 0.44s; }
+.home-cascade > *:nth-child(8) { animation-delay: 0.51s; }
+
+/* Home body text: a step larger and brighter than the old small
+   muted meta, so the today card reads without squinting. */
+.home-cascade .card-meta {
+  font-size: 0.9375rem;
+  color: #dbe2ee;
+}
 
 @keyframes fitai-home-cascade {
   from {
@@ -348,20 +377,20 @@
   border: 1px solid transparent;
   background:
     linear-gradient(165deg, rgba(24, 32, 52, 0.98), rgba(14, 18, 30, 0.98)) padding-box,
-    linear-gradient(135deg, rgba(46, 156, 255, 0.65), rgba(0, 240, 255, 0.18) 45%, rgba(46, 156, 255, 0.08)) border-box;
+    linear-gradient(135deg, rgba(46, 156, 255, 0.35), rgba(46, 199, 211, 0.10) 45%, rgba(46, 156, 255, 0.05)) border-box;
   box-shadow:
     var(--shadow-card),
-    0 0 40px rgba(46, 156, 255, 0.12);
+    0 0 24px rgba(46, 156, 255, 0.05);
   overflow: hidden;
 }
 
 .today-card--cinematic::before {
-  /* top light leak — the "cinema" cue */
+  /* top light leak — the "cinema" cue, softened */
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(46, 199, 211, 0.3), transparent);
 }
 
 .today-ribbon {
@@ -380,13 +409,8 @@
   height: 7px;
   border-radius: var(--radius-full);
   background: var(--accent-cyan);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.9);
-  animation: fitai-ribbon-pulse 2.2s ease-in-out infinite;
-}
-
-@keyframes fitai-ribbon-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(0.8); }
+  box-shadow: 0 0 6px rgba(46, 199, 211, 0.45);
+  /* No perpetual pulse: the old infinite pulse was eye-strain. */
 }
 
 .today-exercises {

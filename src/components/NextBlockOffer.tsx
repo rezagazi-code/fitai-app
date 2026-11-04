@@ -18,6 +18,7 @@ import {
   dismissNextBlockOffer,
   getDueBlock,
 } from '../lib/nextBlock';
+import { getSchedule } from '../lib/schedule';
 import RestNote from './RestNote';
 
 const TEXT = {
@@ -56,9 +57,18 @@ const TEXT = {
 export default function NextBlockOffer({
   program,
   onAccepted,
+  forceOpen,
 }: {
   program: WorkoutProgram;
   onAccepted: () => void;
+  /**
+   * On-demand open (Home "برنامه ماه بعد" action): bypass the week-4
+   * due gate and preview the next block for the CURRENT block, using
+   * the same builder, rest summary and RestNote. Nothing is applied
+   * on open; accept uses the same path; keep writes NO dismiss state
+   * (so the week-4 offer is never suppressed by a peek).
+   */
+  forceOpen?: boolean;
 }): ReactElement | null {
   const { lang } = useLang();
   const t = TEXT[lang === 'fa' ? 'fa' : 'en'];
@@ -67,10 +77,14 @@ export default function NextBlockOffer({
 
   const offer = useMemo(() => {
     const sessions = getSessions();
+    if (forceOpen) {
+      const current = getSchedule(program, new Date(), sessions).blockNumber;
+      return { due: current, offer: buildNextBlockOffer(program, current, sessions) };
+    }
     const due = getDueBlock(program, new Date(), sessions);
     if (due == null) return null;
     return { due, offer: buildNextBlockOffer(program, due, sessions) };
-  }, [program]);
+  }, [program, forceOpen]);
 
   if (done === 'accepted') {
     return (
@@ -128,7 +142,8 @@ export default function NextBlockOffer({
         className="btn-ghost"
         style={{ width: '100%', marginTop: 8 }}
         onClick={() => {
-          dismissNextBlockOffer(program, due);
+          // On-demand peek must not dismiss the real week-4 offer.
+          if (!forceOpen) dismissNextBlockOffer(program, due);
           setDone('kept');
         }}
       >

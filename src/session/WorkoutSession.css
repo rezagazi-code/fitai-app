@@ -680,11 +680,11 @@
   font-family: inherit;
   cursor: pointer;
   padding: var(--space-3) var(--space-4) var(--space-4);
-  transition: transform 0.14s ease, filter 0.14s ease;
+  transition: transform 0.1s ease, filter 0.1s ease;
 }
 
 .ws-centre:active {
-  transform: scale(0.985);
+  transform: scale(0.97);
   filter: brightness(1.08);
 }
 
@@ -711,7 +711,7 @@
 
 .ws-restbar {
   background: var(--surface);
-  border: 1px solid rgba(0, 240, 255, 0.25);
+  border: 1px solid rgba(46, 199, 211, 0.20);
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
 }
@@ -735,6 +735,15 @@
   font-variant-numeric: tabular-nums;
   color: var(--accent-cyan);
   line-height: 1;
+  /* Subtle digit-change tick: the element is re-keyed every second
+     (see WorkoutSession), so this plays once per tick — felt, never
+     flashing, and never perpetual. */
+  animation: fitai-digit-tick 0.25s ease-out;
+}
+
+@keyframes fitai-digit-tick {
+  from { transform: scale(1.05); opacity: 0.75; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .ws-restbar__time.is-low {

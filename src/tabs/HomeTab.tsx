@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import CoachBanner from '../components/CoachBanner';
 import NextBlockOffer from '../components/NextBlockOffer';
+import { getDueBlock } from '../lib/nextBlock';
 import RecoveryPanel from '../components/RecoveryPanel';
 import { adjustDayForRecovery } from '../lib/recovery';
 import ExerciseDetail, { type DetailTarget } from '../components/ExerciseDetail';
@@ -163,6 +164,13 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
 
   // Tap a today-card row → exercise detail (art, targets, records).
   const [detail, setDetail] = useState<{ key: string; target: DetailTarget | null } | null>(null);
+  // On-demand monthly program: the week-4 offer is the only path by
+  // default, so a user mid-block had no way to see the next month.
+  // This opens the same offer flow on demand (see NextBlockOffer
+  // forceOpen: progressed preview + rest note before any accept,
+  // accept uses the same path, dismiss writes nothing).
+  const [showMonthly, setShowMonthly] = useState(false);
+  const dueBlock = program ? getDueBlock(program, new Date(), sessions) : null;
   const detailExercise = detail ? getExercise(detail.key) ?? null : null;
 
   return (
@@ -226,6 +234,13 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
             </p>
           )}
           {sched.isDeload && <p className="card-meta sched-deload-note">{t('sched.deloadNote')}</p>}
+          {/* Visible session start at the TOP of the today card: the
+              old button sat below all 8 exercise rows, so it was
+              never seen above the fold. Same start path, same label
+              family — the bottom button stays as well. */}
+          <button type="button" className="btn-primary btn-shine home-start home-start--top" data-home-start-top onClick={onStartWorkout}>
+            {t('home.startTodaySession')}
+          </button>
           <div className="today-chips">
             <span className="chip chip--active">
               {fmt(todayExercises.length)} {t('home.exercises')}
@@ -317,6 +332,28 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
           <button type="button" className="btn-primary btn-shine" style={{ width: '100%', marginTop: 16 }} onClick={onBuildProgram}>
             {t('workouts.buildProgram')}
           </button>
+        </section>
+      )}
+
+      {/* Monthly program on demand. Hidden when the week-4 offer is
+          already due (it renders above), so the user never sees two
+          offers at once. */}
+      {program && dueBlock == null && (
+        <section className="card monthly-action" data-monthly-action>
+          {!showMonthly ? (
+            <button type="button" className="btn-secondary monthly-action__btn" data-monthly-open onClick={() => setShowMonthly(true)}>
+              {t('home.nextMonthProgram')}
+            </button>
+          ) : (
+            <NextBlockOffer
+              program={program}
+              forceOpen
+              onAccepted={() => {
+                setHomeSeq((s) => s + 1);
+                setShowMonthly(false);
+              }}
+            />
+          )}
         </section>
       )}
 

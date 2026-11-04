@@ -1007,7 +1007,10 @@ export default function WorkoutSession({
                 {L.restTitle}
                 {rest.paused ? ` · ${L.restPause}` : ''}
               </span>
-              <span className={`ws-restbar__time${displayRemaining <= 10 ? ' is-low' : ''}`}>
+              <span
+                key={displayRemaining}
+                className={`ws-restbar__time${displayRemaining <= 10 ? ' is-low' : ''}`}
+              >
                 {formatClock(displayRemaining, lang)}
               </span>
             </div>

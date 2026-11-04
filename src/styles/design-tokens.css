@@ -26,7 +26,8 @@
 
   /* ---------- Color: accents (re-skinnable pair) ---------- */
   --accent-blue: #2e9cff;      /* primary neon — CTA, active states */
-  --accent-cyan: #00f0ff;      /* secondary neon — AI, highlights */
+  --accent-cyan: #2ec7d3;      /* secondary — desaturated a step from
+    electric #00f0ff (2026-11-04 eye-strain fix): still cyan, no glare */
   --accent-danger: #ff5470;    /* warnings/destructive ONLY */
   --accent-success: #3ddc84;   /* records, completions, positive feedback */
   --accent-gold: #ffd166;      /* celebration, PRs, badges */
@@ -67,14 +68,14 @@
   /* ---------- Shadows & depth ---------- */
   --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(244, 246, 251, 0.05);
   --shadow-card-hover: 0 14px 34px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(244, 246, 251, 0.07);
-  --shadow-glow-blue: 0 0 24px rgba(46, 156, 255, 0.28);
-  --shadow-glow-cyan: 0 0 20px rgba(0, 240, 255, 0.22);
+  --shadow-glow-blue: 0 0 18px rgba(46, 156, 255, 0.16);
+  --shadow-glow-cyan: 0 0 14px rgba(46, 199, 211, 0.10);
   --shadow-glow-gold: 0 0 26px rgba(255, 209, 102, 0.30);
-  --shadow-jewel: 0 10px 30px rgba(46, 156, 255, 0.55),
+  --shadow-jewel: 0 8px 22px rgba(46, 156, 255, 0.28),
     0 2px 8px rgba(0, 0, 0, 0.4),
-    inset 0 1px 2px rgba(255, 255, 255, 0.45),
+    inset 0 1px 2px rgba(255, 255, 255, 0.35),
     inset 0 -2px 6px rgba(0, 60, 120, 0.35);
-  --shadow-cta-shine: 0 8px 30px rgba(46, 156, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  --shadow-cta-shine: 0 6px 22px rgba(46, 156, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 
   /* ---------- Motion ---------- */
   --ease-spring: cubic-bezier(0.34, 1.45, 0.5, 1);
@@ -83,8 +84,8 @@
   --dur-med: 0.25s;
 
   /* ---------- Gradients (dossier §5: energy from color, not clutter) ---------- */
-  --grad-cta: linear-gradient(135deg, #2e9cff 0%, #0fb8ff 55%, #00f0ff 100%);
-  --grad-headline: linear-gradient(120deg, #5db4ff 0%, #00f0ff 100%);
+  --grad-cta: linear-gradient(135deg, #2e9cff 0%, #0fb8ff 55%, #2ec7d3 100%);
+  --grad-headline: linear-gradient(120deg, #5db4ff 0%, #2ec7d3 100%);
   --grad-card-sheen: linear-gradient(160deg, rgba(244, 246, 251, 0.055), transparent 42%);
   --grad-pr: linear-gradient(135deg, #ffd166 0%, #ffb020 100%);
 }
@@ -149,7 +150,32 @@
 }
 
 .btn-primary:active {
-  transform: translateY(0);
+  transform: scale(0.97);
+}
+
+/* Secondary button — full-width outlined action (monthly program on
+   Home). Visible without competing with the primary start button:
+   accent border, bold label, same 0.97 / ~100ms press feedback. */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-3) var(--space-5);
+  border: 1.5px solid var(--accent-blue);
+  border-radius: var(--radius-md);
+  background: rgba(46, 156, 255, 0.08);
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  font-size: var(--text-body);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.btn-secondary:active {
+  transform: scale(0.97);
 }
 
 /* Ghost button — quiet secondary action */
@@ -271,7 +297,9 @@
     transparent 58%
   );
   transform: translateX(-120%);
-  animation: fitai-shine-sweep 3.4s ease-in-out infinite;
+  /* Single sweep on mount only — the old infinite sweep was one of
+     the perpetual glows users felt as eye-strain. */
+  animation: fitai-shine-sweep 3.4s ease-in-out 1 both;
   pointer-events: none;
 }
 
