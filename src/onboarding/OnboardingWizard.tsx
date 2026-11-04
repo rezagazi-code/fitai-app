@@ -17,7 +17,8 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import RestNote from '../components/RestNote';
 import { getSelectedGymProfile } from '../lib/gymProfiles';
-import { saveProgram, setActiveProgram, setOnboarded } from '../lib/store';
+import { deleteAllProgramsExcept, saveProgram, setActiveProgram, setOnboarded } from '../lib/store';
+import { resetNextBlockState } from '../lib/nextBlock';
 import {
   generateProgram,
   suggestGrowthCandidates,
@@ -600,6 +601,11 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
         priorities: plan.priorities,
       });
       setActiveProgram(stored.id);
+      // Reza's rule: taking a new program deletes the old program row
+      // (first onboarding: no-op, the list holds only this program).
+      // Sessions, measurements and PRs live in their own keys and stay.
+      deleteAllProgramsExcept(stored.id);
+      resetNextBlockState();
       saveUserProfile(profile, false);
       setOnboarded();
       onDone(mode === 'quick');

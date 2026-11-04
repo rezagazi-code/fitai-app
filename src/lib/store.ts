@@ -115,6 +115,18 @@ export function saveProgram(p: Omit<WorkoutProgram, 'id' | 'createdAt'>): Workou
   return full;
 }
 
+/** Delete one program row. Sessions keep their (now historical) programId
+ * and are never touched — history, measurements and PRs all survive. */
+export function deleteProgram(id: string): void {
+  write(K.programs, getPrograms().filter((p) => p.id !== id));
+}
+
+/** Keep exactly one program row (the newly activated one) and delete
+ * every other program row. Records live in their own keys and stay. */
+export function deleteAllProgramsExcept(keepId: string): void {
+  write(K.programs, getPrograms().filter((p) => p.id === keepId));
+}
+
 export function getActiveProgram(): WorkoutProgram | null {
   const id = read<string | null>(K.activeProgram, null);
   if (!id) return null;

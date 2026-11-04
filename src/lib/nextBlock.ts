@@ -24,8 +24,9 @@
  *      the base scheme (goal, level, compound vs isolation, role).
  *
  * The offer is never applied silently: the UI shows it, the athlete
- * accepts (new program saved + activated, old records untouched) or
- * keeps the old program (dismissed for that block only).
+ * accepts (new program saved + activated, the superseded program row
+ * deleted, old records untouched) or keeps the old program (dismissed
+ * for that block only).
  *
  * Local-only: reads/writes localStorage through the store, no network.
  */
@@ -47,6 +48,7 @@ import {
 import { getExerciseHistory } from './exerciseHistory';
 import { getSchedule } from './schedule';
 import {
+  deleteAllProgramsExcept,
   getAthleteProfile,
   saveProgram,
   setActiveProgram,
@@ -146,6 +148,12 @@ export function getDueBlock(
     if (state.dismissedBlock === candidate) return null;
   }
   return candidate;
+}
+
+/** Clear the next-block offer state (used when a rebuild replaces the
+ * program outright: the deleted program's offer state must not linger). */
+export function resetNextBlockState(): void {
+  writeState({ programId: '', acceptedBlock: 0, dismissedBlock: 0 });
 }
 
 export function dismissNextBlockOffer(program: WorkoutProgram, block: number): void {
@@ -368,11 +376,12 @@ export function acceptNextBlockOffer(
     priorities: program.priorities,
   });
   setActiveProgram(stored.id);
-  const prev = readState();
-  writeState({
-    programId: program.id,
-    acceptedBlock: offer.finishedBlock,
-    dismissedBlock: prev.programId === program.id ? prev.dismissedBlock : 0,
-  });
+  // Reza's rule: the old program is DELETED when a new one is taken.
+  // Sessions keep their historical programId and stay untouched.
+  deleteAllProgramsExcept(stored.id);
+  // Fresh offer lifecycle for the new program: the old program's
+  // accepted/dismissed blocks must not suppress (or resurrect) offers
+  // for the new program, whose own block numbering restarts at 1.
+  writeState({ programId: stored.id, acceptedBlock: 0, dismissedBlock: 0 });
   return stored;
 }
