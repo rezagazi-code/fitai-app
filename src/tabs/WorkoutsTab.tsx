@@ -14,9 +14,9 @@
 import { useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import '../styles/exercise-display.css';
-import BodyMap from '../components/BodyMap';
 import ExerciseArt from '../components/ExerciseArt';
 import ExerciseDetail from '../components/ExerciseDetail';
+import FourWeekPlan from '../components/FourWeekPlan';
 import { artVariantOf } from '../lib/exerciseArt';
 import { muscleArtOf } from '../lib/muscleArt';
 import { getActiveProgram, getAthleteProfile } from '../lib/store';
@@ -40,6 +40,8 @@ import {
 interface WorkoutsTabProps {
   onBuildProgram?: () => void;
   onStartWorkout?: () => void;
+  /** Muscle the library opens filtered to (from the Home body map). */
+  initialMuscle?: MuscleFilter;
 }
 
 type MuscleFilter = MuscleGroup | 'all';
@@ -70,10 +72,10 @@ function ExerciseArtBox({
 
 /** Split the prose instructions into numbered execution steps. */
 
-export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: WorkoutsTabProps) {
+export default function WorkoutsTab({ onBuildProgram, onStartWorkout, initialMuscle }: WorkoutsTabProps) {
   const { t, lang } = useLang();
   const [query, setQuery] = useState('');
-  const [muscle, setMuscle] = useState<MuscleFilter>('all');
+  const [muscle, setMuscle] = useState<MuscleFilter>(initialMuscle ?? 'all');
   const [equipment, setEquipment] = useState<EquipFilter>('all');
   const [selected, setSelected] = useState<Exercise | null>(null);
   const [bannedKeys, setBannedKeys] = useState<string[]>(() => getBannedExerciseKeys());
@@ -162,6 +164,7 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
               {t('w.startWorkout')}
             </button>
           )}
+          <FourWeekPlan program={program} />
           {/* Rebuild path: saved programs never change on app update, so a
               user whose program predates a generator fix had no way to reach
               the new schemes without reinstalling. This re-opens onboarding;
@@ -267,21 +270,6 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout }: Workouts
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           <h2 style={{ margin: 0, fontSize: 'var(--text-h1)' }}>{t('workouts.title')}</h2>
-
-          {/* ---------- body map: tap a muscle, see its exercises ---------- */}
-          <BodyMap
-            selected={muscle}
-            onSelect={(m) => {
-              setMuscle(m);
-              if (m !== 'all') {
-                setTimeout(() => {
-                  document.querySelector('.ex-lib')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 60);
-              }
-            }}
-            muscleName={(m) => t(`lib.muscle.${m}`)}
-            t={t}
-          />
 
           <input
             className="input"

@@ -1,7 +1,7 @@
 /**
  * اپ هوشمند بدنسازی — movement archetype mapping.
  *
- * Every one of the 158 library exercises maps to exactly one of 12
+ * Every one of the 168 library exercises maps to exactly one of 12
  * movement archetypes. The illustrator agent renders one cinematic neon
  * line-art PNG per archetype at `public/img/archetypes/<slug>.png`;
  * this module is the single source of truth for exercise key →
@@ -63,7 +63,7 @@ export const ARCHETYPES: Record<ArchetypeSlug, ArchetypeInfo> = {
 };
 
 /**
- * All 158 exercise keys → their movement archetype.
+ * All 168 exercise keys → their movement archetype.
  * Assigned by movement pattern (not just primary muscle): e.g. dips and
  * close-grip bench read as triceps work, pullovers as vertical pulls,
  * hip thrusts as hinges.
@@ -77,6 +77,7 @@ export const EXERCISE_ARCHETYPE: Record<string, ArchetypeSlug> = {
   'decline-barbell-press': 'push-horizontal',
   'machine-chest-press': 'push-horizontal',
   'push-up': 'push-horizontal',
+  'trx-chest-press': 'push-horizontal',
   'knee-push-up': 'push-horizontal',
   'incline-push-up': 'push-horizontal',
   'decline-push-up': 'push-horizontal',
@@ -98,6 +99,7 @@ export const EXERCISE_ARCHETYPE: Record<string, ArchetypeSlug> = {
   'clean-and-press': 'push-vertical',
   /* ---- squat (23) ---- */
   'barbell-squat': 'squat',
+  'trx-squat': 'squat',
   'front-squat': 'squat',
   'leg-press': 'squat',
   'leg-extension': 'squat',
@@ -131,6 +133,8 @@ export const EXERCISE_ARCHETYPE: Record<string, ArchetypeSlug> = {
   'db-romanian-deadlift': 'hinge',
   'single-leg-deadlift': 'hinge',
   'barbell-hip-thrust': 'hinge',
+  'trx-hamstring-curl': 'hinge',
+  'trx-glute-bridge': 'hinge',
   'glute-bridge': 'hinge',
   'cable-kickback': 'hinge',
   clamshell: 'hinge',
@@ -149,6 +153,8 @@ export const EXERCISE_ARCHETYPE: Record<string, ArchetypeSlug> = {
   'seated-cable-row': 'pull-horizontal',
   'underhand-barbell-row': 'pull-horizontal',
   'machine-row': 'pull-horizontal',
+  'trx-row': 'pull-horizontal',
+  'trx-face-pull': 'pull-horizontal',
   'band-row': 'pull-horizontal',
   'face-pull': 'pull-horizontal',
   /* ---- pull-vertical (8) ---- */
@@ -162,6 +168,7 @@ export const EXERCISE_ARCHETYPE: Record<string, ArchetypeSlug> = {
   'dead-hang': 'pull-vertical',
   /* ---- curl (17) ---- */
   'barbell-curl': 'curl',
+  'trx-biceps-curl': 'curl',
   'dumbbell-curl': 'curl',
   'alternating-curl': 'curl',
   'hammer-curl': 'curl',
@@ -186,6 +193,7 @@ export const EXERCISE_ARCHETYPE: Record<string, ArchetypeSlug> = {
   'single-arm-overhead-extension': 'triceps',
   'bench-dip': 'triceps',
   'rope-pushdown': 'triceps',
+  'trx-triceps-extension': 'triceps',
   'dumbbell-kickback': 'triceps',
   'close-grip-bench-press': 'triceps',
   'machine-dip': 'triceps',
@@ -220,6 +228,8 @@ export const EXERCISE_ARCHETYPE: Record<string, ArchetypeSlug> = {
   'reverse-lunge': 'lunge',
   /* ---- core (20) ---- */
   plank: 'core',
+  'trx-plank': 'core',
+  'trx-pike': 'core',
   crunch: 'core',
   'sit-up': 'core',
   'lying-leg-raise': 'core',

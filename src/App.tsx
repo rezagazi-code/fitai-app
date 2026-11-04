@@ -4,6 +4,7 @@ import { ensureReminderScheduled } from './lib/reminder';
 import TabBar, { type TabId } from './components/TabBar';
 import HomeTab from './tabs/HomeTab';
 import WorkoutsTab from './tabs/WorkoutsTab';
+import type { MuscleGroup } from './lib/exercises';
 import LogTab from './tabs/LogTab';
 import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
@@ -24,6 +25,7 @@ function readLoginEntered(): boolean {
 
 function Shell() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
+  const [workoutsMuscle, setWorkoutsMuscle] = useState<MuscleGroup | 'all'>('all');
   const [sessionDay, setSessionDay] = useState<PlanDay | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   // REAL local-profile login gate: first name + last name + phone
@@ -86,12 +88,17 @@ function Shell() {
             onStartNextSession={openNextSession}
             onBuildProgram={openOnboarding}
             onGoToPrograms={() => setActiveTab('workouts')}
+            onBodyMapMuscle={(m) => {
+              setWorkoutsMuscle(m);
+              setActiveTab('workouts');
+            }}
           />
         )}
         {activeTab === 'workouts' && (
           <WorkoutsTab
             onBuildProgram={openOnboarding}
             onStartWorkout={openTodaySession}
+            initialMuscle={workoutsMuscle}
           />
         )}
         {activeTab === 'log' && (
@@ -105,7 +112,15 @@ function Shell() {
         {activeTab === 'progress' && <ProgressTab key={`progress-${seq}`} />}
         {activeTab === 'profile' && <ProfileTab />}
       </main>
-      <TabBar active={activeTab} onSelect={setActiveTab} />
+      <TabBar
+        active={activeTab}
+        onSelect={(id) => {
+          // A plain tab visit opens the library unfiltered; only a
+          // body-map tap carries a muscle filter (set above).
+          if (id !== 'workouts') setWorkoutsMuscle('all');
+          setActiveTab(id);
+        }}
+      />
 
       {onboardingOpen && (
         <OnboardingWizard

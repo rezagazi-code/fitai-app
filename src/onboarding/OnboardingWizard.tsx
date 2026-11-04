@@ -60,6 +60,7 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.dayLess': 'یک روز کمتر',
     'onbw.equipmentTitle': 'به چه وسیله‌هایی دسترسی داری؟',
     'onbw.equipmentSubtitle': 'می‌تونی چندتا انتخاب کنی',
+    'onbw.equipmentGym': 'باشگاه',
     'onbw.injuriesTitle': 'آسیب یا محدودیتی داری؟',
     'onbw.injuriesSubtitle': 'برنامه‌ات طوری ساخته می‌شه که بهشون فشار نیاد',
     'onbw.injury.shoulder': 'سرشانه',
@@ -142,6 +143,7 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.dayLess': 'One fewer day',
     'onbw.equipmentTitle': 'What equipment do you have access to?',
     'onbw.equipmentSubtitle': 'Select all that apply',
+    'onbw.equipmentGym': 'Gym',
     'onbw.injuriesTitle': 'Any injuries or limitations?',
     'onbw.injuriesSubtitle': 'Your plan will be built to work around them',
     'onbw.injury.shoulder': 'Shoulder',
@@ -382,8 +384,13 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
   // profile's equipment — the "gym" the next program is built for.
   const [equipment, setEquipment] = useState<EquipmentKey[]>(() => {
     const saved = getUserProfile()?.equipment;
-    if (saved && saved.length > 0) return saved;
-    return getSelectedGymProfile().equipment as EquipmentKey[];
+    const raw = saved && saved.length > 0 ? saved : (getSelectedGymProfile().equipment as EquipmentKey[]);
+    // Bodyweight is exclusive: a set that mixes it with tools can never be
+    // produced by tapping (tap bodyweight clears tools, tap a tool clears
+    // bodyweight), so never DISPLAY such a stale/prefill mix — tools win.
+    return raw.includes('bodyweight') && raw.length > 1
+      ? raw.filter((x) => x !== 'bodyweight')
+      : raw;
   });
   const [injuries, setInjuries] = useState<InjuryKey[]>(() => getUserProfile()?.injuries ?? []);
   const [injuryNote, setInjuryNote] = useState(() => getUserProfile()?.injuryNote ?? '');
@@ -472,8 +479,23 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
 
   const handleBack = (): void => goTo(stepIdx - 1, 'back');
 
+  /** Gym shortcut = every gym tool at once (never stored itself). */
+  const GYM_EQUIPMENT: EquipmentKey[] = ['dumbbell', 'barbell', 'cable', 'band', 'kettlebell', 'bench', 'trx'];
+  const gymSelected =
+    GYM_EQUIPMENT.every((k) => equipment.includes(k)) && !equipment.includes('bodyweight');
+  const toggleGym = (): void => {
+    setEquipment((prev) =>
+      GYM_EQUIPMENT.every((k) => prev.includes(k))
+        ? prev.filter((x) => !GYM_EQUIPMENT.includes(x))
+        : [...prev.filter((x) => x !== 'bodyweight'), ...GYM_EQUIPMENT.filter((k) => !prev.includes(k))],
+    );
+  };
   const toggleEquipment = (k: EquipmentKey): void => {
-    setEquipment((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
+    setEquipment((prev) => {
+      if (k === 'bodyweight') return prev.includes('bodyweight') ? [] : ['bodyweight'];
+      const rest = prev.filter((x) => x !== 'bodyweight');
+      return rest.includes(k) ? rest.filter((x) => x !== k) : [...rest, k];
+    });
   };
 
   const toggleInjury = (k: InjuryKey): void => {
@@ -718,6 +740,15 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
             <h2 className="onbw-title">{lt('onbw.equipmentTitle')}</h2>
             <p className="onbw-subtitle">{lt('onbw.equipmentSubtitle')}</p>
             <div className="onbw-options">
+              <button
+                type="button"
+                className={`onbw-option onbw-stagger${gymSelected ? ' onbw-option--selected' : ''}`}
+                aria-pressed={gymSelected}
+                onClick={toggleGym}
+              >
+                {gymSelected && <span className="onbw-check">✓</span>}
+                <span className="onbw-option-label">{lt('onbw.equipmentGym')}</span>
+              </button>
               {EQUIPMENT_TYPES.map((k, i) => {
                 const selected = equipment.includes(k);
                 return (

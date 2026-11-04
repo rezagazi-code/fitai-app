@@ -33,7 +33,8 @@ export type Equipment =
   | 'machine'
   | 'band'
   | 'kettlebell'
-  | 'bench';
+  | 'bench'
+  | 'trx';
 
 export interface Exercise {
   key: string;
@@ -67,10 +68,10 @@ export const EQUIPMENT_TYPES: Equipment[] = [
   'dumbbell',
   'barbell',
   'cable',
-  'machine',
   'band',
   'kettlebell',
   'bench',
+  'trx',
 ];
 
 export const MUSCLE_LABELS: Record<MuscleGroup, { fa: string; en: string }> = {
@@ -96,6 +97,7 @@ export const EQUIPMENT_LABELS: Record<Equipment, { fa: string; en: string }> = {
   band: { fa: 'کش', en: 'Resistance band' },
   kettlebell: { fa: 'کتل‌بل', en: 'Kettlebell' },
   bench: { fa: 'نیمکت', en: 'Bench' },
+  trx: { fa: 'TRX', en: 'TRX' },
 };
 
 function ex(
@@ -346,6 +348,17 @@ export const EXERCISES: Exercise[] = [
     'On the dip bars, lean slightly forward and lower your body; leaning forward shifts the load onto your chest.',
   ),
 
+  ex(
+    'trx-chest-press',
+    'پرس سینه TRX',
+    'TRX Chest Press',
+    'chest',
+    ['shoulders', 'triceps'],
+    ['trx'],
+    '',
+    'دستگیره‌های TRX را بگیر و رو به زمین، بدن را در یک خط صاف نگه دار؛ مثل حرکت شنا، سینه را پایین بیاور و با فشار سینه بالا ببر. هرچه زاویه بدنت به زمین نزدیک‌تر باشد حرکت سخت‌تر می‌شود.',
+    'Hold the TRX handles facing the floor, body in one straight line. Lower your chest like a push-up, then press back up with your chest. The closer your body angle is to the floor, the harder it gets.',
+  ),
   /* ==================== پشت (Back) ==================== */
   ex(
     'barbell-row',
@@ -579,6 +592,17 @@ export const EXERCISES: Exercise[] = [
     'Legs nearly straight, bar close to your shins; hinge at the hips to lower and feel a deep hamstring stretch.',
   ),
 
+  ex(
+    'trx-row',
+    'پارو TRX',
+    'TRX Row',
+    'back',
+    ['biceps', 'shoulders'],
+    ['trx'],
+    '',
+    'رو به TRX بایست، دستگیره‌ها را بگیر و بدن را عقب بکش تا در یک خط صاف قرار بگیری. با کشش پشت، سینه را به دستگیره‌ها نزدیک کن و کتف‌ها را به هم فشار بده؛ کمر را گود نکن.',
+    'Face the TRX, grab the handles and lean back until your body is in a straight line. Pull your chest toward the handles by squeezing your shoulder blades together; do not arch your lower back.',
+  ),
   /* ==================== سرشانه (Shoulders) ==================== */
   ex(
     'overhead-press',
@@ -779,6 +803,17 @@ export const EXERCISES: Exercise[] = [
     'Stand facing away from the machine, grab the low handle and raise your arm to shoulder height; the cable’s constant tension is the advantage.',
   ),
 
+  ex(
+    'trx-face-pull',
+    'فیس‌پول TRX',
+    'TRX Face Pull',
+    'shoulders',
+    ['back'],
+    ['trx'],
+    '',
+    'رو به TRX بایست و دستگیره‌ها را بگیر. با عقب کشیدن آرنج‌ها و چرخش شانه‌ها به بیرون، دستگیره‌ها را به دو طرف پیشانی ببر؛ در انتها کتف‌ها را کامل به هم بچسبان.',
+    'Face the TRX and grab the handles. Pull your elbows back and rotate your shoulders outward, bringing the handles to either side of your forehead; squeeze your shoulder blades fully together at the end.',
+  ),
   /* ==================== جلو بازو (Biceps) ==================== */
   ex(
     'barbell-curl',
@@ -924,6 +959,17 @@ export const EXERCISES: Exercise[] = [
     'Grab one handle and curl with one arm; a good way to fix strength imbalances between arms.',
   ),
 
+  ex(
+    'trx-biceps-curl',
+    'جلو بازو TRX',
+    'TRX Biceps Curl',
+    'biceps',
+    ['forearms'],
+    ['trx'],
+    '',
+    'رو به TRX بایست، دستگیره‌ها را با کف دست رو به بالا بگیر و عقب برو. آرنج‌ها را ثابت نگه دار و فقط با خم کردن آرنج، بدن را به سمت دستگیره‌ها بالا بکش.',
+    'Face the TRX, hold the handles palms up and lean back. Keep your elbows fixed and curl your body toward the handles by bending only at the elbows.',
+  ),
   /* ==================== پشت بازو (Triceps) ==================== */
   ex(
     'dips',
@@ -1069,6 +1115,17 @@ export const EXERCISES: Exercise[] = [
     'Like a regular dip but with added weight (belt or dumbbell between legs); try it once bodyweight dips feel easy.',
   ),
 
+  ex(
+    'trx-triceps-extension',
+    'پشت بازو TRX',
+    'TRX Triceps Extension',
+    'triceps',
+    ['shoulders'],
+    ['trx'],
+    '',
+    'پشت به TRX بایست، دستگیره‌ها را بالای سر بگیر و بدن را جلو بکش. آرنج‌ها را ثابت و نزدیک سر نگه دار و فقط با باز کردن آرنج، بدن را عقب ببر.',
+    'Stand with your back to the TRX, handles overhead, and lean forward. Keep your elbows fixed close to your head and extend only at the elbows to push your body back.',
+  ),
   /* ==================== پا (Legs) ==================== */
   ex(
     'barbell-squat',
@@ -1324,6 +1381,28 @@ export const EXERCISES: Exercise[] = [
     'Take a big step to the side and squat on that leg; hits the inner thighs that usually get ignored.',
   ),
 
+  ex(
+    'trx-squat',
+    'اسکوات TRX',
+    'TRX Squat',
+    'legs',
+    ['glutes'],
+    ['trx'],
+    '',
+    'دستگیره‌ها را بگیر و رو به TRX بایست. با کمک دستگیره‌ها برای حفظ تعادل، باسن را عقب و پایین ببر تا ران‌ها موازی زمین شوند، بعد با فشار پاشنه‌ها بالا بیا.',
+    'Hold the handles facing the TRX. Using the handles for balance, sit your hips back and down until your thighs are parallel to the floor, then drive up through your heels.',
+  ),
+  ex(
+    'trx-hamstring-curl',
+    'پشت پا TRX',
+    'TRX Hamstring Curl',
+    'legs',
+    ['glutes'],
+    ['trx'],
+    '',
+    'به پشت دراز بکش، پاشنه‌ها را داخل بندهای TRX بگذار و باسن را از زمین بلند کن. با خم کردن زانوها، پاشنه‌ها را به سمت باسن بکش و باسن را بالا نگه دار.',
+    'Lie on your back, heels in the TRX straps, hips lifted off the floor. Bend your knees to pull your heels toward your glutes while keeping your hips up.',
+  ),
   /* ==================== باسن (Glutes) ==================== */
   ex(
     'barbell-hip-thrust',
@@ -1447,6 +1526,17 @@ export const EXERCISES: Exercise[] = [
     'Loop a band around your knees, squat slightly and push your knees apart; you will feel the outer-glute burn.',
   ),
 
+  ex(
+    'trx-glute-bridge',
+    'پل باسن TRX',
+    'TRX Glute Bridge',
+    'glutes',
+    ['legs'],
+    ['trx'],
+    '',
+    'به پشت دراز بکش، پاشنه‌ها را در بندهای TRX بگذار و زانوها را خم کن. با فشار پاشنه‌ها باسن را بالا ببر تا بدن از شانه تا زانو یک خط شود؛ در بالا باسن را سفت کن.',
+    'Lie on your back, heels in the TRX straps, knees bent. Press through your heels to lift your hips until your body forms a straight line from shoulders to knees; squeeze your glutes at the top.',
+  ),
   /* ==================== شکم و میان‌تنه (Core) ==================== */
   ex(
     'plank',
@@ -1636,6 +1726,28 @@ export const EXERCISES: Exercise[] = [
     'Sit with hands behind you and lift your hips until your body is straight; activates your posterior chain and core.',
   ),
 
+  ex(
+    'trx-plank',
+    'پلانک TRX',
+    'TRX Plank',
+    'core',
+    [],
+    ['trx'],
+    '',
+    'پاها را داخل بندهای TRX بگذار و در حالت شنا قرار بگیر؛ بدن از سر تا پاشنه یک خط صاف باشد. شکم را سفت نگه دار و اجازه نده باسن پایین بیاید یا بالا برود.',
+    'Place your feet in the TRX straps and hold a push-up position, body in one straight line from head to heels. Brace your core and do not let your hips sag or rise.',
+  ),
+  ex(
+    'trx-pike',
+    'پایک TRX',
+    'TRX Pike',
+    'core',
+    ['shoulders'],
+    ['trx'],
+    '',
+    'از حالت پلانک با پاهای داخل بندها شروع کن. با بالا بردن باسن به سمت سقف، بدن را به شکل V دربیاور و بعد آرام به پلانک برگرد؛ کمر را گرد نکن.',
+    'Start in a plank with feet in the straps. Lift your hips toward the ceiling into a V shape, then return slowly to plank; do not round your back.',
+  ),
   /* ==================== ساق (Calves) ==================== */
   ex(
     'standing-calf-raise',

@@ -18,6 +18,8 @@ import { getDueBlock } from '../lib/nextBlock';
 import RecoveryPanel from '../components/RecoveryPanel';
 import { adjustDayForRecovery } from '../lib/recovery';
 import TodaySessionBoard, { type BoardExercise } from '../session/TodaySessionBoard';
+import BodyMap from '../components/BodyMap';
+import type { MuscleGroup } from '../lib/exercises';
 import ExerciseDetail from '../components/ExerciseDetail';
 import { getExercise } from '../lib/exercises';
 import { buildCoachContext, getBannerMessage, rememberBannerKey } from '../lib/coach';
@@ -57,6 +59,8 @@ interface HomeTabProps {
   onBuildProgram: () => void;
   /** Switches to the programs tab (board cancel → new program). */
   onGoToPrograms: () => void;
+  /** Body-map tap: jump to the programs library filtered to that muscle. */
+  onBodyMapMuscle: (m: MuscleGroup | 'all') => void;
 }
 
 function greetingKey(hour: number): 'morning' | 'afternoon' | 'evening' {
@@ -97,7 +101,7 @@ function doneSetsThisWeek(sessions: ReturnType<typeof getSessions>, weekStart: D
   return n;
 }
 
-export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToPrograms }: HomeTabProps): ReactElement {
+export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToPrograms, onBodyMapMuscle }: HomeTabProps): ReactElement {
   const { t, lang } = useLang();
   const program = getActiveProgram();
   const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
@@ -305,6 +309,15 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
           the first exercise demo is above the fold. The coach banner
           and week stats follow below the card — same content, lower
           priority than today's session. */}
+      {/* Body map lives on Home, not in Programs: tap a muscle to open
+          the library filtered to it. Session stays first above. */}
+      <BodyMap
+        selected="all"
+        onSelect={onBodyMapMuscle}
+        muscleName={(m) => t(`lib.muscle.${m}`)}
+        t={t}
+      />
+
       <div className="home-banner">
         <CoachBanner coachMessage={coachMsg} hero />
       </div>

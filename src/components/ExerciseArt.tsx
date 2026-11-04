@@ -6,7 +6,7 @@
  * exercise itself as neon line-art SVG: the body position comes from
  * the pose, the implement from the equipment — so a barbell bench,
  * a dumbbell bench, an incline bench and a machine press are four
- * visibly different pictures, and every one of the 158 library
+ * visibly different pictures, and every one of the 168 library
  * exercises gets its own variant via lib/exerciseArt.
  *
  * Style: cyan glow strokes on the card's dark surface, diagrammatic

@@ -18,7 +18,7 @@ export interface GymProfile {
 
 export const DEFAULT_GYM_PROFILES: GymProfile[] = [
   { id: 'home', nameFa: 'خانه', nameEn: 'Home', equipment: ['bodyweight', 'dumbbell'] },
-  { id: 'full-gym', nameFa: 'باشگاه کامل', nameEn: 'Full gym', equipment: ['bodyweight', 'dumbbell', 'barbell', 'cable', 'machine', 'bench', 'kettlebell', 'band'] },
+  { id: 'full-gym', nameFa: 'باشگاه کامل', nameEn: 'Full gym', equipment: ['bodyweight', 'dumbbell', 'barbell', 'cable', 'bench', 'kettlebell', 'band', 'trx'] },
   { id: 'travel', nameFa: 'سفر / هتل', nameEn: 'Travel', equipment: ['bodyweight', 'band'] },
 ];
 
