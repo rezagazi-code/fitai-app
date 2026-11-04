@@ -1,19 +1,20 @@
 /* ============================================================
  * Musclepro — motion / colour polish pass (after the four-app mix).
  *
- * Colour: one step calmer than the 0.2.1 eye-strain fix. The primary
- * blue is deepened (less neon), glow alphas are cut again, and text
- * stays near-white on dark navy. No perpetual glow, no flashing.
+ * Colour: vivid step (2026-11-04 vibrant order supersedes the
+ * calmer direction): the primary blue is brightened again, glow
+ * alphas stay cut, and text stays near-white. No perpetual glow,
+ * no flashing.
  * Motion: smooth and visible — entrance once, press on every tap,
  * and a staggered reveal for the quick-action options. Nothing
  * pulses forever, nothing flashes, no confetti or particles.
  * ============================================================ */
 
 :root {
-  /* Deepened primary blue: calmer than #2e9cff, still clearly blue. */
-  --accent-blue: #2f8fe3;
-  --shadow-glow-blue: 0 0 16px rgba(47, 143, 227, 0.12);
-  --shadow-cta-shine: 0 6px 22px rgba(47, 143, 227, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  /* Vivid primary blue (vibrant order): brighter than #2f8fe3. */
+  --accent-blue: #3aa8ff;
+  --shadow-glow-blue: 0 0 16px rgba(58, 168, 255, 0.12);
+  --shadow-cta-shine: 0 6px 22px rgba(58, 168, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 /* ---------- Entry screen: original modern gym background ---------- */
