@@ -7,7 +7,7 @@
  * estimates only — the plan never prescribes a personal target and
  * never diagnoses anything.
  *
- * Redistribution (4eat idea, done honestly): if the user marks a meal
+ * Redistribution (day-plan idea, done honestly): if the user marks a meal
  * as skipped (only two meals possible today), that meal's estimated
  * calories are spread proportionally over the remaining meals, and the
  * plan says WHY the amounts changed. Totals stay the same; nothing is
@@ -21,6 +21,8 @@
  */
 
 import { getTodayFoodLog, type FoodLogEntry } from './food';
+import { FOOD_DB } from './foodDB';
+import { getExclusions, isFoodExcluded, type FoodExclusions } from './foodExtended';
 
 export type MealGroup = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -224,6 +226,173 @@ export function buildShoppingList(date: string): ShoppingItem[] {
     }
   }
   return [...byKey.values()].sort((a, b) => a.section.localeCompare(b.section) || a.nameFa.localeCompare(b.nameFa));
+}
+
+/* ----------------- full-day plan, substitutes, exclusions ----------------- */
+
+/** Broad food family used ONLY to pick same-family substitutes. */
+export type FoodFamily =
+  | 'bread' | 'rice' | 'stew' | 'kebab' | 'poultry' | 'meat'
+  | 'dairy' | 'fruit' | 'vegetable' | 'legume' | 'nut' | 'drink' | 'other';
+
+export function familyForFood(foodKey: string | null, nameFa: string): FoodFamily {
+  const k = (foodKey ?? '').toLowerCase();
+  const n = nameFa;
+  if (/(nan-|bread|نان)/.test(k + ' ' + n)) return 'bread';
+  if (/(chelo|kateh|polo|rice|برنج|چلو|پلو)/.test(k + ' ' + n)) return 'rice';
+  if (/(khoresh|ghormeh|fesenjan|gheimeh|ash|abgoosht|dizi|haleem|خورشت|قورمه|فسنجان|قیمه|آش|آبگوشت|دیزی|حلیم)/.test(k + ' ' + n)) return 'stew';
+  if (/(kebab|koobideh|barg|chenjeh|کباب|کوبیده|برگ|چنجه)/.test(k + ' ' + n)) return 'kebab';
+  if (/(chicken|joojeh|turkey|مرغ|جوجه|بوقلمون)/.test(k + ' ' + n)) return 'poultry';
+  if (/(beef|lamb|گوشت)/.test(k + ' ' + n)) return 'meat';
+  if (/(mast|doogh|paneer|milk|cheese|ماست|دوغ|پنیر|شیر|کشک|خامه|کره)/.test(k + ' ' + n)) return 'dairy';
+  if (/(apple|banana|orange|grape|melon|peach|pear|plum|cherry|strawberry|kiwi|mango|pomegranate|fig|date|سیب|موز|پرتقال|انگور|هندوانه|طالبی|هلو|گلابی|آلو|گیلاس|توت|کیوی|انبه|انار|انجیر|خرما)/.test(k + ' ' + n)) return 'fruit';
+  if (/(salad|cucumber|tomato|lettuce|spinach|carrot|onion|eggplant|zucchini|pepper|broccoli|cauliflower|mushroom|corn|green-bean|سالاد|خیار|گوجه|کاهو|اسفناج|هویج|پیاز|بادمجان|کدو|فلفل|بروکلی|گل|قارچ|ذرت)/.test(k + ' ' + n)) return 'vegetable';
+  if (/(lentil|chickpea|bean|عدس|لوبیا|نخود|ماش|لپه|بلغور|کینوا)/.test(k + ' ' + n)) return 'legume';
+  if (/(walnut|almond|pistachio|hazelnut|cashew|peanut|seed|گردو|بادام|پسته|فندق|تخمه|ارده)/.test(k + ' ' + n)) return 'nut';
+  if (/(water|tea|coffee|juice|soda|doogh|آب|چای|قهوه|نوشابه)/.test(k + ' ' + n)) return 'drink';
+  return 'other';
+}
+
+/**
+ * Unlimited substitutes for a planned food: every other database food
+ * in the same family, minus the food itself and minus anything the
+ * user's allergy/dislike filter removes. Sorted by Persian name.
+ */
+export function substitutesFor(
+  foodKey: string | null,
+  nameFa: string,
+  ex: FoodExclusions = getExclusions(),
+): typeof FOOD_DB {
+  const family = familyForFood(foodKey, nameFa);
+  return FOOD_DB.filter((f) => {
+    if (foodKey && f.key === foodKey) return false;
+    if (familyForFood(f.key, f.nameFa) !== family) return false;
+    if (isFoodExcluded(f.key, f.nameFa, ex)) return false;
+    return true;
+  }).sort((a, b) => a.nameFa.localeCompare(b.nameFa));
+}
+
+/** Swap one planned row for a substitute, keeping the row's quantity. */
+export function substituteInMeal(
+  date: string,
+  group: MealGroup,
+  index: number,
+  substituteKey: string,
+): DayMealPlan | null {
+  const plan = getDayMealPlan(date);
+  const row = plan.meals[group][index];
+  const sub = FOOD_DB.find((f) => f.key === substituteKey);
+  if (!row || !sub) return null;
+  plan.meals[group] = plan.meals[group].map((f, i) =>
+    i === index
+      ? {
+          ...f,
+          foodKey: sub.key,
+          nameFa: sub.nameFa,
+          nameEn: sub.nameEn,
+          unitFa: sub.unitFa,
+          unitEn: sub.unitEn,
+          grams: Math.round(sub.gramsPerUnit * f.qty),
+          kcal: Math.round(sub.kcalPerUnit * f.qty),
+          section: sectionForFood(sub.key, sub.nameFa),
+        }
+      : f,
+  );
+  plan.redistributed = false;
+  saveDayMealPlan(plan);
+  return plan;
+}
+
+interface DefaultMealItem {
+  key: string;
+  qty: number;
+}
+
+/** Original full-day composition from the local database (exact units). */
+const DEFAULT_DAY: Record<MealGroup, DefaultMealItem[]> = {
+  breakfast: [
+    { key: 'nan-sangak', qty: 1 },
+    { key: 'paneer', qty: 1 },
+    { key: 'egg', qty: 2 },
+    { key: 'tea', qty: 1 },
+  ],
+  lunch: [
+    { key: 'chelo-sade', qty: 1 },
+    { key: 'ghormeh-sabzi', qty: 1 },
+    { key: 'salad-shirazi', qty: 1 },
+  ],
+  dinner: [
+    { key: 'chicken-breast', qty: 1 },
+    { key: 'nan-lavash', qty: 1 },
+    { key: 'mast-khiar', qty: 1 },
+  ],
+  snack: [
+    { key: 'apple', qty: 1 },
+    { key: 'walnut', qty: 1 },
+  ],
+};
+
+export interface DefaultPlanResult {
+  plan: DayMealPlan;
+  replaced: Array<{ meal: MealGroup; from: string; to: string }>;
+  dropped: Array<{ meal: MealGroup; name: string }>;
+}
+
+/**
+ * Fill today's EMPTY meals with the default full-day plan. Meals that
+ * already have foods are left untouched. Excluded foods are replaced
+ * with the first non-excluded same-family substitute, or dropped
+ * with a note when no substitute exists. Nothing is prescribed: all
+ * calories stay general estimates.
+ */
+export function buildDefaultDayPlan(
+  date: string,
+  ex: FoodExclusions = getExclusions(),
+): DefaultPlanResult {
+  const plan = getDayMealPlan(date);
+  const replaced: DefaultPlanResult['replaced'] = [];
+  const dropped: DefaultPlanResult['dropped'] = [];
+  for (const group of Object.keys(DEFAULT_DAY) as MealGroup[]) {
+    if (plan.meals[group].length > 0 || plan.skipped.includes(group)) continue;
+    for (const item of DEFAULT_DAY[group]) {
+      const entry = FOOD_DB.find((f) => f.key === item.key);
+      if (!entry) continue;
+      if (!isFoodExcluded(entry.key, entry.nameFa, ex)) {
+        plan.meals[group].push({
+          foodKey: entry.key,
+          nameFa: entry.nameFa,
+          nameEn: entry.nameEn,
+          qty: item.qty,
+          unitFa: entry.unitFa,
+          unitEn: entry.unitEn,
+          grams: Math.round(entry.gramsPerUnit * item.qty),
+          kcal: Math.round(entry.kcalPerUnit * item.qty),
+          section: sectionForFood(entry.key, entry.nameFa),
+        });
+        continue;
+      }
+      const sub = substitutesFor(entry.key, entry.nameFa, ex)[0];
+      if (sub) {
+        replaced.push({ meal: group, from: entry.nameFa, to: sub.nameFa });
+        plan.meals[group].push({
+          foodKey: sub.key,
+          nameFa: sub.nameFa,
+          nameEn: sub.nameEn,
+          qty: item.qty,
+          unitFa: sub.unitFa,
+          unitEn: sub.unitEn,
+          grams: Math.round(sub.gramsPerUnit * item.qty),
+          kcal: Math.round(sub.kcalPerUnit * item.qty),
+          section: sectionForFood(sub.key, sub.nameFa),
+        });
+      } else {
+        dropped.push({ meal: group, name: entry.nameFa });
+      }
+    }
+  }
+  plan.redistributed = false;
+  saveDayMealPlan(plan);
+  return { plan, replaced, dropped };
 }
 
 export function getShoppingChecked(): Record<string, boolean> {

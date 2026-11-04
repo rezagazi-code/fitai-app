@@ -131,9 +131,13 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
   // Daily recovery adjustment for TODAY's card, computed the same way
   // the launch path computes it (after deload) — the note is shown
   // openly, never silently, and the session uses the same numbers.
-  const todayAdjustment = todayExercises
-    ? adjustDayForRecovery(todayExercises.map((e) => ({ exerciseKey: e.exerciseKey, sets: e.sets }))).adjustment
+  const todayRecovery = todayExercises
+    ? adjustDayForRecovery(todayExercises.map((e) => ({ exerciseKey: e.exerciseKey, sets: e.sets })))
     : null;
+  const todayAdjustment = todayRecovery ? todayRecovery.adjustment : null;
+  const todayAdjustedExercises = todayRecovery
+    ? todayRecovery.exercises.map((e) => ({ exerciseKey: e.exerciseKey, sets: e.sets }))
+    : undefined;
   const estMinutes = todayExercises
     ? Math.max(15, Math.round((totalSets * 150) / 60))
     : 0;
@@ -190,7 +194,12 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
         <NextBlockOffer program={program} onAccepted={() => setHomeSeq((s) => s + 1)} />
       )}
 
-      {program && <RecoveryPanel adjustment={todayAdjustment} />}
+      {/* Recovery panel sits BELOW the today card on purpose: the
+          panel lists all 11 muscles, and above the card it pushed
+          the session-start button below the fold (homefix e2e).
+          The adjustment note itself is also shown inside the today
+          card, above the start button, so the user sees WHY before
+          starting without scrolling. */}
 
       <div className="home-stats">
         <div className="stat-card">
@@ -234,6 +243,15 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
             </p>
           )}
           {sched.isDeload && <p className="card-meta sched-deload-note">{t('sched.deloadNote')}</p>}
+          {/* Recovery adjustment disclosed inside the card, above the
+              start button: the full per-muscle panel sits below the
+              card (to keep this button above the fold), but the WHY
+              must be seen before starting, not after scrolling. */}
+          {todayAdjustment && (
+            <p className="card-meta" data-today-adjustment-note style={{ margin: '0 0 12px' }}>
+              <strong>{t('home.recoveryAdjustment')}:</strong> {lang === 'fa' ? todayAdjustment.noteFa : todayAdjustment.noteEn}
+            </p>
+          )}
           {/* Visible session start at the TOP of the today card: the
               old button sat below all 8 exercise rows, so it was
               never seen above the fold. Same start path, same label
@@ -333,6 +351,14 @@ export default function HomeTab({ onStartWorkout, onStartNextSession, onBuildPro
             {t('workouts.buildProgram')}
           </button>
         </section>
+      )}
+
+      {program && (
+        <RecoveryPanel
+          adjustment={todayAdjustment}
+          todayOriginal={todayExercises ? todayExercises.map((e) => ({ exerciseKey: e.exerciseKey, sets: e.sets })) : undefined}
+          todayAdjusted={todayAdjustedExercises}
+        />
       )}
 
       {/* Monthly program on demand. Hidden when the week-4 offer is

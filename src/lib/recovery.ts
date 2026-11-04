@@ -113,6 +113,44 @@ export function recoveryForMuscle(muscle: MuscleGroup, now = new Date()): Muscle
   return { muscle, state, daysSinceHeavy: days, lastHeavyDate: last, overridden: false };
 }
 
+/**
+ * Honest recovery PERCENTAGE bands, for display only — the underlying
+ * calculation stays the coarse ready/semi/tired model above. The %
+ * is a band label derived transparently from days since the last
+ * heavy session, never a fake-precise measurement:
+ *   no session ever recorded for the muscle → null ("no data yet",
+ *   never an invented %)
+ *   0–1 days ago → 25% (tired)
+ *   2–3 days ago → 65% (semi-ready)
+ *   4+ days ago, or a manual "I'm ready" override → 100% (ready)
+ * Callers must render null as a no-data state, not as 0% or 100%.
+ */
+export function recoveryPercent(r: MuscleRecovery): number | null {
+  if (r.overridden) return 100;
+  if (r.lastHeavyDate === null || r.daysSinceHeavy === null) return null;
+  if (r.daysSinceHeavy <= 1) return 25;
+  if (r.daysSinceHeavy <= 3) return 65;
+  return 100;
+}
+
+export interface MuscleRecoveryDisplay extends MuscleRecovery {
+  percent: number | null;
+}
+
+export function recoveryDisplay(muscle: MuscleGroup, now = new Date()): MuscleRecoveryDisplay {
+  const r = recoveryForMuscle(muscle, now);
+  return { ...r, percent: recoveryPercent(r) };
+}
+
+export function recoveryDisplayMap(now = new Date()): Record<MuscleGroup, MuscleRecoveryDisplay> {
+  const muscles: MuscleGroup[] = [
+    'chest', 'back', 'shoulders', 'biceps', 'triceps', 'legs', 'glutes', 'core', 'calves', 'forearms', 'fullbody',
+  ];
+  const out = {} as Record<MuscleGroup, MuscleRecoveryDisplay>;
+  for (const m of muscles) out[m] = recoveryDisplay(m, now);
+  return out;
+}
+
 export function recoveryMap(now = new Date()): Record<MuscleGroup, MuscleRecovery> {
   const muscles: MuscleGroup[] = [
     'chest', 'back', 'shoulders', 'biceps', 'triceps', 'legs', 'glutes', 'core', 'calves', 'forearms', 'fullbody',
