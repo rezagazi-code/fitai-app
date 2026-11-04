@@ -326,7 +326,11 @@ export default function TodaySessionBoard({
           </div>
           <div className="tsb-summary-stat">
             <div className="tsb-summary-value">
-              {fa(summary.volumeKg)} <span className="tsb-unit">کیلو</span>
+              {summary.volumeKg > 0 ? (
+                <>{fa(summary.volumeKg)} <span className="tsb-unit">کیلو</span></>
+              ) : (
+                'بدون وزنه'
+              )}
             </div>
             <div className="tsb-summary-label">حجم کل</div>
           </div>
