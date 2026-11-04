@@ -1,0 +1,119 @@
+/* ============================================================
+ * Musclepro — motion / colour polish pass (after the four-app mix).
+ *
+ * Colour: one step calmer than the 0.2.1 eye-strain fix. The primary
+ * blue is deepened (less neon), glow alphas are cut again, and text
+ * stays near-white on dark navy. No perpetual glow, no flashing.
+ * Motion: smooth and visible — entrance once, press on every tap,
+ * and a staggered reveal for the quick-action options. Nothing
+ * pulses forever, nothing flashes, no confetti or particles.
+ * ============================================================ */
+
+:root {
+  /* Deepened primary blue: calmer than #2e9cff, still clearly blue. */
+  --accent-blue: #2f8fe3;
+  --shadow-glow-blue: 0 0 16px rgba(47, 143, 227, 0.12);
+  --shadow-cta-shine: 0 6px 22px rgba(47, 143, 227, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* ---------- Entry screen: original modern gym background ---------- */
+.entry-screen {
+  margin: calc(-1 * var(--space-5)) calc(-1 * var(--space-4)) calc(-96px - env(safe-area-inset-bottom, 0px));
+  padding: var(--space-5) var(--space-4) calc(96px + env(safe-area-inset-bottom, 0px));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Dark overlay FIRST so white Persian text stays readable over the
+     photo in every light condition; readability beats decoration. */
+  background-image:
+    linear-gradient(rgba(10, 14, 20, 0.78), rgba(10, 14, 20, 0.55) 42%, rgba(10, 14, 20, 0.86)),
+    url('/img/entry-bg.jpg');
+  background-size: cover;
+  background-position: center 38%;
+  background-repeat: no-repeat;
+}
+
+.entry-screen [data-login-gate] {
+  animation: fitai-entry-rise 0.6s ease both;
+}
+
+.entry-screen [data-login-gate].card {
+  background: rgba(16, 20, 29, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+@keyframes fitai-entry-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Press feedback on every primary button ---------- */
+.btn-primary:active,
+.btn-secondary:active,
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+
+.btn-ghost {
+  transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+/* ---------- Quick actions: the main expanding button ----------
+ * The Log tab's main button. Tapping it reveals its option buttons
+ * ONE BY ONE beneath it (staggered by --quick-index, 90ms apart),
+ * each fading and rising into place. Options unmount on close, so
+ * reopening replays the stagger from the first option. No option
+ * appears at the same instant as another. */
+.quick-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.quick-main__chevron {
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+
+.quick-main__chevron--open {
+  transform: rotate(180deg);
+}
+
+.quick-option {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fitai-quick-in 0.35s ease forwards;
+  animation-delay: calc(var(--quick-index, 0) * 90ms);
+}
+
+.quick-option:active {
+  transform: scale(0.97);
+}
+
+@keyframes fitai-quick-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-screen [data-login-gate],
+  .quick-option {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -111,12 +111,13 @@ export default function LoginGate({
 
   return (
     <div
+      className="entry-screen"
+      data-entry-bg
       style={{
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
         justifyContent: 'center',
-        minHeight: '70vh',
       }}
     >
       <section className="card" data-login-gate>

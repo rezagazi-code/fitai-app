@@ -4,6 +4,7 @@
  */
 import type { ReactElement } from 'react';
 import { useLang } from '../lib/i18n';
+import QuickActions from '../components/QuickActions';
 import FoodLog from '../components/FoodLog';
 import VoiceFoodLog from '../components/VoiceFoodLog';
 import MealPlanPanel from '../components/MealPlanPanel';
@@ -110,6 +111,15 @@ export default function LogTab({ onStartWorkout, onStartNextSession, onBuildProg
           </button>
         </section>
       )}
+
+      <QuickActions
+        onStartWorkout={() => {
+          if (day) onStartWorkout();
+          else if (sched) onStartNextSession();
+          else onBuildProgram();
+        }}
+        onBuildProgram={onBuildProgram}
+      />
 
       <FoodLog />
 
