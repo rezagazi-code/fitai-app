@@ -1,0 +1,53 @@
+/* Home exercises preview: compact 2-column grid. Each item holds its
+ * card button plus the slide-down panel beneath it, so an open panel
+ * stays inside its own column. */
+.home-ex-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.home-ex-item {
+  min-width: 0;
+}
+
+.home-ex-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-body);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.home-ex-art {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.home-ex-name {
+  font-weight: 700;
+  font-size: var(--text-body);
+}
+
+.home-ex-en {
+  font-size: 0.8125rem;
+  opacity: 0.75;
+}
+
+.home-ex-chip {
+  align-self: flex-start;
+}
+
+.home-ex-chev {
+  align-self: center;
+  opacity: 0.7;
+}

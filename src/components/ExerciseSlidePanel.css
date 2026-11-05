@@ -1,0 +1,46 @@
+/* Slide-down panel shared by the Home exercises preview and the
+ * 4-week program rows. Same technique as the session board's panel:
+ * grid rows animate the height so no fixed height is needed, and
+ * closed content is clipped out of view (opacity follows). */
+.xpan {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
+}
+
+.xpan.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.xpan-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.xpan-demo {
+  margin-top: 10px;
+}
+
+.xpan-video {
+  margin-top: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--text-body);
+  font: inherit;
+  cursor: pointer;
+}
+
+.xpan-instructions {
+  margin: 10px 0 0;
+  line-height: 1.8;
+  font-size: var(--text-body);
+}
+
+.xpan-instructions--alt {
+  opacity: 0.75;
+  font-size: 0.9rem;
+}

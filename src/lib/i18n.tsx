@@ -99,6 +99,8 @@ const fa: Dict = {
   'home.recoveryAdjustment': 'تنظیم ریکاوری',
   'home.nextMonthProgram': 'برنامه ماه بعد',
   'home.exercises': 'حرکت',
+  'home.exercisesPreviewTitle': 'حرکت‌ها',
+  'home.allExercises': 'همه حرکت‌ها',
   'home.noProgramTitle': 'هنوز برنامه‌ای نداری',
   'home.noProgramBody': 'هدفت و سطحت رو بگو تا برنامه‌ی مخصوص خودت ساخته بشه',
 
@@ -443,6 +445,8 @@ const en: Dict = {
   'home.recoveryAdjustment': 'Recovery adjustment',
   'home.nextMonthProgram': 'Next month\u2019s program',
   'home.exercises': 'exercises',
+  'home.exercisesPreviewTitle': 'Exercises',
+  'home.allExercises': 'All exercises',
   'home.noProgramTitle': 'No program yet',
   'home.noProgramBody': 'Tell us your goal and level so we can build your personal plan',
 

@@ -19,6 +19,7 @@ import RecoveryPanel from '../components/RecoveryPanel';
 import { adjustDayForRecovery } from '../lib/recovery';
 import TodaySessionBoard, { type BoardExercise } from '../session/TodaySessionBoard';
 import BodyMap from '../components/BodyMap';
+import HomeExercisesPreview from '../components/HomeExercisesPreview';
 import type { MuscleGroup } from '../lib/exercises';
 import ExerciseDetail from '../components/ExerciseDetail';
 import { getExercise } from '../lib/exercises';
@@ -317,6 +318,10 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
         muscleName={(m) => t(`lib.muscle.${m}`)}
         t={t}
       />
+
+      {/* Exercises preview: a small taste of the library, not all of
+          it — «همه حرکت‌ها» jumps to the library unfiltered. */}
+      <HomeExercisesPreview onSeeAll={() => onBodyMapMuscle('all')} />
 
       <div className="home-banner">
         <CoachBanner coachMessage={coachMsg} hero />

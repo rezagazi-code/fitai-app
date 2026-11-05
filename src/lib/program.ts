@@ -157,7 +157,6 @@ export function personalBestWeight(exerciseKey: string): number {
 
 import {
   EXERCISES,
-  EQUIPMENT_LABELS,
   type Equipment,
   type Exercise,
   type MuscleGroup,
@@ -220,8 +219,6 @@ export interface PlanExercise {
   /** e.g. "8-12", "10", "45s" for timed holds */
   reps: string;
   restSeconds: number;
-  noteFa?: string;
-  noteEn?: string;
   /** Progressed target load (next-block programs only). */
   targetWeightKg?: number;
 }
@@ -426,23 +423,21 @@ function isEquipmentCompatible(e: Exercise, owned: EquipmentKey[]): boolean {
   return e.equipment.every((tag) => owned.includes(tag));
 }
 
-interface PoolOptions {
-  relaxEquipment?: boolean;
-}
-
-/** Exercises for a muscle, filtered by equipment / level / injuries. */
+/** Exercises for a muscle, filtered by equipment / level / injuries.
+ * Equipment is NEVER relaxed: a muscle slot with no owned-compatible
+ * exercise is skipped, not filled with a move the user has no
+ * equipment for. */
 function candidatePool(
   muscle: MuscleGroup,
   profile: UserProfile,
   excluded: Set<string>,
-  opts: PoolOptions = {},
 ): Exercise[] {
   const levelBlocked = new Set(LEVEL_EXCLUDED_KEYS[profile.level]);
-  const owned = opts.relaxEquipment ? undefined : profile.equipment;
+  const owned = profile.equipment;
   return (EXERCISES_BY_MUSCLE.get(muscle) ?? []).filter((e) => {
     if (excluded.has(e.key)) return false;
     if (levelBlocked.has(e.key)) return false;
-    if (owned && !isEquipmentCompatible(e, owned)) return false;
+    if (!isEquipmentCompatible(e, owned)) return false;
     return true;
   });
 }
@@ -761,20 +756,6 @@ function makePlanId(): string {
   }
 }
 
-function missingEquipmentNote(
-  e: Exercise,
-  owned: EquipmentKey[],
-): { noteFa?: string; noteEn?: string } {
-  const missing = e.equipment.filter((t) => !owned.includes(t));
-  if (missing.length === 0) return {};
-  const fa = missing.map((t) => EQUIPMENT_LABELS[t].fa).join('، ');
-  const en = missing.map((t) => EQUIPMENT_LABELS[t].en).join(', ');
-  return {
-    noteFa: `نیاز به وسیله: ${fa}`,
-    noteEn: `Requires equipment: ${en}`,
-  };
-}
-
 /**
  * Pick `count` exercises for one muscle block of one day.
  * - never duplicates a key inside the same day
@@ -789,15 +770,12 @@ function pickForBlock(
   dayKeys: Set<string>,
   weeklyUse: Map<string, number>,
   seedBase: string,
-): { picked: Exercise[]; relaxed: boolean } {
-  let pool = candidatePool(muscle, profile, excluded);
-  let relaxed = false;
-  if (pool.length === 0) {
-    // Fallback: ignore equipment (flagged with a note on the exercise).
-    pool = candidatePool(muscle, profile, excluded, { relaxEquipment: true });
-    relaxed = true;
-  }
-  if (pool.length === 0) return { picked: [], relaxed };
+): Exercise[] {
+  const pool = candidatePool(muscle, profile, excluded);
+  // No owned-compatible exercise for this muscle: SKIP the slot (the
+  // day simply has fewer exercises). Never fill it with an
+  // unowned-equipment move.
+  if (pool.length === 0) return [];
 
   const rnd = mulberry32(hashString(`${seedBase}|${muscle}`));
   // Fisher–Yates shuffle, then stable preference for least-used-weekly.
@@ -818,7 +796,7 @@ function pickForBlock(
     dayKeys.add(e.key);
     weeklyUse.set(e.key, (weeklyUse.get(e.key) ?? 0) + 1);
   }
-  return { picked, relaxed };
+  return picked;
 }
 
 /** Injury exclusions UNION the user's banned-movement filter: a banned
@@ -878,7 +856,7 @@ export function generateProgram(input: UserProfile): WorkoutPlan {
       // Whole blocks only: stop before starting a block that would
       // push the day past the session-length cap.
       if (sessionCap !== undefined && exercises.length >= sessionCap) break;
-      const { picked, relaxed } = pickForBlock(
+      const picked = pickForBlock(
         muscle,
         count,
         profile,
@@ -894,7 +872,6 @@ export function generateProgram(input: UserProfile): WorkoutPlan {
           sets: s.sets,
           reps: s.reps,
           restSeconds: s.restSeconds,
-          ...(relaxed ? missingEquipmentNote(e, profile.equipment) : {}),
         });
         allKeys.push(e.key);
       }
