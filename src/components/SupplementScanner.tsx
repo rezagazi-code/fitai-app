@@ -10,6 +10,7 @@
  * scanner error), the same form is offered as manual entry.
  */
 import { useEffect, useRef, useState, type ReactElement } from 'react';
+import { createPortal } from 'react-dom';
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser';
 import { addSupplementLog } from '../lib/supplements';
 
@@ -110,7 +111,11 @@ export default function SupplementScanner({ k, initialManual, onSaved, onClose }
     onClose();
   };
 
-  return (
+  // Portaled to document.body: a fixed overlay inside an animated ancestor
+  // (e.g. a card running an entrance animation) gets contained by that
+  // ancestor's transform and jumps off-position mid-animation. The portal
+  // keeps the modal viewport-fixed no matter what its parent animates.
+  return createPortal(
     <div
       data-supplement-scanner
       style={{
@@ -207,6 +212,7 @@ export default function SupplementScanner({ k, initialManual, onSaved, onClose }
           ✕
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
