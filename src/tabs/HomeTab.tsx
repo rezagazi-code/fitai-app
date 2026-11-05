@@ -64,12 +64,6 @@ interface HomeTabProps {
   onBodyMapMuscle: (m: MuscleGroup | 'all') => void;
 }
 
-function greetingKey(hour: number): 'morning' | 'afternoon' | 'evening' {
-  if (hour >= 5 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 18) return 'afternoon';
-  return 'evening';
-}
-
 function formatTodayLine(lang: Lang): string {
   try {
     return new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-US', {
@@ -114,9 +108,6 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
    * exercise detail view; back returns to the same board. */
   const [boardDetailKey, setBoardDetailKey] = useState<string | null>(null);
   const sessions = useMemo(() => getSessions(), [refreshTick]);
-
-  const hour = new Date().getHours();
-  const greet = t(`home.greeting.${greetingKey(hour)}`);
 
   // The coach engine decides the single most relevant banner message from
   // real context: program, recent sessions, streak, PRs, missed days.
@@ -193,9 +184,6 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
     <div className="home-cascade">
       <header className="home-header">
         <p className="home-date">{formatTodayLine(lang)}</p>
-        <h1 className="home-greeting">
-          {greet}، <span className="accent">{t('app.name')}</span>
-        </h1>
       </header>
 
 

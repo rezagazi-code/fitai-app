@@ -125,3 +125,105 @@
     transform: none;
   }
 }
+
+/* ---------- Motion-graphics pass (2026-11-05, greeting-removal
+ * companion). Calm only: 250–300ms, ease-out, fade + slight rise.
+ * No flashing, no glow pulses, no bounce, no decorative orbs.
+ * Fill mode is BACKWARDS on purpose (never both): during the delay the
+ * element sits at the from-state, and once the entrance ends it returns
+ * to its natural style — so :hover/:active press feedback on cards
+ * keeps working. Slide-down panels, button bursts, the demo crossfade,
+ * the rest timer, and the theme are all untouched by this section. */
+
+@keyframes fitai-tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fitai-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* (a) Tab/screen transition. Tabs render conditionally in App, so each
+ * tab root remounts on switch and this replays every time. Overlays
+ * (onboarding, session) render outside .shell-content and are
+ * unaffected; the login entry keeps its own gate rise and is excluded. */
+.shell-content > :not(.entry-screen) {
+  animation: fitai-tab-in var(--motion-tab, 250ms) ease-out backwards;
+}
+
+/* (b) Staggered entrances. Delays step by position and are capped so
+ * the tail never drags past ~300ms. */
+
+/* Home: header, today card, banner, stats, body map, exercises
+ * preview, coach banner — whatever the cascade holds, in order. */
+.home-cascade > * {
+  animation: fitai-rise-in var(--motion-rise, 300ms) ease-out backwards;
+}
+.home-cascade > :nth-child(1) { animation-delay: 0ms; }
+.home-cascade > :nth-child(2) { animation-delay: 45ms; }
+.home-cascade > :nth-child(3) { animation-delay: 90ms; }
+.home-cascade > :nth-child(4) { animation-delay: 135ms; }
+.home-cascade > :nth-child(5) { animation-delay: 180ms; }
+.home-cascade > :nth-child(6) { animation-delay: 225ms; }
+.home-cascade > :nth-child(7) { animation-delay: 270ms; }
+.home-cascade > :nth-child(n+8) { animation-delay: 270ms; }
+
+/* Library cards. */
+.ex-lib > .ex-card {
+  animation: fitai-rise-in var(--motion-rise, 300ms) ease-out backwards;
+}
+.ex-lib > .ex-card:nth-child(1) { animation-delay: 0ms; }
+.ex-lib > .ex-card:nth-child(2) { animation-delay: 40ms; }
+.ex-lib > .ex-card:nth-child(3) { animation-delay: 80ms; }
+.ex-lib > .ex-card:nth-child(4) { animation-delay: 120ms; }
+.ex-lib > .ex-card:nth-child(5) { animation-delay: 160ms; }
+.ex-lib > .ex-card:nth-child(6) { animation-delay: 200ms; }
+.ex-lib > .ex-card:nth-child(7) { animation-delay: 240ms; }
+.ex-lib > .ex-card:nth-child(8) { animation-delay: 280ms; }
+.ex-lib > .ex-card:nth-child(n+9) { animation-delay: 280ms; }
+
+/* Home exercises preview grid. */
+.home-ex-grid > .home-ex-item {
+  animation: fitai-rise-in var(--motion-rise, 300ms) ease-out backwards;
+}
+.home-ex-grid > .home-ex-item:nth-child(1) { animation-delay: 0ms; }
+.home-ex-grid > .home-ex-item:nth-child(2) { animation-delay: 40ms; }
+.home-ex-grid > .home-ex-item:nth-child(3) { animation-delay: 80ms; }
+.home-ex-grid > .home-ex-item:nth-child(4) { animation-delay: 120ms; }
+.home-ex-grid > .home-ex-item:nth-child(5) { animation-delay: 160ms; }
+.home-ex-grid > .home-ex-item:nth-child(6) { animation-delay: 200ms; }
+.home-ex-grid > .home-ex-item:nth-child(n+7) { animation-delay: 200ms; }
+
+/* Program week rows. The container's first child is the intro line, so
+ * the four week cards are children 2–5. */
+[data-fourweek] > div > .card {
+  animation: fitai-rise-in var(--motion-rise, 300ms) ease-out backwards;
+}
+[data-fourweek] > div > .card:nth-child(2) { animation-delay: 0ms; }
+[data-fourweek] > div > .card:nth-child(3) { animation-delay: 50ms; }
+[data-fourweek] > div > .card:nth-child(4) { animation-delay: 100ms; }
+[data-fourweek] > div > .card:nth-child(5) { animation-delay: 150ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-content > :not(.entry-screen),
+  .home-cascade > *,
+  .ex-lib > .ex-card,
+  .home-ex-grid > .home-ex-item,
+  [data-fourweek] > div > .card {
+    animation: none;
+  }
+}

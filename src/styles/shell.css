@@ -234,20 +234,6 @@
   margin: 0 0 var(--space-1);
 }
 
-.home-greeting {
-  font-size: var(--text-display);
-  font-weight: 800;
-  line-height: var(--leading-tight);
-  margin: 0;
-}
-
-.home-greeting .accent {
-  background: linear-gradient(120deg, var(--accent-blue), var(--accent-cyan));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 .home-banner {
   margin-bottom: var(--space-5);
 }
@@ -306,36 +292,15 @@
  * Home polish (global design sprint 2026-10-24)
  * ============================================================ */
 
-/* Cascade entrance: home sections arrive one after another */
-.home-cascade > * {
-  animation: fitai-home-cascade 0.55s var(--ease-out-soft) both;
-}
-
-.home-cascade > *:nth-child(1) { animation-delay: 0.02s; }
-.home-cascade > *:nth-child(2) { animation-delay: 0.09s; }
-.home-cascade > *:nth-child(3) { animation-delay: 0.16s; }
-.home-cascade > *:nth-child(4) { animation-delay: 0.23s; }
-.home-cascade > *:nth-child(5) { animation-delay: 0.30s; }
-.home-cascade > *:nth-child(6) { animation-delay: 0.37s; }
-.home-cascade > *:nth-child(7) { animation-delay: 0.44s; }
-.home-cascade > *:nth-child(8) { animation-delay: 0.51s; }
+/* Home cascade entrance: lives in motion-pass.css now (fitai-rise-in,
+ * 300ms, 45ms stagger, backwards fill, reduced-motion aware) — kept
+ * here as a pointer so the old 0.55s cascade is not re-added. */
 
 /* Home body text: a step larger and brighter than the old small
    muted meta, so the today card reads without squinting. */
 .home-cascade .card-meta {
   font-size: 0.9375rem;
   color: rgba(255, 255, 255, 0.88);
-}
-
-@keyframes fitai-home-cascade {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* Stat cards: icon medallion + number-first hierarchy.

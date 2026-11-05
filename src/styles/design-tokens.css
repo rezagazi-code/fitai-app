@@ -452,3 +452,10 @@
 .btn-ghost:active {
   animation: fitai-btn-burst 0.5s ease-out;
 }
+
+/* Motion-graphics pass (2026-11-05): calm entrance system. Durations
+ * stay inside 200–400ms; easing is ease-out everywhere in motion-pass. */
+:root {
+  --motion-tab: 250ms;
+  --motion-rise: 300ms;
+}
