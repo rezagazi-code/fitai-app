@@ -619,15 +619,17 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  background: rgba(0, 240, 255, 0.07);
-  border: 1px solid rgba(0, 240, 255, 0.25);
+  background: rgba(255, 82, 82, 0.07);
+  border: 1px solid rgba(255, 82, 82, 0.25);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-small);
 }
 
 .ws-pr-badge {
-  background: var(--accent-cyan);
+  /* 2026-11-05 red rebalance: PR badges are red (this rule beat the
+     visuals.css one on import order at equal specificity). */
+  background: #ff5252;
   color: #06131a;
   font-weight: 800;
   font-size: var(--text-tiny);
@@ -747,7 +749,7 @@
 }
 
 .ws-restbar__time.is-low {
-  color: #ff8a80;
+  color: #ff5252;
 }
 
 .ws-restbar__track {
@@ -767,7 +769,7 @@
 .ws-restbar__ready {
   font-size: var(--text-small);
   font-weight: 800;
-  color: #ff8a80;
+  color: #ff5252;
   margin-bottom: var(--space-2);
 }
 

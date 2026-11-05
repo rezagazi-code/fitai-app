@@ -519,8 +519,9 @@
 }
 
 .sched-day--today {
-  border-color: var(--accent-blue);
-  box-shadow: var(--shadow-glow-blue);
+  /* 2026-11-05 red rebalance: the "you are here" day marker is red energy. */
+  border-color: #ff5252;
+  box-shadow: 0 0 16px rgba(255, 82, 82, 0.20);
 }
 
 .sched-day--done {

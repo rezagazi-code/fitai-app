@@ -31,8 +31,9 @@
   --accent-blue: #3aa8ff;      /* primary neon — CTA, active states (vivid step up) */
   --accent-cyan: #3aa8ff;      /* secondary — vivid sporty teal; still
     no glare: glow alphas unchanged, only the hue value is livelier */
-  --accent-volt: #3aa8ff;      /* energy accent — sport vitality
-    (sparingly: PR flashes, day-total highlights), never full-bleed */
+  --accent-volt: #ff5252;      /* energy accent — sport vitality
+    (2026-11-05 red rebalance: its only consumer is the food-diary
+    day-total highlight, so red energy reads there, never full-bleed) */
   --accent-danger: #ff5252;    /* warnings/destructive ONLY */
   --accent-success: #3aa8ff;   /* records, completions, positive feedback */
   --accent-gold: #3aa8ff;      /* celebration, PRs, badges */

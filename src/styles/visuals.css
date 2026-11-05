@@ -183,11 +183,13 @@
 /* ---------- streak: golden glow, impossible to miss ----------
    (higher specificity than the .prog-streak rule injected by ProgressTab) */
 .prog-stats .prog-streak {
-  background: var(--grad-pr);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 10px rgba(58, 168, 255, 0.45));
+  /* 2026-11-05 red rebalance: streak is achievement energy, solid red
+     (gradient text removed — no gradients on text). */
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: #ff5252;
+  filter: drop-shadow(0 0 10px rgba(255, 82, 82, 0.45));
 }
 
 /* ---------- library exercise cards (rows) ---------- */
@@ -552,8 +554,8 @@
 
 /* ---------- PR celebration: real drama ---------- */
 .ws-summary-card:has(.ws-pr-list) {
-  border-color: rgba(58, 168, 255, 0.45);
-  box-shadow: var(--shadow-card), var(--shadow-glow-gold);
+  border-color: rgba(255, 82, 82, 0.45);
+  box-shadow: var(--shadow-card), 0 0 26px rgba(255, 82, 82, 0.30);
   animation: fitai-pr-entrance 0.6s var(--ease-spring);
 }
 
@@ -563,28 +565,29 @@
 }
 
 .ws-summary-card:has(.ws-pr-list) .ws-summary-title {
-  background: var(--grad-pr);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 16px rgba(58, 168, 255, 0.4));
+  /* 2026-11-05 red rebalance: PR celebration in solid red, no gradient text. */
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: #ff5252;
+  filter: drop-shadow(0 0 16px rgba(255, 82, 82, 0.4));
 }
 
-/* PR ring: gold when records were hit */
+/* PR ring: red when records were hit */
 .ws-summary-card:has(.ws-pr-list) .ws-summary-ring {
-  background: rgba(58, 168, 255, 0.1);
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 34px rgba(58, 168, 255, 0.45);
+  background: rgba(255, 82, 82, 0.1);
+  border-color: #ff5252;
+  box-shadow: 0 0 34px rgba(255, 82, 82, 0.45);
   animation: fitai-gold-pulse 1.8s ease-in-out infinite;
 }
 
 .ws-summary-card:has(.ws-pr-list) .ws-summary-check {
-  color: var(--accent-gold);
+  color: #ff5252;
 }
 
 @keyframes fitai-gold-pulse {
-  0%, 100% { box-shadow: 0 0 24px rgba(58, 168, 255, 0.35); }
-  50% { box-shadow: 0 0 48px rgba(58, 168, 255, 0.6); }
+  0%, 100% { box-shadow: 0 0 24px rgba(255, 82, 82, 0.35); }
+  50% { box-shadow: 0 0 48px rgba(255, 82, 82, 0.6); }
 }
 
 /* PR rows cascade in, each with gold energy */
@@ -608,9 +611,9 @@
 }
 
 .ws-pr-badge {
-  background: var(--grad-pr);
+  background: #ff5252;
   color: #241a02;
-  box-shadow: var(--shadow-glow-gold);
+  box-shadow: 0 0 26px rgba(255, 82, 82, 0.30);
   font-weight: 800;
 }
 
@@ -792,17 +795,18 @@
 }
 
 .stat-icon--gold {
-  background: linear-gradient(135deg, rgba(58, 168, 255, 0.26), rgba(58, 168, 255, 0.1));
-  border-color: rgba(58, 168, 255, 0.45);
-  color: var(--accent-gold);
+  background: linear-gradient(135deg, rgba(255, 82, 82, 0.26), rgba(255, 82, 82, 0.1));
+  border-color: rgba(255, 82, 82, 0.45);
+  color: #ff5252;
 }
 
 .stat-value--gold {
-  background: var(--grad-pr);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 10px rgba(58, 168, 255, 0.35));
+  /* 2026-11-05 red rebalance: trophy stat value in solid red, no gradient text. */
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: #ff5252;
+  filter: drop-shadow(0 0 10px rgba(255, 82, 82, 0.35));
 }
 
 .profile-program-name {
@@ -916,4 +920,35 @@
     animation: none;
     transition: none;
   }
+}
+
+/* ---------- 2026-11-05 red rebalance: records family in red ----------
+   These override ProgressTab's injected <style> block, so they use
+   strictly higher specificity (the injected rules would otherwise win
+   on document order). No tsx touched. */
+.prog-pr-side .prog-pr-badge {
+  background: #ff5252;
+  box-shadow: 0 0 26px rgba(255, 82, 82, 0.30);
+}
+
+.prog-pr-list .prog-pr-row--new {
+  border-inline-start-color: #ff5252;
+  background: linear-gradient(90deg, rgba(255, 82, 82, 0.08), transparent 70%);
+}
+
+main .prog-section--gold {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(165deg, rgba(28, 26, 18, 0.98), rgba(14, 15, 20, 0.98)) padding-box,
+    linear-gradient(135deg, rgba(255, 82, 82, 0.55), rgba(255, 82, 82, 0.14) 50%, rgba(255, 82, 82, 0.08)) border-box;
+  box-shadow:
+    var(--shadow-card),
+    0 0 40px rgba(255, 82, 82, 0.1);
+}
+
+main .prog-section--gold .prog-sec-icon {
+  background: linear-gradient(135deg, rgba(255, 82, 82, 0.24), rgba(255, 82, 82, 0.08));
+  border-color: rgba(255, 82, 82, 0.4);
+  color: #ff5252;
+  box-shadow: 0 0 14px rgba(255, 82, 82, 0.25);
 }

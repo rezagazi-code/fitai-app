@@ -85,7 +85,8 @@
 }
 
 .tsb-restbar-time.is-low {
-  color: var(--accent-gold);
+  /* 2026-11-05 red rebalance: last-10-seconds urgency reads red, not gold. */
+  color: #ff5252;
 }
 
 .tsb-restbar-track {
@@ -112,7 +113,7 @@
 }
 
 .tsb-restbar-ready {
-  color: var(--accent-gold);
+  color: #ff5252;
   font-weight: 700;
 }
 
@@ -547,7 +548,7 @@
 
 .tsb-summary-prs {
   margin: 16px 0 0;
-  color: var(--accent-gold);
+  color: #ff5252;
   font-weight: 700;
   line-height: 1.7;
 }
