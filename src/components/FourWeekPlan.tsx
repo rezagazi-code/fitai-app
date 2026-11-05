@@ -16,7 +16,7 @@
  * ever emits exercises the user has equipment for (see program.ts),
  * so a row here is always doable with the stated equipment.
  */
-import { useState, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { useLang } from '../lib/i18n';
 import { getExercise } from '../lib/exercises';
 import type { WorkoutProgram } from '../lib/store';
@@ -25,19 +25,32 @@ import ExerciseSlidePanel from './ExerciseSlidePanel';
 
 interface FourWeekPlanProps {
   program: WorkoutProgram;
+  /** Week to open on mount (Home week chip deep-link). Defaults to 1. */
+  initialWeek?: number | null;
+  /** Open the block expanded on mount (Home week chip deep-link). */
+  autoOpen?: boolean;
 }
 
-export default function FourWeekPlan({ program }: FourWeekPlanProps): ReactElement {
+export default function FourWeekPlan({ program, initialWeek, autoOpen }: FourWeekPlanProps): ReactElement {
   const { t, lang } = useLang();
   const fa = lang === 'fa';
-  const [open, setOpen] = useState(false);
-  const [openWeek, setOpenWeek] = useState<number | null>(1);
+  const [open, setOpen] = useState(autoOpen ?? false);
+  const [openWeek, setOpenWeek] = useState<number | null>(initialWeek ?? 1);
   const [openRow, setOpenRow] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // A Home week-chip tap lands here with the block already open on
+  // that week; scroll it into view so the user sees the week they
+  // asked for, not the top of the program card.
+  useEffect(() => {
+    if (autoOpen) rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Run once on mount for the deep-link only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
   const trainWeekdays = trainingWeekdays(program.daysPerWeek);
 
   return (
-    <div style={{ marginTop: 8 }} data-fourweek>
+    <div style={{ marginTop: 8 }} data-fourweek ref={rootRef}>
       <button
         type="button"
         className="btn-ghost"
@@ -57,7 +70,7 @@ export default function FourWeekPlan({ program }: FourWeekPlanProps): ReactEleme
             const isDeload = week === 4;
             const expanded = openWeek === week;
             return (
-              <div key={week} className="card" style={{ padding: 12 }}>
+              <div key={week} className="card" style={{ padding: 12 }} data-fourweek-week={week}>
                 <button
                   type="button"
                   className="btn-ghost"

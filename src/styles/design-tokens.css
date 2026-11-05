@@ -281,8 +281,15 @@
   border-radius: var(--radius-sm);
 }
 
-/* Pressable cards/chips shrink a hair on touch — tactile feedback */
-:where(.card, .chip, .stat-card, .onbw-option, .lib-card):active {
+/* Pressable chips/options shrink a hair on touch — tactile feedback.
+ * NOTE (2026-11-06): .card was REMOVED from this selector on purpose.
+ * :active propagates to ancestors, so pressing any button inside a
+ * .card scaled the WHOLE card 0.99 — harmless on a small card, but a
+ * tall card (the Home library is ~24,000px) shifts its own buttons
+ * 100+px mid-tap and the click never lands (the close button slid
+ * out from under the pointer). Cards are containers, not pressables;
+ * their inner buttons carry their own burst. */
+:where(.chip, .stat-card, .onbw-option, .lib-card):active {
   transform: scale(0.99);
 }
 
@@ -452,6 +459,30 @@
 .btn-secondary:active,
 .btn-ghost:active {
   animation: fitai-btn-burst 0.5s ease-out;
+}
+
+/* JS-driven press burst (2026-11-06, see lib/pressBurst): pointerdown
+ * adds the class so the full 600ms ring + scale plays even on instant
+ * taps, where the :active-only burst above never got seen on the
+ * phone. animationend removes the class so the next tap restarts it.
+ * --btn-shadow falls back to transparent for elements that have none
+ * (chips), so the animation stays valid everywhere. */
+@keyframes fitai-press-burst {
+  /* Pressed scale is HELD through most of the burst (15–70%) so a
+   * held press still reads as pressed (~0.96); it releases only at
+   * the end. The ring keeps expanding the whole time. */
+  0% { transform: scale(1); box-shadow: var(--btn-shadow, 0 0 0 0 transparent), 0 0 0 0 var(--btn-burst-color, #3aa8ff); }
+  15% { transform: scale(0.96); box-shadow: var(--btn-shadow, 0 0 0 0 transparent), 0 0 0 6px var(--btn-burst-color, #3aa8ff); }
+  70% { transform: scale(0.96); box-shadow: var(--btn-shadow, 0 0 0 0 transparent), 0 0 0 16px var(--btn-burst-color, #3aa8ff); }
+  100% { transform: scale(1); box-shadow: var(--btn-shadow, 0 0 0 0 transparent), 0 0 0 22px transparent; }
+}
+
+.fitai-press-burst {
+  /* !important: the :active rules (.btn-primary:active etc.,
+   * specificity 0,2,0) would otherwise win over this single class
+   * and the ring would die on pointerup again — the exact bug this
+   * class exists to fix. */
+  animation: fitai-press-burst 0.6s ease-out !important;
 }
 
 /* Motion-graphics pass (2026-11-05): calm entrance system. Durations

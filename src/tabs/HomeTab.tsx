@@ -10,7 +10,7 @@
  * 4-week block is a deload week with fewer sets.
  */
 import type { ReactElement } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import CoachBanner from '../components/CoachBanner';
 import NextBlockOffer from '../components/NextBlockOffer';
@@ -20,6 +20,7 @@ import { adjustDayForRecovery } from '../lib/recovery';
 import TodaySessionBoard, { type BoardExercise } from '../session/TodaySessionBoard';
 import BodyMap from '../components/BodyMap';
 import HomeExercisesPreview from '../components/HomeExercisesPreview';
+import ExerciseLibrary from '../components/ExerciseLibrary';
 import type { MuscleGroup } from '../lib/exercises';
 import ExerciseDetail from '../components/ExerciseDetail';
 import { getExercise } from '../lib/exercises';
@@ -31,6 +32,7 @@ import {
   FA_WEEKDAYS,
   getSchedule,
 } from '../lib/schedule';
+import { nextPlanDay } from '../session/launch';
 
 /* Original inline icons for the stat medallions. */
 function SessionsIcon(): ReactElement {
@@ -60,8 +62,9 @@ interface HomeTabProps {
   onBuildProgram: () => void;
   /** Switches to the programs tab (board cancel → new program). */
   onGoToPrograms: () => void;
-  /** Body-map tap: jump to the programs library filtered to that muscle. */
-  onBodyMapMuscle: (m: MuscleGroup | 'all') => void;
+  /** Week-chip tap: switch to Programs and open that week in the
+   * 4-week view. */
+  onOpenWeek: (week: number) => void;
 }
 
 function formatTodayLine(lang: Lang): string {
@@ -96,7 +99,7 @@ function doneSetsThisWeek(sessions: ReturnType<typeof getSessions>, weekStart: D
   return n;
 }
 
-export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToPrograms, onBodyMapMuscle }: HomeTabProps): ReactElement {
+export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToPrograms, onOpenWeek }: HomeTabProps): ReactElement {
   const { t, lang } = useLang();
   const program = getActiveProgram();
   const fmt = (n: number) => new Intl.NumberFormat(lang === 'fa' ? 'fa-IR' : 'en-US').format(n);
@@ -107,6 +110,23 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
   /* Drill-down from a session-board card (demo or name tap) into the
    * exercise detail view; back returns to the same board. */
   const [boardDetailKey, setBoardDetailKey] = useState<string | null>(null);
+  /* The library lives on Home now (moved from Programs 2026-11-06):
+   * the preview's «همه حرکت‌ها» opens it unfiltered, a BodyMap tap
+   * opens it filtered to that muscle. resetKey re-opens it clean. */
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryMuscle, setLibraryMuscle] = useState<MuscleGroup | 'all'>('all');
+  const [librarySeq, setLibrarySeq] = useState(0);
+  const libraryRef = useRef<HTMLDivElement>(null);
+  const openLibrary = (m: MuscleGroup | 'all'): void => {
+    setLibraryMuscle(m);
+    setLibraryOpen(true);
+    setLibrarySeq((s) => s + 1);
+    // Scroll after the section mounts, so the library — not the
+    // preview above it — is what the user sees.
+    window.setTimeout(() => {
+      libraryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  };
   const sessions = useMemo(() => getSessions(), [refreshTick]);
 
   // The coach engine decides the single most relevant banner message from
@@ -123,6 +143,22 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
     ? program!.days[sched.dayIndex].map((e) => (sched.isDeload ? { ...e, sets: deloadSets(e.sets) } : e))
     : null;
   const totalSets = todayExercises ? todayExercises.reduce((n, e) => n + e.sets, 0) : 0;
+  // Muscles the BodyMap pulses gently (the always-on Home motion):
+  // today's muscles on train days, the NEXT session's on rest days.
+  const trainedMuscles: MuscleGroup[] = useMemo(() => {
+    const keys: string[] = todayExercises
+      ? todayExercises.map((e) => e.exerciseKey)
+      : (nextPlanDay(program)?.exercises ?? []).map((e) => e.exerciseKey);
+    const out: MuscleGroup[] = [];
+    for (const k of keys) {
+      const m = getExercise(k)?.muscle;
+      if (m && !out.includes(m)) out.push(m);
+    }
+    return out;
+    // todayExercises is a fresh array per render; program identity
+    // is what matters here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [program]);
   // Daily recovery adjustment for TODAY's card, computed the same way
   // the launch path computes it (after deload) — the note is shown
   // openly, never silently, and the session uses the same numbers.
@@ -279,7 +315,7 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
               {t('phase.label')}: {t(phaseKey === 'fatloss' ? 'phase.fatloss' : 'phase.growth')}
             </p>
           )}
-          <button type="button" className="btn-primary btn-shine home-start" onClick={onStartNextSession}>
+          <button type="button" className="btn-primary btn-shine home-start home-cta-breathe" onClick={onStartNextSession}>
             {t('sched.startNextSession')}
           </button>
         </section>
@@ -301,15 +337,26 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
       {/* Body map lives on Home, not in Programs: tap a muscle to open
           the library filtered to it. Session stays first above. */}
       <BodyMap
-        selected="all"
-        onSelect={onBodyMapMuscle}
+        selected={libraryMuscle}
+        trained={trainedMuscles}
+        onSelect={(m) => openLibrary(m)}
         muscleName={(m) => t(`lib.muscle.${m}`)}
         t={t}
       />
 
       {/* Exercises preview: a small taste of the library, not all of
-          it — «همه حرکت‌ها» jumps to the library unfiltered. */}
-      <HomeExercisesPreview onSeeAll={() => onBodyMapMuscle('all')} />
+          it — «همه حرکت‌ها» opens the full library below, on Home. */}
+      <HomeExercisesPreview onSeeAll={() => openLibrary('all')} />
+
+      {libraryOpen && (
+        <div ref={libraryRef}>
+          <ExerciseLibrary
+            initialMuscle={libraryMuscle}
+            resetKey={librarySeq}
+            onClose={() => setLibraryOpen(false)}
+          />
+        </div>
+      )}
 
       <div className="home-banner">
         <CoachBanner coachMessage={coachMsg} hero />
@@ -397,9 +444,16 @@ export default function HomeTab({ onStartNextSession, onBuildProgram, onGoToProg
             </h2>
             <div className="sched-block">
               {[1, 2, 3, 4].map((w) => (
-                <span key={w} className={`chip${w === sched.weekInBlock ? ' chip--active' : ''}`}>
+                <button
+                  key={w}
+                  type="button"
+                  className={`chip${w === sched.weekInBlock ? ' chip--active' : ''}`}
+                  data-home-week={w}
+                  aria-label={`${t('sched.week')} ${fmt(w)}`}
+                  onClick={() => onOpenWeek(w)}
+                >
                   {t('sched.week')} {fmt(w)}{w === 4 ? ` · ${t('sched.deload')}` : ''}
-                </span>
+                </button>
               ))}
             </div>
           </section>

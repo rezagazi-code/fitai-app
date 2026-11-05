@@ -106,6 +106,25 @@
   animation: fitai-btn-burst 0.5s ease-out;
 }
 
+/* ---------- Always-on Home motion (2026-11-06) ----------
+ * Entrance-only motion read as "no motion" on the phone: nothing
+ * moves after first paint. The primary session CTA now breathes — a
+ * slow 6s glow loop — and the board's next set-to-log breathes with
+ * it, so Home is visibly alive on train days AND rest days (rest
+ * days have no demo card). Calm, low-opacity, no flashing; the
+ * reduced-motion query below turns both off. The ring sits on top of
+ * the button's own --btn-shadow (kept via var, transparent fallback
+ * for the set row, which has none). */
+@keyframes fitai-breathe {
+  0%, 100% { box-shadow: var(--btn-shadow, 0 0 0 0 transparent), 0 0 0 0 rgba(58, 168, 255, 0); }
+  50% { box-shadow: var(--btn-shadow, 0 0 0 0 transparent), 0 0 0 12px rgba(58, 168, 255, 0.20), 0 0 24px rgba(58, 168, 255, 0.22); }
+}
+
+.home-cta-breathe,
+.tsb-set-row--breathe {
+  animation: fitai-breathe 6s ease-in-out infinite;
+}
+
 @keyframes fitai-quick-in {
   from {
     opacity: 0;
@@ -223,7 +242,10 @@
   .home-cascade > *,
   .ex-lib > .ex-card,
   .home-ex-grid > .home-ex-item,
-  [data-fourweek] > div > .card {
-    animation: none;
+  [data-fourweek] > div > .card,
+  .home-cta-breathe,
+  .tsb-set-row--breathe,
+  .fitai-press-burst {
+    animation: none !important;
   }
 }

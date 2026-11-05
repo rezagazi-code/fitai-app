@@ -51,3 +51,16 @@
   align-self: center;
   opacity: 0.7;
 }
+
+/* Red accent (2026-11-06): the section title carries a red marker
+ * bar, and «همه حرکت‌ها» is red-accented so the library entry reads
+ * as part of the red second color, not another blue button. */
+.home-ex-title {
+  border-inline-start: 4px solid #ff5252;
+  padding-inline-start: 10px;
+}
+
+.home-ex-all {
+  color: #ff5252;
+  border-color: rgba(255, 82, 82, 0.55);
+}

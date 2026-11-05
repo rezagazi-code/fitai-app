@@ -1,12 +1,11 @@
 /**
  * اپ هوشمند بدنسازی — Workouts tab.
  *
- * Top: active program card (or a "build my plan" CTA when there is none).
- * Below: the Persian exercise library — search (fa + en), muscle-group
- * chips, equipment chips, and a detail view with a cinematic archetype
- * hero, the animated muscle-activation figure, numbered execution
- * steps, the MuscleWiki video (when available), and similar exercises
- * as art cards.
+ * Top: active program card (or a "build my plan" CTA when there is none)
+ * with the 4-week view. The exercise library used to live below it;
+ * since 2026-11-06 it lives on Home (Reza: exercise search belongs
+ * on Home) — this tab keeps only the program, the max-effort day
+ * card, and the detail view a max-effort tap opens.
  *
  * Original component. All strings go through t() — never hard-coded
  * (archetype labels come from lib/archetypes, keyed by lang).
@@ -14,26 +13,14 @@
 import { useMemo, useState } from 'react';
 import { useLang, type Lang } from '../lib/i18n';
 import '../styles/exercise-display.css';
-import ExerciseArt from '../components/ExerciseArt';
 import ExerciseDetail from '../components/ExerciseDetail';
 import FourWeekPlan from '../components/FourWeekPlan';
-import { artVariantOf } from '../lib/exerciseArt';
-import { muscleArtOf } from '../lib/muscleArt';
 import { getActiveProgram, getAthleteProfile, getSessions } from '../lib/store';
 import { getSchedule } from '../lib/schedule';
-import { getBannedExerciseKeys } from '../lib/banned';
 import { markMaxEffortDayDone, maxEffortDue, maxEffortExercises } from '../lib/effort';
 import {
-  ARCHETYPES,
-  archetypeOf,
-  compoundLabel,
-} from '../lib/archetypes';
-import {
-  EQUIPMENT_TYPES,
   EXERCISES,
-  MUSCLE_GROUPS,
   MUSCLE_LABELS,
-  type Equipment,
   type Exercise,
   type MuscleGroup,
 } from '../lib/exercises';
@@ -41,12 +28,9 @@ import {
 interface WorkoutsTabProps {
   onBuildProgram?: () => void;
   onStartWorkout?: () => void;
-  /** Muscle the library opens filtered to (from the Home body map). */
-  initialMuscle?: MuscleFilter;
+  /** Home week-chip deep-link: open FourWeekPlan on this week. */
+  weekRequest?: { week: number; seq: number } | null;
 }
-
-type MuscleFilter = MuscleGroup | 'all';
-type EquipFilter = Equipment | 'all';
 
 const GOAL_KEYS: Record<string, string> = {
   'fat-loss': 'onb.goalLose',
@@ -55,31 +39,12 @@ const GOAL_KEYS: Record<string, string> = {
   fitness: 'onb.goalHealth',
 };
 
-/**
- * Per-exercise neon illustration (replaces the shared archetype PNG:
- * every exercise now shows its own movement + equipment).
- */
-function ExerciseArtBox({
-  exercise,
-  className,
-}: {
-  exercise: Exercise;
-  className?: string;
-}) {
-  return (
-    <ExerciseArt variant={artVariantOf(exercise)} alt={exercise.nameFa} raster={muscleArtOf(exercise.key)} className={className} />
-  );
-}
 
-/** Split the prose instructions into numbered execution steps. */
-
-export default function WorkoutsTab({ onBuildProgram, onStartWorkout, initialMuscle }: WorkoutsTabProps) {
+export default function WorkoutsTab({ onBuildProgram, onStartWorkout, weekRequest }: WorkoutsTabProps) {
   const { t, lang } = useLang();
-  const [query, setQuery] = useState('');
-  const [muscle, setMuscle] = useState<MuscleFilter>(initialMuscle ?? 'all');
-  const [equipment, setEquipment] = useState<EquipFilter>('all');
+  // Detail view only for max-effort taps now; the library browser
+  // lives on Home (see components/ExerciseLibrary).
   const [selected, setSelected] = useState<Exercise | null>(null);
-  const [bannedKeys, setBannedKeys] = useState<string[]>(() => getBannedExerciseKeys());
   // Max-effort day (second-priority): due at most once per 4-week block,
   // only once the user actually has personal records to test.
   const [maxEffortDone, setMaxEffortDone] = useState(false);
@@ -113,20 +78,6 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout, initialMus
   const phaseKey =
     athleteProfile?.phase ??
     ((athleteProfile?.goal ?? program?.goal) === 'fat-loss' ? 'fatloss' : 'growth');
-
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return EXERCISES.filter((e) => {
-      if (muscle !== 'all' && e.muscle !== muscle) return false;
-      if (equipment !== 'all' && !e.equipment.includes(equipment)) return false;
-      if (!q) return true;
-      return (
-        e.nameFa.includes(query.trim()) ||
-        e.nameEn.toLowerCase().includes(q) ||
-        e.key.includes(q.replace(/\s+/g, '-'))
-      );
-    });
-  }, [query, muscle, equipment]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
@@ -177,7 +128,11 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout, initialMus
               {startLabel}
             </button>
           )}
-          <FourWeekPlan program={program} />
+          <FourWeekPlan
+            program={program}
+            initialWeek={weekRequest?.week}
+            autoOpen={weekRequest != null}
+          />
           {/* Rebuild path: saved programs never change on app update, so a
               user whose program predates a generator fix had no way to reach
               the new schemes without reinstalling. This re-opens onboarding;
@@ -272,154 +227,15 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout, initialMus
         </div>
       )}
 
-      {/* ---------- library ---------- */}
-      {selected ? (
+      {/* ---------- exercise detail (max-effort taps only) ----------
+          The library browser moved to Home; a max-effort chip still
+          opens the exercise detail here, above nothing else. */}
+      {selected && (
         <ExerciseDetail
           exercise={selected}
           onBack={() => setSelected(null)}
           onSelect={setSelected}
-          onBannedChange={() => setBannedKeys(getBannedExerciseKeys())}
         />
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <h2 style={{ margin: 0, fontSize: 'var(--text-h1)' }}>{t('workouts.title')}</h2>
-
-          <input
-            className="input"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('workouts.searchPlaceholder')}
-            type="search"
-            aria-label={t('workouts.searchPlaceholder')}
-          />
-
-          <div className="ex-filters" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 'var(--text-tiny)', color: 'var(--text-muted)' }}>
-              {t('workouts.muscle')}
-            </span>
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-              <button
-                type="button"
-                className={muscle === 'all' ? 'chip chip--active' : 'chip'}
-                onClick={() => setMuscle('all')}
-                style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
-              >
-                {t('workouts.all')}
-              </button>
-              {MUSCLE_GROUPS.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  className={muscle === m ? 'chip chip--active' : 'chip'}
-                  onClick={() => setMuscle(muscle === m ? 'all' : m)}
-                  style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
-                  {t(`lib.muscle.${m}`)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="ex-filters" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 'var(--text-tiny)', color: 'var(--text-muted)' }}>
-              {t('workouts.equipment')}
-            </span>
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-              <button
-                type="button"
-                className={equipment === 'all' ? 'chip chip--active' : 'chip'}
-                onClick={() => setEquipment('all')}
-                style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
-              >
-                {t('workouts.all')}
-              </button>
-              {EQUIPMENT_TYPES.map((eq) => (
-                <button
-                  key={eq}
-                  type="button"
-                  className={equipment === eq ? 'chip chip--active' : 'chip'}
-                  onClick={() => setEquipment(equipment === eq ? 'all' : eq)}
-                  style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
-                  {t(`lib.equipment.${eq}`)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {muscle !== 'all' && (
-            <p className="card-meta" style={{ margin: 0 }}>
-              {lang === 'fa'
-                ? `${results.length} حرکت برای ${t(`lib.muscle.${muscle}`)} — روی یک حرکت بزن (قدم دوم)`
-                : `${results.length} exercises for ${t(`lib.muscle.${muscle}`)} — tap one (step 2)`}
-            </p>
-          )}
-          {results.length === 0 ? (
-            <div className="card ex-empty">
-              <p style={{ margin: '0 0 8px', fontSize: 'var(--text-body)' }}>
-                {t('workouts.noResults')}
-              </p>
-              <p className="card-meta" style={{ marginBottom: 16 }}>
-                {t('workouts.noResultsHint')}
-              </p>
-              <button
-                type="button"
-                className="btn-ghost"
-                onClick={() => {
-                  setQuery('');
-                  setMuscle('all');
-                  setEquipment('all');
-                }}
-              >
-                {t('workouts.clearFilters')}
-              </button>
-            </div>
-          ) : (
-            <div className="ex-lib">
-              {results.map((e) => {
-                const arch = ARCHETYPES[archetypeOf(e.key)];
-                return (
-                  <button
-                    key={e.key}
-                    type="button"
-                    className="ex-card"
-                    data-exercise-row={e.key}
-                    onClick={() => setSelected(e)}
-                  >
-                    <ExerciseArtBox exercise={e} className="ex-card__art" />
-                    <span className="ex-card__body">
-                      <span className="ex-card__title">
-                        <span className="ex-card__name">{e.nameFa}</span>
-                        <span className="ex-card__en-inline" dir="ltr">
-                          {e.nameEn}
-                        </span>
-                      </span>
-                      <span className="ex-card__meta">
-                        <span className="ex-muscle-chip">{t(`lib.muscle.${e.muscle}`)}</span>
-                        <span className="ex-meta">
-                          {e.equipment.map((eq) => t(`lib.equipment.${eq}`)).join(' · ')}
-                        </span>
-                        <span className="ex-meta">·</span>
-                        <span className="ex-meta">{compoundLabel(arch.compound, lang)}</span>
-                        {bannedKeys.includes(e.key) ? (
-                          <span className="ex-video-badge">
-                            {lang === 'fa' ? 'حذف‌شده از برنامه' : 'Excluded from programs'}
-                          </span>
-                        ) : muscleArtOf(e.key) ? (
-                          <span className="ex-video-badge">
-                            {lang === 'fa' ? 'آواتار' : 'Avatar'}
-                          </span>
-                        ) : e.videoUrl ? (
-                          <span className="ex-video-badge">▶ {t('workouts.hasVideo')}</span>
-                        ) : null}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
       )}
     </div>
   );

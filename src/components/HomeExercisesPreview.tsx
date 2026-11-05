@@ -45,7 +45,7 @@ export default function HomeExercisesPreview({
   const preview = previewExercises();
   return (
     <section className="card" data-home-exercises>
-      <h2 className="card-title">{t('home.exercisesPreviewTitle')}</h2>
+      <h2 className="card-title home-ex-title">{t('home.exercisesPreviewTitle')}</h2>
       <div className="home-ex-grid">
         {preview.map((e) => {
           const expanded = openKey === e.key;
@@ -75,7 +75,7 @@ export default function HomeExercisesPreview({
       </div>
       <button
         type="button"
-        className="btn-ghost"
+        className="btn-ghost home-ex-all"
         style={{ width: '100%', marginTop: 12 }}
         data-home-all-exercises
         onClick={onSeeAll}

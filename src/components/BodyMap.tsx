@@ -70,11 +70,15 @@ const ZONES: Zone[] = [
 
 export default function BodyMap({
   selected,
+  trained,
   onSelect,
   muscleName,
   t,
 }: {
   selected: MuscleFilter;
+  /** Muscles of today (or the next session on rest days): pulsed
+   * gently so Home always has motion, even with no demo card. */
+  trained?: MuscleGroup[];
   onSelect: (m: MuscleFilter) => void;
   muscleName: (m: MuscleGroup) => string;
   t: (k: string) => string;
@@ -141,11 +145,18 @@ export default function BodyMap({
           {zones.map((z) => {
             const rects = view === 'front' ? z.front! : z.back!;
             const active = selected === z.muscle;
+            const isTrained = trained?.includes(z.muscle) ?? false;
             return rects.map((rect, i) => (
               <button
                 key={`${z.muscle}-${i}`}
                 type="button"
-                className={active ? 'bodymap-zone bodymap-zone--active' : 'bodymap-zone'}
+                className={
+                  active
+                    ? 'bodymap-zone bodymap-zone--active'
+                    : isTrained
+                      ? 'bodymap-zone bodymap-zone--trained'
+                      : 'bodymap-zone'
+                }
                 aria-label={muscleName(z.muscle)}
                 aria-pressed={active}
                 onClick={() => onSelect(active ? 'all' : z.muscle)}

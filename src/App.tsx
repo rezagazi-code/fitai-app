@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { LangProvider } from './lib/i18n';
 import { ensureReminderScheduled } from './lib/reminder';
+import { initPressBurst } from './lib/pressBurst';
 import TabBar, { type TabId } from './components/TabBar';
 import HomeTab from './tabs/HomeTab';
 import WorkoutsTab from './tabs/WorkoutsTab';
-import type { MuscleGroup } from './lib/exercises';
 import LogTab from './tabs/LogTab';
 import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
@@ -25,7 +25,11 @@ function readLoginEntered(): boolean {
 
 function Shell() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
-  const [workoutsMuscle, setWorkoutsMuscle] = useState<MuscleGroup | 'all'>('all');
+  /** Home week-chip deep-link: which FourWeekPlan week to open. The
+   * seq is a nonce so a second tap on the same week re-opens it even
+   * if the tab never unmounted (WorkoutsTab keys on it). Null = a
+   * plain tab visit: the 4-week view stays collapsed as before. */
+  const [weekRequest, setWeekRequest] = useState<{ week: number; seq: number } | null>(null);
   const [sessionDay, setSessionDay] = useState<PlanDay | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   // REAL local-profile login gate: first name + last name + phone
@@ -53,6 +57,12 @@ function Shell() {
   useEffect(() => {
     void ensureReminderScheduled();
   }, []);
+
+  // JS-driven press burst (see lib/pressBurst): the :active-only ring
+  // never plays on a real quick tap, so pointerdown drives a full
+  // ~600ms burst in the button's own color. One document listener
+  // covers every tab, including buttons mounted later.
+  useEffect(() => initPressBurst(), []);
 
   const openTodaySession = useCallback(() => {
     const program = getActiveProgram();
@@ -89,18 +99,22 @@ function Shell() {
             key={`home-${seq}`}
             onStartNextSession={openNextSession}
             onBuildProgram={openOnboarding}
-            onGoToPrograms={() => setActiveTab('workouts')}
-            onBodyMapMuscle={(m) => {
-              setWorkoutsMuscle(m);
+            onGoToPrograms={() => {
+              setWeekRequest(null);
+              setActiveTab('workouts');
+            }}
+            onOpenWeek={(w) => {
+              setWeekRequest({ week: w, seq: Date.now() });
               setActiveTab('workouts');
             }}
           />
         )}
         {activeTab === 'workouts' && (
           <WorkoutsTab
+            key={`workouts-${weekRequest?.seq ?? 0}`}
             onBuildProgram={openOnboarding}
             onStartWorkout={openTodaySession}
-            initialMuscle={workoutsMuscle}
+            weekRequest={weekRequest}
           />
         )}
         {activeTab === 'log' && (
@@ -117,9 +131,9 @@ function Shell() {
       <TabBar
         active={activeTab}
         onSelect={(id) => {
-          // A plain tab visit opens the library unfiltered; only a
-          // body-map tap carries a muscle filter (set above).
-          if (id !== 'workouts') setWorkoutsMuscle('all');
+          // A plain visit to Programs opens the 4-week view collapsed;
+          // only a Home week-chip tap carries a week request.
+          if (id === 'workouts') setWeekRequest(null);
           setActiveTab(id);
         }}
       />

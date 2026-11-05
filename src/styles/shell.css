@@ -519,9 +519,18 @@
 }
 
 .sched-day--today {
-  /* 2026-11-05 red rebalance: the "you are here" day marker is red energy. */
+  /* 2026-11-06: FILLED red, not just a border — the border-only
+   * marker read as invisible on the phone. White text on red. */
+  background: #ff5252;
   border-color: #ff5252;
-  box-shadow: 0 0 16px rgba(255, 82, 82, 0.20);
+  box-shadow: 0 0 16px rgba(255, 82, 82, 0.35);
+  color: #fff;
+}
+
+.sched-day--today .sched-day__weekday,
+.sched-day--today .sched-day__kind,
+.sched-day--today .sched-day__name {
+  color: #fff;
 }
 
 .sched-day--done {
@@ -556,6 +565,12 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-3);
+}
+
+/* Week chips are real buttons now (2026-11-06): tap one to open
+ * that week inside the Programs tab. */
+.sched-block .chip {
+  cursor: pointer;
 }
 
 .today-lifts {

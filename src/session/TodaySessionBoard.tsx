@@ -608,7 +608,7 @@ export default function TodaySessionBoard({
                     <div key={si} className={`tsb-set${row.done ? ' is-done' : ''}`}>
                       <button
                         type="button"
-                        className="tsb-set-row"
+                        className={`tsb-set-row${nextUndone && nextUndone.ei === ei && nextUndone.si === si ? ' tsb-set-row--breathe' : ''}`}
                         data-board-set-row
                         data-exercise={pe.exerciseKey}
                         data-set-index={si}
