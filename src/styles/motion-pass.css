@@ -28,7 +28,7 @@
   /* Dark overlay FIRST so white Persian text stays readable over the
      photo in every light condition; readability beats decoration. */
   background-image:
-    linear-gradient(rgba(10, 14, 20, 0.78), rgba(10, 14, 20, 0.55) 42%, rgba(10, 14, 20, 0.86)),
+    linear-gradient(rgba(12, 12, 16, 0.78), rgba(86, 88, 97, 0.45) 42%, rgba(12, 12, 16, 0.86)),
     url('/img/entry-bg.jpg');
   background-size: cover;
   background-position: center 38%;
@@ -40,7 +40,7 @@
 }
 
 .entry-screen [data-login-gate].card {
-  background: rgba(16, 20, 29, 0.86);
+  background: rgba(12, 12, 16, 0.86);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -60,7 +60,13 @@
 .btn-primary:active,
 .btn-secondary:active,
 .btn-ghost:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
+  animation: fitai-btn-burst 0.5s ease-out;
+}
+
+.quick-option {
+  --btn-burst-color: #3aa8ff;
+  --btn-shadow: 0 0 0 0 transparent;
 }
 
 .btn-ghost {
@@ -96,7 +102,8 @@
 }
 
 .quick-option:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
+  animation: fitai-btn-burst 0.5s ease-out;
 }
 
 @keyframes fitai-quick-in {

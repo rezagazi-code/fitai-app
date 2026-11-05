@@ -28,7 +28,7 @@
 .ex-art--missing {
   background:
     radial-gradient(85% 85% at 50% 28%, rgba(46, 156, 255, 0.30), transparent 70%),
-    radial-gradient(60% 60% at 50% 90%, rgba(0, 240, 255, 0.10), transparent 70%),
+    radial-gradient(60% 60% at 50% 90%, rgba(58, 168, 255, 0.10), transparent 70%),
     linear-gradient(165deg, #243457 0%, #1a2440 100%);
   display: flex;
   align-items: center;
@@ -39,8 +39,8 @@
   width: 44%;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 2px solid rgba(0, 240, 255, 0.35);
-  box-shadow: 0 0 24px rgba(0, 240, 255, 0.25), inset 0 0 24px rgba(0, 240, 255, 0.12);
+  border: 2px solid rgba(58, 168, 255, 0.35);
+  box-shadow: 0 0 24px rgba(58, 168, 255, 0.25), inset 0 0 24px rgba(58, 168, 255, 0.12);
   animation: ex-ring-pulse 2.4s ease-in-out infinite;
 }
 
@@ -89,7 +89,7 @@
   width: 108px;
   height: 108px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(0, 240, 255, 0.22);
+  border: 1px solid rgba(58, 168, 255, 0.22);
   box-shadow: 0 0 18px rgba(46, 156, 255, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
@@ -163,9 +163,9 @@
   font-weight: 800;
   line-height: var(--leading-tight);
   color: var(--accent-cyan);
-  background: rgba(0, 240, 255, 0.10);
-  border: 1px solid rgba(0, 240, 255, 0.38);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.22);
+  background: rgba(58, 168, 255, 0.10);
+  border: 1px solid rgba(58, 168, 255, 0.38);
+  box-shadow: 0 0 12px rgba(58, 168, 255, 0.22);
   white-space: nowrap;
 }
 
@@ -270,7 +270,7 @@
   font-weight: 800;
   color: #06131a;
   background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-  box-shadow: 0 0 16px rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 16px rgba(58, 168, 255, 0.45);
   white-space: nowrap;
 }
 
@@ -346,7 +346,7 @@
 }
 
 .ex-figure__lines {
-  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.55));
+  filter: drop-shadow(0 0 5px rgba(58, 168, 255, 0.55));
 }
 
 /* animated muscle glow — this is what makes the figure feel alive */
@@ -439,7 +439,7 @@
 
 .ex-bar__fill--primary {
   background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.55);
+  box-shadow: 0 0 12px rgba(58, 168, 255, 0.55);
   overflow: hidden;
 }
 
@@ -505,7 +505,7 @@
   font-variant-numeric: tabular-nums;
   color: #052033;
   background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+  box-shadow: 0 0 14px rgba(58, 168, 255, 0.35);
 }
 
 .ex-step__text {
@@ -661,9 +661,9 @@
 .ex-suggest {
   margin-top: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid rgba(255, 171, 0, 0.55);
+  border: 1px solid rgba(58, 168, 255, 0.55);
   border-radius: var(--radius-md);
-  background: rgba(255, 171, 0, 0.10);
+  background: rgba(58, 168, 255, 0.10);
 }
 
 .ex-suggest__title {
@@ -674,7 +674,7 @@
 .ex-suggest__value {
   font-size: var(--text-h2);
   font-weight: 800;
-  color: #ffc24b;
+  color: #3aa8ff;
 }
 
 .ex-suggest__note {
@@ -792,7 +792,7 @@
 
 .bodymap-zone:hover {
   border-color: rgba(143, 244, 255, 0.55);
-  background: rgba(0, 240, 255, 0.08);
+  background: rgba(58, 168, 255, 0.08);
 }
 
 .bodymap-zone--active {

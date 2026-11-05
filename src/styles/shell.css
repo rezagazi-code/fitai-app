@@ -96,8 +96,14 @@
   height: 22px;
 }
 
+.tabbar-center {
+  --btn-burst-color: #3aa8ff;
+  --btn-shadow: 0 0 16px rgba(58, 168, 255, 0.12);
+}
+
 .tabbar-center:active {
-  transform: scale(0.93);
+  transform: scale(0.95);
+  animation: fitai-btn-burst 0.5s ease-out;
 }
 
 .tabbar-center--active {
@@ -132,7 +138,7 @@
   background: linear-gradient(
     135deg,
     rgba(46, 156, 255, 0.10),
-    rgba(0, 240, 255, 0.03)
+    rgba(58, 168, 255, 0.03)
   );
   border: 1px solid var(--border-subtle);
   border-inline-start: 3px solid var(--accent-blue);
@@ -318,7 +324,7 @@
    muted meta, so the today card reads without squinting. */
 .home-cascade .card-meta {
   font-size: 0.9375rem;
-  color: #dbe2ee;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 @keyframes fitai-home-cascade {
@@ -350,7 +356,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(46, 156, 255, 0.22), rgba(0, 240, 255, 0.08));
+  background: linear-gradient(135deg, rgba(46, 156, 255, 0.22), rgba(58, 168, 255, 0.08));
   border: 1px solid rgba(46, 156, 255, 0.32);
   color: var(--accent-cyan);
   box-shadow: inset 0 1px 0 rgba(244, 246, 251, 0.1);
@@ -377,7 +383,7 @@
   border: 1px solid transparent;
   background:
     linear-gradient(165deg, rgba(24, 32, 52, 0.98), rgba(14, 18, 30, 0.98)) padding-box,
-    linear-gradient(135deg, rgba(46, 156, 255, 0.35), rgba(46, 199, 211, 0.10) 45%, rgba(46, 156, 255, 0.05)) border-box;
+    linear-gradient(135deg, rgba(46, 156, 255, 0.35), rgba(58, 168, 255, 0.10) 45%, rgba(46, 156, 255, 0.05)) border-box;
   box-shadow:
     var(--shadow-card),
     0 0 24px rgba(46, 156, 255, 0.05);
@@ -390,7 +396,7 @@
   position: absolute;
   inset: 0 0 auto 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(46, 199, 211, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(58, 168, 255, 0.3), transparent);
 }
 
 .today-ribbon {
@@ -409,7 +415,7 @@
   height: 7px;
   border-radius: var(--radius-full);
   background: var(--accent-cyan);
-  box-shadow: 0 0 6px rgba(46, 199, 211, 0.45);
+  box-shadow: 0 0 6px rgba(58, 168, 255, 0.45);
   /* No perpetual pulse: the old infinite pulse was eye-strain. */
 }
 

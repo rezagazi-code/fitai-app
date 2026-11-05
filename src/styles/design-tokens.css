@@ -11,9 +11,8 @@
 
 :root {
   /* ---------- Color: foundation ---------- */
-  --bg-base: #1f2d4d;          /* page background — lifted again
-    from #141b29 (2026-11-04 vibrant order: the slate still read
-    gloomy); a brighter sporty navy, still dark enough for white text */
+  --bg-base: #0c0c10;          /* top of the black-to-gray page gradient
+    (2026-11-05 two-color order: near-black top, mid-gray bottom) */
   --bg-elevated: #243457;      /* raised surfaces */
   --surface: #233154;          /* cards, sheets */
   --surface-2: #273654;        /* inset rows, secondary surfaces */
@@ -24,19 +23,19 @@
      measured 3.99:1 on the base — below WCAG AA. Both secondary
      and muted are now AAA-safe; muted is reserved for small,
      non-essential labels only. */
-  --text-primary: #f5f7fc;
-  --text-secondary: #e2e8f5;
-  --text-muted: #bcc6da;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.88);
+  --text-muted: rgba(255, 255, 255, 0.85);
 
   /* ---------- Color: accents (re-skinnable pair) ---------- */
   --accent-blue: #3aa8ff;      /* primary neon — CTA, active states (vivid step up) */
-  --accent-cyan: #17d6c3;      /* secondary — vivid sporty teal; still
+  --accent-cyan: #3aa8ff;      /* secondary — vivid sporty teal; still
     no glare: glow alphas unchanged, only the hue value is livelier */
-  --accent-volt: #b8f135;      /* energy accent — sport vitality
+  --accent-volt: #3aa8ff;      /* energy accent — sport vitality
     (sparingly: PR flashes, day-total highlights), never full-bleed */
-  --accent-danger: #ff5470;    /* warnings/destructive ONLY */
-  --accent-success: #3ddc84;   /* records, completions, positive feedback */
-  --accent-gold: #ffd166;      /* celebration, PRs, badges */
+  --accent-danger: #ff5252;    /* warnings/destructive ONLY */
+  --accent-success: #3aa8ff;   /* records, completions, positive feedback */
+  --accent-gold: #3aa8ff;      /* celebration, PRs, badges */
 
   /* ---------- Color: borders ---------- */
   --border-subtle: rgba(244, 246, 251, 0.09);
@@ -75,8 +74,8 @@
   --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(244, 246, 251, 0.05);
   --shadow-card-hover: 0 14px 34px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(244, 246, 251, 0.07);
   --shadow-glow-blue: 0 0 18px rgba(46, 156, 255, 0.16);
-  --shadow-glow-cyan: 0 0 14px rgba(46, 199, 211, 0.10);
-  --shadow-glow-gold: 0 0 26px rgba(255, 209, 102, 0.30);
+  --shadow-glow-cyan: 0 0 14px rgba(58, 168, 255, 0.10);
+  --shadow-glow-gold: 0 0 26px rgba(58, 168, 255, 0.30);
   --shadow-jewel: 0 8px 22px rgba(46, 156, 255, 0.28),
     0 2px 8px rgba(0, 0, 0, 0.4),
     inset 0 1px 2px rgba(255, 255, 255, 0.35),
@@ -90,10 +89,10 @@
   --dur-med: 0.25s;
 
   /* ---------- Gradients (dossier §5: energy from color, not clutter) ---------- */
-  --grad-cta: linear-gradient(135deg, #2e9cff 0%, #0fb8ff 55%, #2ec7d3 100%);
-  --grad-headline: linear-gradient(120deg, #5db4ff 0%, #2ec7d3 100%);
+  --grad-cta: linear-gradient(135deg, #2e9cff 0%, #0fb8ff 55%, #3aa8ff 100%);
+  --grad-headline: linear-gradient(120deg, #5db4ff 0%, #3aa8ff 100%);
   --grad-card-sheen: linear-gradient(160deg, rgba(244, 246, 251, 0.055), transparent 42%);
-  --grad-pr: linear-gradient(135deg, #ffd166 0%, #ffb020 100%);
+  --grad-pr: linear-gradient(135deg, #3aa8ff 0%, #2e9cff 100%);
 }
 
 /* ============================================================
@@ -101,7 +100,10 @@
  * ============================================================ */
 .fitai-root {
   font-family: var(--font-stack);
-  background: var(--bg-base);
+  /* Black-to-gray page gradient (2026-11-05 order): near-black top,
+     real mid-gray bottom — sits behind every tab. */
+  background: linear-gradient(180deg, #0c0c10 0%, #565861 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: var(--leading-normal);
 }
@@ -139,7 +141,7 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   background: var(--accent-blue);
   color: #ffffff;
   font-family: var(--font-stack);
@@ -156,7 +158,7 @@
 }
 
 .btn-primary:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 /* Secondary button — full-width outlined action (monthly program on
@@ -169,7 +171,7 @@
   width: 100%;
   padding: var(--space-3) var(--space-5);
   border: 1.5px solid var(--accent-blue);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   background: rgba(46, 156, 255, 0.08);
   color: var(--text-primary);
   font-family: var(--font-stack);
@@ -181,7 +183,7 @@
 }
 
 .btn-secondary:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 /* Ghost button — quiet secondary action */
@@ -192,7 +194,7 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-stack);
@@ -228,7 +230,7 @@
 .input:focus {
   outline: none;
   border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(58, 168, 255, 0.15);
 }
 
 /* Chip — small label / filter tag */
@@ -260,10 +262,10 @@
   display: inline-flex;
   align-items: center;
   padding: var(--space-1) var(--space-2);
-  border: 1px solid rgba(255, 171, 0, 0.55);
+  border: 1px solid rgba(58, 168, 255, 0.55);
   border-radius: var(--radius-full);
-  background: rgba(255, 171, 0, 0.14);
-  color: #ffc24b;
+  background: rgba(58, 168, 255, 0.14);
+  color: #3aa8ff;
   font-weight: 800;
 }
 
@@ -409,4 +411,44 @@
 
 .pad-inline {
   padding-inline: var(--space-5);
+}
+
+/* ============================================================
+ * Bubble buttons + press burst (2026-11-05 two-color order).
+ * Every shared button is a full pill (999px). On press it scales
+ * to 0.95 AND fires an expanding ring that fades out, colored with
+ * the button's OWN color via --btn-burst-color (blue by default,
+ * red for danger/destructive classes) — never a hardcoded color.
+ * The ring is the button's own box-shadow, so it is not clipped by
+ * overflow:hidden shine layers.
+ * ============================================================ */
+.btn-primary {
+  --btn-burst-color: #3aa8ff;
+  --btn-shadow: 0 6px 22px rgba(46, 156, 255, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.btn-secondary {
+  --btn-burst-color: #3aa8ff;
+  --btn-shadow: 0 0 0 0 transparent;
+}
+
+.btn-ghost {
+  --btn-burst-color: rgba(255, 255, 255, 0.85);
+  --btn-shadow: 0 0 0 0 transparent;
+}
+
+[class*="danger"],
+[class*="destructive"] {
+  --btn-burst-color: #ff5252;
+}
+
+@keyframes fitai-btn-burst {
+  0% { box-shadow: var(--btn-shadow), 0 0 0 0 var(--btn-burst-color, #3aa8ff); }
+  100% { box-shadow: var(--btn-shadow), 0 0 0 18px transparent; }
+}
+
+.btn-primary:active,
+.btn-secondary:active,
+.btn-ghost:active {
+  animation: fitai-btn-burst 0.5s ease-out;
 }

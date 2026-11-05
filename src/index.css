@@ -15,17 +15,12 @@ body,
 
 body {
   margin: 0;
-  /* Brighter sporty navy #1f2d4d + livelier ambient gradients
-   * (2026-11-04 vibrant order). Alphas raised for vitality, still
-   * far below glow territory; no animation on the background. */
-  background:
-    radial-gradient(52rem 34rem at 12% -6%, rgba(58, 168, 255, 0.16), transparent 62%),
-    radial-gradient(46rem 30rem at 94% 4%, rgba(23, 214, 195, 0.12), transparent 60%),
-    radial-gradient(40rem 26rem at 88% 92%, rgba(184, 241, 53, 0.07), transparent 62%),
-    radial-gradient(60rem 44rem at 50% 118%, rgba(46, 60, 255, 0.10), transparent 64%),
-    #1f2d4d;
+  /* Black-to-gray page gradient (2026-11-05 two-color order):
+   * near-black #0c0c10 at the top, real mid-gray #565861 at the
+   * bottom — reads as gray, not as black. No animation. */
+  background: linear-gradient(180deg, #0c0c10 0%, #565861 100%);
   background-attachment: fixed;
-  color: #f4f6fb;
+  color: #ffffff;
   font-family: "Vazirmatn", "IRANSans", Tahoma, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
