@@ -137,8 +137,8 @@ export default function ExerciseDetail({ exercise, target, onBack, onSelect, onB
           <div className="ex-targets">
             <span className="chip set-count">
               {target.reps.endsWith('s')
-                ? `${fmt(target.sets)} ${t('w.set')} · ${target.reps.slice(0, -1)} ${t('w.sec')}`
-                : `${fmt(target.sets)} ${t('w.set')} · ${target.reps} ${t('w.reps')}`}
+                ? <><span className="num-red">{fmt(target.sets)}</span> {t('w.set')} · <span className="num-red">{target.reps.slice(0, -1)}</span> {t('w.sec')}</>
+                : <><span className="num-red">{fmt(target.sets)}</span> {t('w.set')} · <span className="num-red">{target.reps}</span> {t('w.reps')}</>}
             </span>
             <span className="chip">
               ⏱ {fmt(target.restSeconds)} {t('w.sec')} {t('w.rest')}

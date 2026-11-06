@@ -255,6 +255,15 @@
   font-weight: 700;
 }
 
+/* Prescription numbers — Reza 2026-11-06: the set count and the
+ * reps/seconds number are RED so they read at a glance on the program
+ * rows and the exercise-detail targets. Labels keep their own color;
+ * only the numbers go red. */
+.chip .num-red {
+  color: #ff5252;
+  font-weight: 800;
+}
+
 /* Set-count chip — the ONE warm accent in the app, deliberately distinct
  * from the cyan/blue theme so sets × reps read at a glance on dark
  * surfaces. Used everywhere a set count is shown (home card, session,

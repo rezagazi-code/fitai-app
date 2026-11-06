@@ -141,7 +141,7 @@ export default function FourWeekPlan({ program, initialWeek, autoOpen }: FourWee
                                     </span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                       <span className="chip" style={{ whiteSpace: 'nowrap' }}>
-                                        {fmt(sets)} {t('w.sets')} · {pe.reps} {t('w.reps')}
+                                        <span className="num-red">{fmt(sets)}</span> {t('w.sets')} · <span className="num-red">{pe.reps}</span> {t('w.reps')}
                                       </span>
                                       <span aria-hidden="true">{rowOpen ? '⌃' : '⌄'}</span>
                                     </span>
