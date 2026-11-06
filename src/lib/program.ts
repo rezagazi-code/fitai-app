@@ -318,9 +318,11 @@ const INJURY_ALIASES: Record<InjuryKind, string[]> = {
   neck: ['neck', 'گردن'],
 };
 
-function normalizeInjuries(injuries: string[]): InjuryKind[] {
+function normalizeInjuries(injuries: string[] | undefined): InjuryKind[] {
+  // Defensive: coach-loop codes are decoded from pasted text, so a
+  // malformed engine must not crash the panel (was: "not iterable").
   const out: InjuryKind[] = [];
-  for (const raw of injuries) {
+  for (const raw of injuries ?? []) {
     const s = raw.trim().toLowerCase();
     if (!s) continue;
     let matched: InjuryKind | null = null;

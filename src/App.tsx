@@ -9,9 +9,11 @@ import LogTab from './tabs/LogTab';
 import ProgressTab from './tabs/ProgressTab';
 import ProfileTab from './tabs/ProfileTab';
 import OnboardingWizard from './onboarding/OnboardingWizard';
+import CoachRequestSheet, { type CoachDraft } from './components/CoachRequestSheet';
 import WorkoutSession, { type PlanDay } from './session/WorkoutSession';
 import LoginGate, { type LoginProfile } from './components/LoginGate';
 import { getActiveProgram } from './lib/store';
+import { getPendingRequest } from './lib/coachLoop';
 import { nextPlanDay, todayPlanDay } from './session/launch';
 import './styles/shell.css';
 
@@ -32,6 +34,13 @@ function Shell() {
   const [weekRequest, setWeekRequest] = useState<{ week: number; seq: number } | null>(null);
   const [sessionDay, setSessionDay] = useState<PlanDay | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  /** Coach loop (2026-11-06, share-code transport): the wizard can run
+   * in request mode — finishing hands the answers + draft to the
+   * request sheet instead of activating a local program. */
+  const [wizardRequestMode, setWizardRequestMode] = useState(false);
+  const [coachDraft, setCoachDraft] = useState<CoachDraft | null>(null);
+  /** Re-open the pending request (view code / paste response). */
+  const [coachPendingOpen, setCoachPendingOpen] = useState(false);
   // REAL local-profile login gate: first name + last name + phone
   // are REQUIRED (validated inside LoginGate). No SMS, no backend, no
   // server auth yet — the profile is stored locally only, and the
@@ -51,6 +60,12 @@ function Shell() {
   const refresh = useCallback(() => setSeq((s) => s + 1), []);
 
   const openOnboarding = useCallback(() => setOnboardingOpen(true), []);
+
+  /** Trainee asks the coach for a program: wizard in request mode. */
+  const openCoachRequestWizard = useCallback(() => {
+    setWizardRequestMode(true);
+    setOnboardingOpen(true);
+  }, []);
 
   // Daily local reminder: (re)scheduled on every app start from stored
   // settings. Best-effort and silent — never blocks the UI.
@@ -114,6 +129,9 @@ function Shell() {
             key={`workouts-${weekRequest?.seq ?? 0}`}
             onBuildProgram={openOnboarding}
             onStartWorkout={openTodaySession}
+            onRequestCoachProgram={openCoachRequestWizard}
+            onViewPendingRequest={() => setCoachPendingOpen(true)}
+            refreshToken={seq}
             weekRequest={weekRequest}
           />
         )}
@@ -140,8 +158,15 @@ function Shell() {
 
       {onboardingOpen && (
         <OnboardingWizard
+          requestMode={wizardRequestMode}
+          onCoachRequest={(engine, answers, plan) => {
+            setCoachDraft({ engine, answers, plan });
+            setOnboardingOpen(false);
+            setWizardRequestMode(false);
+          }}
           onDone={(quick) => {
             setOnboardingOpen(false);
+            setWizardRequestMode(false);
             refresh();
             // Quick path: land straight on a first set, ~2 minutes
             // after starting — no detour through the home tab. On a
@@ -152,6 +177,26 @@ function Shell() {
               const day = todayPlanDay(program) ?? nextPlanDay(program);
               if (day) setSessionDay(day);
             }
+          }}
+        />
+      )}
+      {coachDraft && (
+        <CoachRequestSheet
+          draft={coachDraft}
+          onClose={() => setCoachDraft(null)}
+          onApplied={() => {
+            setCoachDraft(null);
+            refresh();
+          }}
+        />
+      )}
+      {coachPendingOpen && (
+        <CoachRequestSheet
+          pending={getPendingRequest()}
+          onClose={() => setCoachPendingOpen(false)}
+          onApplied={() => {
+            setCoachPendingOpen(false);
+            refresh();
           }}
         />
       )}

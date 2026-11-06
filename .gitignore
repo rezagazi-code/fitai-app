@@ -32,3 +32,6 @@ npm-debug.log*
 qa-probe/
 
 ios/App/App/public/
+
+# web-only PWA build output (jsDelivr web branch source, never committed)
+dist-web/

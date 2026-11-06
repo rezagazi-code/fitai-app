@@ -18,6 +18,7 @@ import FourWeekPlan from '../components/FourWeekPlan';
 import { getActiveProgram, getAthleteProfile, getSessions } from '../lib/store';
 import { getSchedule } from '../lib/schedule';
 import { markMaxEffortDayDone, maxEffortDue, maxEffortExercises } from '../lib/effort';
+import { clearPendingRequest, fullName, getPendingRequest } from '../lib/coachLoop';
 import {
   EXERCISES,
   MUSCLE_LABELS,
@@ -28,6 +29,14 @@ import {
 interface WorkoutsTabProps {
   onBuildProgram?: () => void;
   onStartWorkout?: () => void;
+  /** Trainee asks the coach for a program (wizard in request mode). */
+  onRequestCoachProgram?: () => void;
+  /** Re-open the pending request (view code / paste response). */
+  onViewPendingRequest?: () => void;
+  /** Bumped by the shell's refresh(): re-reads the active program so a
+   * program that lands while this tab is mounted (coach response apply)
+   * shows immediately instead of the stale "no program yet" card. */
+  refreshToken?: number;
   /** Home week-chip deep-link: open FourWeekPlan on this week. */
   weekRequest?: { week: number; seq: number } | null;
 }
@@ -40,17 +49,19 @@ const GOAL_KEYS: Record<string, string> = {
 };
 
 
-export default function WorkoutsTab({ onBuildProgram, onStartWorkout, weekRequest }: WorkoutsTabProps) {
+export default function WorkoutsTab({ onBuildProgram, onStartWorkout, onRequestCoachProgram, onViewPendingRequest, refreshToken, weekRequest }: WorkoutsTabProps) {
   const { t, lang } = useLang();
   // Detail view only for max-effort taps now; the library browser
   // lives on Home (see components/ExerciseLibrary).
   const [selected, setSelected] = useState<Exercise | null>(null);
+  /** Bumped after cancelling a coach request so the pending card re-reads storage. */
+  const [, setCoachTick] = useState(0);
   // Max-effort day (second-priority): due at most once per 4-week block,
   // only once the user actually has personal records to test.
   const [maxEffortDone, setMaxEffortDone] = useState(false);
   const maxEffortKeys = maxEffortDue() && !maxEffortDone ? maxEffortExercises(4) : [];
 
-  const program = useMemo(() => getActiveProgram(), []);
+  const program = useMemo(() => getActiveProgram(), [refreshToken]);
   // Rest-day honesty: the Start button opens the NEXT session (see App
   // openTodaySession), so on rest days it must SAY so, with the weekday.
   const todaySched = useMemo(
@@ -81,6 +92,61 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout, weekReques
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+      {/* ---------- coach loop: request / waiting status ---------- */}
+      {(() => {
+        // Read fresh on every render: applying a response (in the
+        // App-level sheet) re-renders this tab via the shell refresh.
+        const pendingReq = getPendingRequest();
+        if (pendingReq) {
+          return (
+            <div className="card" data-coach-pending style={{ border: '1px solid #f5b942' }}>
+              <h2 className="card-title">{t('coach.waitingTitle')}</h2>
+              <p className="card-meta" style={{ margin: '0 0 4px' }}>
+                {fullName(pendingReq.trainee)} ·{' '}
+                {new Date(pendingReq.createdAt).toLocaleDateString(lang === 'fa' ? 'fa-IR' : 'en-US')}
+              </p>
+              <p className="card-meta" style={{ margin: '0 0 12px' }}>{t('coach.waitingBody')}</p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ flex: 1 }}
+                  onClick={() => onViewPendingRequest?.()}
+                >
+                  {t('coach.viewCode')}
+                </button>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => {
+                    if (window.confirm(t('coach.cancelConfirm'))) {
+                      clearPendingRequest();
+                      setCoachTick((s) => s + 1);
+                    }
+                  }}
+                >
+                  {t('coach.cancelRequest')}
+                </button>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="card" data-coach-request-entry>
+            <h2 className="card-title">{t('coach.requestProgram')}</h2>
+            <p className="card-meta" style={{ margin: '0 0 12px' }}>{t('coach.requestHint')}</p>
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ width: '100%' }}
+              onClick={() => onRequestCoachProgram?.()}
+            >
+              {t('coach.requestProgram')}
+            </button>
+          </div>
+        );
+      })()}
+
       {/* ---------- active program ---------- */}
       {program ? (
         <div className="card">

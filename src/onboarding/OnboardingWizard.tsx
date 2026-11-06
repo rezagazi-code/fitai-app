@@ -113,6 +113,7 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.mArm': 'بازو',
     'onbw.mThigh': 'ران',
     'onbw.finish': 'ساخت برنامه‌ی من',
+    'onbw.requestFinish': 'ارسال درخواست به مربی',
     'onbw.generating': 'دارم برنامه‌ی مخصوصت رو می‌سازم…',
     'onbw.needSelection': 'اول یه گزینه انتخاب کن 👆',
     'onbw.needEquipment': 'حداقل یه وسیله انتخاب کن',
@@ -220,6 +221,7 @@ export const ONBOARDING_KEYS: Record<Lang, Record<string, string>> = {
     'onbw.mArm': 'Arm',
     'onbw.mThigh': 'Thigh',
     'onbw.finish': 'Build my program',
+    'onbw.requestFinish': 'Send request to coach',
     'onbw.generating': 'Building your personal program…',
     'onbw.needSelection': 'Pick an option first 👆',
     'onbw.needEquipment': 'Select at least one',
@@ -433,9 +435,16 @@ interface OnboardingWizardProps {
    * `quick` is true when the 3-question path was used, so the shell
    * can take the athlete straight to the first set. */
   onDone: (quick?: boolean) => void;
+  /** Coach-request mode (2026-11-06): the wizard asks the SAME
+   * questions and runs the SAME safety gate, but finishing does NOT
+   * build/activate a local program — it hands the answers + the
+   * generated draft to onCoachRequest so the trainee can send the
+   * request to the coach as a share code instead. */
+  requestMode?: boolean;
+  onCoachRequest?: (engine: EngineProfile, answers: UserProfile, plan: WorkoutPlan) => void;
 }
 
-export default function OnboardingWizard({ onDone }: OnboardingWizardProps): ReactElement {
+export default function OnboardingWizard({ onDone, requestMode, onCoachRequest }: OnboardingWizardProps): ReactElement {
   const { t, lang } = useLang();
   const lt = (key: string): string => ONBOARDING_KEYS[lang][key] ?? key;
   const fmtNum = (n: number): string =>
@@ -708,6 +717,16 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
       const plan = generateProgram(toEngineProfile(profile));
       if (!plan || !Array.isArray(plan.days) || plan.days.length === 0) {
         throw new Error('empty plan');
+      }
+      // Coach-request mode: hand the answers + draft to the caller.
+      // Nothing is saved or activated locally — the coach's approved
+      // program lands later via a response code. The safety gate is
+      // unchanged: flagged trainees get the lowest tier + the
+      // clinician note, and the flags ride along for the coach.
+      if (requestMode && onCoachRequest) {
+        saveUserProfile(profile, false);
+        onCoachRequest(toEngineProfile(profile), profile, plan);
+        return;
       }
       const stored = saveProgram({
         name: lt('onbw.programName').replace('{goal}', goalLabel(profile.goal)),
@@ -1285,7 +1304,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
 
   const nextLabel =
     step === 'review' || (mode === 'quick' && step === 'days')
-      ? lt('onbw.finish')
+      ? lt(requestMode ? 'onbw.requestFinish' : 'onbw.finish')
       : step === 'stats' && height.trim() === '' && weight.trim() === '' && age.trim() === ''
         ? lt('onbw.skip')
         : step === 'measures' &&
@@ -1358,7 +1377,7 @@ export default function OnboardingWizard({ onDone }: OnboardingWizardProps): Rea
               onClick={handleFinish}
               disabled={busy}
             >
-              {busy ? lt('onbw.generating') : lt('onbw.finish')}
+              {busy ? lt('onbw.generating') : lt(requestMode ? 'onbw.requestFinish' : 'onbw.finish')}
             </button>
             <button
               type="button"

@@ -22,6 +22,8 @@ import { getExercise, MUSCLE_GROUPS, MUSCLE_LABELS } from '../lib/exercises';
 import { getBannedExerciseKeys, setBannedExercise } from '../lib/banned';
 import { computeHealthScore } from '../lib/healthScore';
 import GymProfilePanel from '../components/GymProfilePanel';
+import CoachPanel from '../components/CoachPanel';
+import MonthlyReportComposer from '../components/MonthlyReportComposer';
 import SupplementLog from '../components/SupplementLog';
 import { downloadDataExport } from '../lib/exportData';
 
@@ -109,6 +111,9 @@ export const PROFILE_KEYS = {
     loginName: 'نام',
     loginPhone: 'تلفن',
     signOut: 'خروج',
+    coachTitle: 'پنل مربی',
+    coachSub: 'درخواست‌های شاگردها را ببین، برنامه را تأیید یا ویرایش کن و گزارش‌های ماهانه‌شان را بخوان.',
+    coachOpen: 'باز کردن پنل مربی',
     exportTitle: 'داده‌هایت، آزادانه مال خودت',
     exportSub: 'همه‌ی چیزی که روی همین گوشی ذخیره شده (برنامه‌ها، جلسات، اندازه‌ها، غذاها، برنامه‌های غذایی) را در یک فایل JSON دانلود کن. بدون حساب کاربری، بدون پرداخت، بدون قفل.',
     exportButton: 'دانلود داده‌هایم (JSON)',
@@ -193,6 +198,9 @@ export const PROFILE_KEYS = {
     loginName: 'Name',
     loginPhone: 'Phone',
     signOut: 'Sign out',
+    coachTitle: 'Coach panel',
+    coachSub: 'See trainees’ requests, approve or edit their programs, and read their monthly reports.',
+    coachOpen: 'Open coach panel',
     exportTitle: 'Your data, free to take',
     exportSub: 'Download everything stored on this device (programs, sessions, measurements, food log, meal plans) as one JSON file. No account, no payment, no lock-in.',
     exportButton: 'Download my data (JSON)',
@@ -381,6 +389,8 @@ export default function ProfileTab(): ReactElement {
     (profile?.priorities ?? []).filter((x) => (MUSCLE_GROUPS as string[]).includes(x)),
   );
   const [justSaved, setJustSaved] = useState(false);
+  /** Coach panel (2026-11-06): full-view overlay, opened from Profile. */
+  const [coachOpen, setCoachOpen] = useState(false);
 
   // The phase is the user's explicit choice, selectable here. It must NOT be
   // silently re-derived from measurements on save: a user who overrode the
@@ -466,6 +476,14 @@ export default function ProfileTab(): ReactElement {
     },
   ];
 
+  if (coachOpen) {
+    return (
+      <div className="home-cascade">
+        <CoachPanel onBack={() => setCoachOpen(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="home-cascade">
       {/* identity hero */}
@@ -524,6 +542,15 @@ export default function ProfileTab(): ReactElement {
         );
       })()}
 
+      {/* coach panel (2026-11-06): requests, approvals, monthly reports */}
+      <section className="card" data-coach-panel-entry>
+        <h2 className="card-title">{k.coachTitle}</h2>
+        <p className="card-meta" style={{ margin: '0 0 12px' }}>{k.coachSub}</p>
+        <button type="button" className="btn-primary" onClick={() => setCoachOpen(true)}>
+          {k.coachOpen}
+        </button>
+      </section>
+
       {/* gym profiles (second-priority) */}
       <GymProfilePanel />
 
@@ -535,6 +562,9 @@ export default function ProfileTab(): ReactElement {
           {k.exportButton}
         </button>
       </section>
+
+      {/* monthly report for the coach (2026-11-06) */}
+      <MonthlyReportComposer />
 
       {/* lifetime stats */}
       <div className="home-stats profile-stats">
