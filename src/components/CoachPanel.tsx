@@ -216,7 +216,17 @@ function clonePlan(plan: WorkoutPlan): WorkoutPlan {
   return JSON.parse(JSON.stringify(plan)) as WorkoutPlan;
 }
 
-export default function CoachPanel({ onBack }: { onBack: () => void }): ReactElement {
+export default function CoachPanel({
+  onBack,
+  embedded,
+}: {
+  /** Back handler for the full-view overlay (Profile). Omitted when
+   * embedded — the host tab is the navigation, so no back row renders. */
+  onBack?: () => void;
+  /** Embedded inside the Programs tab (coach mode): same panel, no
+   * back button — the tab itself is where the coach lives. */
+  embedded?: boolean;
+}): ReactElement {
   const { t, lang } = useLang();
   const k = K[lang];
   const [paste, setPaste] = useState('');
@@ -375,9 +385,11 @@ export default function CoachPanel({ onBack }: { onBack: () => void }): ReactEle
   return (
     <div data-coach-panel style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <button type="button" className="btn-ghost" onClick={onBack}>
-          ← {k.back}
-        </button>
+        {!embedded && (
+          <button type="button" className="btn-ghost" onClick={onBack}>
+            ← {k.back}
+          </button>
+        )}
         <h2 className="card-title" style={{ margin: 0 }}>{k.title}</h2>
       </div>
       <p className="card-meta" style={{ margin: 0 }}>{k.localNote}</p>

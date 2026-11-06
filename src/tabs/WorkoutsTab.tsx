@@ -18,7 +18,8 @@ import FourWeekPlan from '../components/FourWeekPlan';
 import { getActiveProgram, getAthleteProfile, getSessions } from '../lib/store';
 import { getSchedule } from '../lib/schedule';
 import { markMaxEffortDayDone, maxEffortDue, maxEffortExercises } from '../lib/effort';
-import { clearPendingRequest, fullName, getPendingRequest } from '../lib/coachLoop';
+import { clearPendingRequest, fullName, getCoachMode, getPendingRequest } from '../lib/coachLoop';
+import CoachPanel from '../components/CoachPanel';
 import {
   EXERCISES,
   MUSCLE_LABELS,
@@ -92,8 +93,22 @@ export default function WorkoutsTab({ onBuildProgram, onStartWorkout, onRequestC
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-      {/* ---------- coach loop: request / waiting status ---------- */}
+      {/* ---------- coach loop: request / waiting status ----------
+          Role-aware (2026-11-06): in COACH MODE the coach sees the
+          coach view here instead of the trainee request card — the
+          trainees register in the app and the AI sets their program;
+          the coach only approves or corrects it. Trainee mode
+          (default) is exactly as before. */}
       {(() => {
+        if (getCoachMode()) {
+          return (
+            <div className="card" data-coach-view>
+              <h2 className="card-title">{t('coach.coachViewTitle')}</h2>
+              <p className="card-meta" style={{ margin: '0 0 12px' }}>{t('coach.coachViewHint')}</p>
+              <CoachPanel embedded />
+            </div>
+          );
+        }
         // Read fresh on every render: applying a response (in the
         // App-level sheet) re-renders this tab via the shell refresh.
         const pendingReq = getPendingRequest();

@@ -23,6 +23,7 @@ import { getBannedExerciseKeys, setBannedExercise } from '../lib/banned';
 import { computeHealthScore } from '../lib/healthScore';
 import GymProfilePanel from '../components/GymProfilePanel';
 import CoachPanel from '../components/CoachPanel';
+import { getCoachMode, setCoachMode } from '../lib/coachLoop';
 import MonthlyReportComposer from '../components/MonthlyReportComposer';
 import SupplementLog from '../components/SupplementLog';
 import { downloadDataExport } from '../lib/exportData';
@@ -114,6 +115,9 @@ export const PROFILE_KEYS = {
     coachTitle: 'پنل مربی',
     coachSub: 'درخواست‌های شاگردها را ببین، برنامه را تأیید یا ویرایش کن و گزارش‌های ماهانه‌شان را بخوان.',
     coachOpen: 'باز کردن پنل مربی',
+    coachModeLabel: 'من مربی هستم',
+    coachModeHint: 'در حالت مربی، صفحه برنامه‌ها به‌جای درخواست برنامه، درخواست‌های شاگردها را نشان می‌دهد؛ شاگردها در اپ ثبت‌نام می‌کنند و برنامه را از هوش مصنوعی می‌گیرند و تو فقط تأیید یا اصلاح می‌کنی.',
+    coachModeOn: 'حالت مربی فعال است.',
     exportTitle: 'داده‌هایت، آزادانه مال خودت',
     exportSub: 'همه‌ی چیزی که روی همین گوشی ذخیره شده (برنامه‌ها، جلسات، اندازه‌ها، غذاها، برنامه‌های غذایی) را در یک فایل JSON دانلود کن. بدون حساب کاربری، بدون پرداخت، بدون قفل.',
     exportButton: 'دانلود داده‌هایم (JSON)',
@@ -201,6 +205,9 @@ export const PROFILE_KEYS = {
     coachTitle: 'Coach panel',
     coachSub: 'See trainees’ requests, approve or edit their programs, and read their monthly reports.',
     coachOpen: 'Open coach panel',
+    coachModeLabel: 'I am the coach',
+    coachModeHint: 'In coach mode, the Programs tab shows your trainees’ requests instead of a program request; trainees sign up in the app, the AI sets their program, and you only approve or correct it.',
+    coachModeOn: 'Coach mode is on.',
     exportTitle: 'Your data, free to take',
     exportSub: 'Download everything stored on this device (programs, sessions, measurements, food log, meal plans) as one JSON file. No account, no payment, no lock-in.',
     exportButton: 'Download my data (JSON)',
@@ -391,6 +398,10 @@ export default function ProfileTab(): ReactElement {
   const [justSaved, setJustSaved] = useState(false);
   /** Coach panel (2026-11-06): full-view overlay, opened from Profile. */
   const [coachOpen, setCoachOpen] = useState(false);
+  /** Coach mode (2026-11-06): Reza is the admin/coach on this phone.
+   * ON = the Programs tab shows the coach view instead of the
+   * trainee request card. Persisted locally (fitai.coachMode). */
+  const [coachMode, setCoachModeState] = useState(() => getCoachMode());
 
   // The phase is the user's explicit choice, selectable here. It must NOT be
   // silently re-derived from measurements on save: a user who overrode the
@@ -541,6 +552,31 @@ export default function ProfileTab(): ReactElement {
           </section>
         );
       })()}
+
+      {/* coach mode toggle (2026-11-06): this phone belongs to the
+          admin/coach — in coach mode the Programs tab shows the
+          trainees' requests instead of the trainee request card. */}
+      <section className="card" data-coach-mode>
+        <h2 className="card-title">{k.coachModeLabel}</h2>
+        <p className="card-meta" style={{ margin: '0 0 12px' }}>{k.coachModeHint}</p>
+        <button
+          type="button"
+          className={coachMode ? 'btn-primary' : 'btn-ghost'}
+          style={{ width: '100%' }}
+          aria-pressed={coachMode}
+          data-coach-mode-toggle
+          onClick={() => {
+            const next = !coachMode;
+            setCoachMode(next);
+            setCoachModeState(next);
+          }}
+        >
+          {coachMode ? `✓ ${k.coachModeLabel}` : k.coachModeLabel}
+        </button>
+        {coachMode && (
+          <p className="card-meta" style={{ margin: '8px 0 0' }}>{k.coachModeOn}</p>
+        )}
+      </section>
 
       {/* coach panel (2026-11-06): requests, approvals, monthly reports */}
       <section className="card" data-coach-panel-entry>

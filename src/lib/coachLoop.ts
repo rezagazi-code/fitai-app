@@ -203,6 +203,28 @@ const K = {
   sentMonthly: 'fitai.coach.sentMonthly',
 };
 
+/** Coach mode (2026-11-06): Reza is the admin/coach on this phone.
+ * ON = the Programs tab shows the coach view (trainee requests +
+ * monthly reports) instead of the trainee request card. Default OFF
+ * (trainee view). Persisted locally, same device, no server. */
+const COACH_MODE_KEY = 'fitai.coachMode';
+
+export function getCoachMode(): boolean {
+  try {
+    return localStorage.getItem(COACH_MODE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setCoachMode(on: boolean): void {
+  try {
+    localStorage.setItem(COACH_MODE_KEY, on ? '1' : '0');
+  } catch {
+    /* storage unavailable — mode applies for this session only */
+  }
+}
+
 function read<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
